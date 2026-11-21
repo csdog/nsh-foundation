@@ -81,6 +81,8 @@ pub mod menubar;
 mod menubar_examples;
 pub mod message;
 mod message_examples;
+pub mod message_scroller;
+mod message_scroller_examples;
 mod ui;
 
 use nsh_core::prelude::*;

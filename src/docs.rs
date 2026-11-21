@@ -14,7 +14,7 @@ use crate::{
     date_picker_examples, dialog_examples, dropdown_menu_examples, empty_examples, examples,
     field_examples, hover_card_examples, input_examples, input_group_examples, input_otp_examples,
     item_examples, kbd_examples, label_examples, marker_examples, menubar_examples,
-    message_examples,
+    message_examples, message_scroller_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -172,6 +172,7 @@ enum DocsPage {
     Marker,
     Menubar,
     Message,
+    MessageScroller,
 }
 
 type ComponentRoute = (
@@ -442,6 +443,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#message",
         "message-docs-scroll",
         message_page,
+    ),
+    (
+        DocsPage::MessageScroller,
+        "Message Scroller",
+        "#message-scroller",
+        "message-scroller-docs-scroll",
+        message_scroller_page,
     ),
 ];
 
@@ -2240,6 +2248,60 @@ fn message_page() -> View {
     .child(api_row("Message / MessageGroup", "Choose start or end alignment. Group consecutive rows with the same sender."))
     .child(api_row("MessageAvatar", "Attach an avatar or reserve its gutter with empty. The avatar sits at the bottom of the message surface above its footer."))
     .child(api_row("MessageContent / MessageHeader / MessageFooter", "Compose one or more surfaces with optional sender metadata and actions. Use flush for a ghost bubble."))
+}
+
+fn message_scroller_page() -> View {
+    macro_rules! demo {
+        ($name:ident, $source:literal, $label:literal) => {
+            example(
+                $label,
+                message_scroller_examples::$name(),
+                include_str!("message_scroller_examples.rs"),
+                include_str!(concat!(
+                    "../references/message-scroller-tsx/message-scroller-",
+                    $source,
+                    ".tsx"
+                )),
+            )
+        };
+    }
+    component_article(
+        DocsPage::MessageScroller,
+        "Keep a conversation readable as messages stream in, history loads, or the reader jumps between turns.",
+        "https://ui.shadcn.com/docs/components/base/message-scroller",
+    )
+    .child(demo!(demo, "demo", "Message Scroller demo"))
+    .child(heading("Usage"))
+    .child(code_block(r#"let handle = MessageScrollerHandle::new();
+MessageScroller::new(handle, messages)
+    .auto_scroll(true)
+    .render(|item| {
+        text(move || item.with(|item| item.value.clone())).into_element()
+    })"#))
+    .child(heading("Anchoring Turns"))
+    .child(demo!(anchoring, "anchoring", "Anchoring Turns"))
+    .child(heading("Group Chat"))
+    .child(demo!(group_chat, "group-chat", "Group Chat"))
+    .child(heading("Keeping Context Visible"))
+    .child(demo!(previous_context, "previous-context", "Keeping Context Visible"))
+    .child(heading("Following the Live Edge"))
+    .child(demo!(streaming, "streaming", "Following the Live Edge"))
+    .child(heading("Opening Saved Threads"))
+    .child(demo!(opening_position, "opening-position", "Opening Saved Threads"))
+    .child(heading("Loading Earlier Messages"))
+    .child(demo!(load_history, "load-history", "Loading Earlier Messages"))
+    .child(heading("Animating New Messages"))
+    .child(demo!(animation, "animation", "Animating New Messages"))
+    .child(heading("Jumping to Messages"))
+    .child(demo!(commands, "commands", "Jumping to Messages"))
+    .child(heading("Tracking the Reader’s Position"))
+    .child(demo!(visibility, "visibility", "Tracking the Reader’s Position"))
+    .child(heading("Reading Scroll State"))
+    .child(demo!(scrollable, "scrollable", "Reading Scroll State"))
+    .child(heading("API Reference"))
+    .child(api_row("MessageScroller", "Provide a keyed transcript, opening position, previous-item peek and optional follow-output. Native scrolling stays available via touch, wheel and keyboard."))
+    .child(api_row("MessageScrollerItem", "Give each row a stable ID. Set anchor on any message or marker that begins a turn."))
+    .child(api_row("MessageScrollerHandle", "Scroll to the start, end or a named row. Read the visible messages, current anchor and available scroll directions."))
 }
 
 fn component_page(
