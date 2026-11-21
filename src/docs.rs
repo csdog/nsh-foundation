@@ -14,7 +14,7 @@ use crate::{
     date_picker_examples, dialog_examples, dropdown_menu_examples, empty_examples, examples,
     field_examples, hover_card_examples, input_examples, input_group_examples, input_otp_examples,
     item_examples, kbd_examples, label_examples, marker_examples, menubar_examples,
-    message_examples, message_scroller_examples,
+    message_examples, message_scroller_examples, native_select_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -173,6 +173,7 @@ enum DocsPage {
     Menubar,
     Message,
     MessageScroller,
+    NativeSelect,
 }
 
 type ComponentRoute = (
@@ -450,6 +451,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#message-scroller",
         "message-scroller-docs-scroll",
         message_scroller_page,
+    ),
+    (
+        DocsPage::NativeSelect,
+        "Native Select",
+        "#native-select",
+        "native-select-docs-scroll",
+        native_select_page,
     ),
 ];
 
@@ -2302,6 +2310,47 @@ MessageScroller::new(handle, messages)
     .child(api_row("MessageScroller", "Provide a keyed transcript, opening position, previous-item peek and optional follow-output. Native scrolling stays available via touch, wheel and keyboard."))
     .child(api_row("MessageScrollerItem", "Give each row a stable ID. Set anchor on any message or marker that begins a turn."))
     .child(api_row("MessageScrollerHandle", "Scroll to the start, end or a named row. Read the visible messages, current anchor and available scroll directions."))
+}
+
+fn native_select_page() -> View {
+    macro_rules! demo {
+        ($name:ident, $source:literal, $label:literal) => {
+            example(
+                $label,
+                native_select_examples::$name(),
+                include_str!("native_select_examples.rs"),
+                include_str!(concat!(
+                    "../references/native-select-tsx/native-select-",
+                    $source,
+                    ".tsx"
+                )),
+            )
+        };
+    }
+    component_article(
+        DocsPage::NativeSelect,
+        "Choose one value from a compact, keyboard-accessible list.",
+        "https://ui.shadcn.com/docs/components/base/native-select",
+    )
+    .child(demo!(demo, "demo", "Native Select demo"))
+    .child(heading("Usage"))
+    .child(code_block(r#"NativeSelect::new("Status")
+    .option(NativeSelectOption::new("", "Select status"))
+    .option(NativeSelectOption::new("todo", "Todo"))
+    .option(NativeSelectOption::new("done", "Done"))"#))
+    .child(muted("The Rust control uses Native Shell’s Select API. Desktop opens an anchored list, and touch devices use a bottom sheet."))
+    .child(heading("Groups"))
+    .child(demo!(groups, "groups", "Groups"))
+    .child(heading("Disabled"))
+    .child(demo!(disabled, "disabled", "Disabled"))
+    .child(heading("Invalid"))
+    .child(demo!(invalid, "invalid", "Invalid"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("NativeSelect", "Set a default value or bind a Rust signal. Use disabled or invalid for field state, and size to choose the control height."))
+    .child(api_row("NativeSelectOption", "Provide a unique value and visible label. Disabled options are skipped during selection."))
+    .child(api_row("NativeSelectOptGroup", "Group related options under a heading. Disabling a group disables each of its options."))
 }
 
 fn component_page(
