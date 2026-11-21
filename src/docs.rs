@@ -10,7 +10,7 @@ use crate::{
     attachment_examples, avatar_examples, badge_examples, breadcrumb_examples, bubble_examples,
     button_examples, button_group_examples, calendar_examples, card_examples, carousel_examples,
     chart_examples, checkbox_examples, code_block_examples, collapsible_examples,
-    combobox_examples, command_examples, context_menu_examples, examples,
+    combobox_examples, command_examples, context_menu_examples, data_table_examples, examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -151,6 +151,7 @@ enum DocsPage {
     Combobox,
     Command,
     ContextMenu,
+    DataTable,
 }
 
 type ComponentRoute = (
@@ -308,6 +309,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#context-menu",
         "context-menu-docs-scroll",
         context_menu_page,
+    ),
+    (
+        DocsPage::DataTable,
+        "Data Table",
+        "#data-table",
+        "data-table-docs-scroll",
+        data_table_page,
     ),
 ];
 
@@ -1324,6 +1332,54 @@ fn context_menu_page() -> View {
     .child(api_row("ContextMenu", "Pass in a trigger view. An optional placement chooses the preferred popup side. Native Shell may flip the popup to fit or show it as a sheet on compact touch devices."))
     .child(api_row("ContextMenuItem", "Attach an on_select callback. Use checkbox or radio for checked state. Shortcut labels describe application key bindings."))
     .child(api_row("Labels, separators and submenus", "Use these parts to compose groups or reveal additional actions without leaving the current context."))
+}
+
+fn data_table_page() -> View {
+    const RUST: &str = include_str!("data_table_examples.rs");
+    component_article(
+        DocsPage::DataTable,
+        "Build interactive tables with typed rows, sorting, filtering, and pagination.",
+        "https://ui.shadcn.com/docs/components/base/data-table",
+    )
+    .child(example(
+        "Data Table demo",
+        data_table_examples::demo(),
+        RUST,
+        include_str!("../references/data-table-tsx/data-table-demo.tsx"),
+    ))
+    .child(heading("Set up Table Features"))
+    .child(muted("Pass your Rust records and column definitions to DataTable::new. The table keeps page, filter, sort, visibility, and selection state."))
+    .child(heading("Basic Table"))
+    .child(code_block("let columns = vec![\n    DataTableColumn::new(\"Email\", 224.0, |row: &Payment| {\n        text(row.email.to_ascii_lowercase()).text_sm()\n    }).flexible(),\n];\nlet table = DataTable::new(\"Payments\", payments, columns);"))
+    .child(heading("Cell Formatting"))
+    .child(muted("Give each column a renderer. The payments example lowercases emails and formats amounts as US dollars. Call align_end() to align a column's header and cells."))
+    .child(heading("Row Actions"))
+    .child(muted("Render an action menu in a column. The sample menu copies the payment ID and displays customer or payment details inline."))
+    .child(heading("Pagination"))
+    .child(muted("This preview uses two rows per page so you can try Previous, Next, and page-level selection."))
+    .child(example(
+        "Pagination",
+        data_table_examples::pagination(),
+        RUST,
+        include_str!("../references/data-table-tsx/data-table-pagination.tsx"),
+    ))
+    .child(heading("Sorting"))
+    .child(muted("Attach a comparator with sortable(). Clicking the Email header switches between ascending and descending order."))
+    .child(heading("Filtering"))
+    .child(muted("Call filter() with a field accessor. The input matches text without regard to case and returns to the first page on each edit."))
+    .child(heading("Visibility"))
+    .child(muted("The Columns menu controls which fields are shown. Use always_visible() for controls that should stay available."))
+    .child(heading("Row Selection"))
+    .child(muted("The header checkbox controls the current page. The footer counts selected rows across all matching pages."))
+    .child(heading("Reusable Components"))
+    .child(muted("Use the same typed column definitions in multiple tables. Each table keeps its own sort order, pagination, and column visibility."))
+    .child(heading("RTL"))
+    .child(example(
+        "RTL",
+        data_table_examples::rtl(),
+        RUST,
+        include_str!("../references/data-table-tsx/data-table-rtl.tsx"),
+    ))
 }
 
 fn component_page(

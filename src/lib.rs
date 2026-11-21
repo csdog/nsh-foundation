@@ -44,6 +44,8 @@ pub mod command;
 mod command_examples;
 pub mod context_menu;
 mod context_menu_examples;
+pub mod data_table;
+mod data_table_examples;
 mod docs;
 pub mod drawer;
 mod examples;
