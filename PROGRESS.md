@@ -1,12 +1,12 @@
 # nsh-foundation 组件进度
 
-更新于 2026-11-21。已发布 **35 / 66**，待开始 **31 / 66**。下一项是 **Label（#36）**。[实施计划](PLAN.md)
+更新于 2026-11-21。已发布 **36 / 66**，待开始 **30 / 66**。下一项是 **Marker（#37）**。[实施计划](PLAN.md)
 
 ## 已交付基线
 
-- **Drawer** 含 9 个交互示例及 Preview / Rust / TSX 标签。v35 将 16 px 内边距统一应用到 `DrawerContent`，边缘面板默认留 8 px 外边距。开关沿用 Rhea 面板缓动曲线，滑入 450 ms，普通滑出 400 ms。拖拽关闭的跟随动画根据松手速度缩短，遮罩持续变淡，短拖回弹后恢复。打开嵌套抽屉时父层保持挂载并淡出内容。Chromium 在 1280 × 900 和 390 × 844 验证了间距、开关位移、嵌套淡入淡出、触摸回弹、拖拽关闭和减少动态效果设置。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#drawer) · [组件源码](src/drawer.rs) · [TSX 参考](references/drawer-tsx/)
-- **线上版本**为 43，发布提交为 `bf5b7bc`，新增 Kbd。Web 打包和 WASM 内容校验已完成。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#kbd)
-- **基线复测**于 2026-11-21 通过 `cargo fmt --check` 和 `cargo test --offline --locked`，共 78 项 Rust 测试。
+- **Drawer** 含 9 个交互示例及 Preview / Rust / TSX 标签。v35 将 16 px 内边距统一应用到 `DrawerContent`，边缘面板默认留 8 px 外边距。开关沿用 Rhea 面板缓动曲线，滑入 450 ms，普通滑出 400 ms。拖拽关闭的跟随动画根据松手速度缩短，遮罩持续变淡，短拖回弹后恢复。打开嵌套抽屉时父层保持挂载并淡出内容。Chromium 在 1280 × 900 和 390 × 844 验证了间距、开关位移、嵌套淡入淡出、触摸回弹、拖拽关闭和减少动态效果设置，v44 回归复测通过。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#drawer) · [组件源码](src/drawer.rs) · [TSX 参考](references/drawer-tsx/)
+- **线上版本**为 44，发布提交为 `da71207`，新增 Label。Web 打包和 WASM 内容校验已完成。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#label)
+- **基线复测**于 2026-11-21 通过 `cargo fmt --check` 和 `cargo test --offline --locked`，共 79 项 Rust 测试。
 - **设计参考**已固定 shadcn/ui 源码版本，Obra 预览图已保存。可编辑的 Figma 原文件仍未获取。[参考资料记录](references/README.md)
 - **Accordion** 已发布于 v7（`7abbcb5`），含 7 个官方示例及 Preview / Rust / TSX。支持默认与受控状态、单项与多项展开、禁用、方向键和 RTL。15 项 Rust 测试、Web 打包及 WASM 校验已通过，浏览器视觉核验受预览端口限制。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#accordion) · [组件源码](src/accordion.rs) · [TSX 参考](references/accordion-tsx/)
 - **Alert** 已发布于 v8（`1e44dc4`），含 6 个官方示例及 Preview / Rust / TSX。支持普通和 destructive 样式、自定义主题颜色、操作按钮和 RTL。无头测试覆盖移动端交互、复制代码和历史导航。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#alert) · [组件源码](src/alert.rs) · [TSX 参考](references/alert-tsx/)
@@ -42,6 +42,7 @@
 - **Input OTP** 已发布于 v41（`ea92533`），含 10 个官方示例及 Preview / Rust / TSX。使用一个原生输入框和组合式 Group、Slot、Separator，支持自定义字符规则、受控值、格式化粘贴、错误状态和验证码自动填充提示。Chromium 在 1280 × 900 和 390 × 844 验证了键盘编辑、数字归一化、完整粘贴替换、禁用、错误说明关联、RTL 视觉顺序和值保留。验证与重发使用本地示例数据。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#input-otp) · [组件源码](src/input_otp.rs) · [TSX 参考](references/input-otp-tsx/)
 - **Item** 已发布于 v42（`9affb99`），含 11 个官方示例及 Preview / Rust / TSX。提供三种样式、三种尺寸、媒体、正文、操作区、整行链接和通栏头尾。Chromium 在 1280 × 900 和 390 × 844 验证了本地图片、链接和独立操作、菜单选项、RTL、明暗主题和导航。Header 示例在窄屏使用单列。歌曲链接指向组件文档，邀请和选择只更新本地预览。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#item) · [组件源码](src/item.rs) · [TSX 参考](references/item-tsx/)
 - **Kbd** 已发布于 v43（`bf5b7bc`），含 6 个官方示例及 Preview / Rust / TSX。提供按键标签、符号名称、组合键和不同容器的配色。Chromium 在 1280 × 900 和 390 × 844 验证了按钮操作、Tooltip 悬停与键盘焦点、RTL 顺序、主题和导航。搜索框绑定平台对应的组合键，旧 Input Group 页采用相同样式并通过回归复测。Save 和 Print 使用本地演示反馈，Tooltip 内的快捷键用于展示。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#kbd) · [组件源码](src/kbd.rs) · [TSX 参考](references/kbd-tsx/)
+- **Label** 已发布于 v44（`da71207`），含 3 个官方预览及 Preview / Rust / TSX。通过 `ElementRef` 关联控件，控件自身提供可访问名称，`FieldLabel` 共用关联逻辑。Rust 测试覆盖禁用状态。Chromium 在桌面和触屏尺寸验证了标签激活、Tab 顺序、空格键切换、RTL 状态保留，并复测 Field 和 Input OTP。桌面点击标签可聚焦复选框，触屏点按会切换状态。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#label) · [组件源码](src/label.rs) · [TSX 参考](references/label-tsx/)
 
 ## 按官方顺序跟踪
 
@@ -84,8 +85,8 @@
 | 33 | Input OTP | 已发布 |
 | 34 | Item | 已发布 |
 | 35 | Kbd | 已发布 |
-| 36 | Label | 待开始 · 下一项 |
-| 37 | Marker | 待开始 |
+| 36 | Label | 已发布 |
+| 37 | Marker | 待开始 · 下一项 |
 | 38 | Menubar | 待开始 |
 | 39 | Message | 待开始 |
 | 40 | Message Scroller | 待开始 |
