@@ -1,12 +1,12 @@
 # nsh-foundation 组件进度
 
-更新于 2026-11-21。已发布 **47 / 66**，待开始 **19 / 66**。下一项是 **Resizable（#48）**。[实施计划](PLAN.md)
+更新于 2026-11-21。已发布 **48 / 66**，待开始 **18 / 66**。下一项是 **Scroll Area（#49）**。[实施计划](PLAN.md)
 
 ## 已交付基线
 
 - **Drawer** 含 9 个交互示例及 Preview / Rust / TSX 标签。v51（`1857e44`）按 Rhea 将 16 px 留白放回 Header、Footer 和各示例正文，正文可独立设置内边距。边缘面板默认留 8 px 外边距，浮动示例为 16 px。滑入 450 ms，普通滑出 320 ms，面板和遮罩在普通关闭时使用同一条缓动曲线。拖拽关闭继续按松手速度调整时长。Chromium 在 1280 × 900 和 390 × 844 验证了间距、逐帧位移、遮罩淡出、触摸拖拽、嵌套层、浮动间距、自定义尺寸和紧凑吸附点；减少动态效果模式也已复测。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#drawer) · [组件源码](src/drawer.rs) · [TSX 参考](references/drawer-tsx/)
-- **线上版本**为 56，发布提交为 `8fe9b87`，新增 Radio Group。Web 打包和 WASM 内容校验已完成。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#radio-group)
-- **基线复测**于 2026-11-21 通过 `cargo fmt --check` 和 `cargo test --offline --locked`，共 91 项 Rust 测试（全量复测使用去除调试符号的构建）。
+- **线上版本**为 57，发布提交为 `9ae2dab`，新增 Resizable。Web 打包和 WASM 内容校验已完成。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#resizable)
+- **基线复测**于 2026-11-21 通过 `cargo fmt --check` 和 `cargo test --offline --locked`，共 94 项 Rust 测试（全量复测使用去除调试符号的构建）。
 - **设计参考**已固定 shadcn/ui 源码版本，Obra 预览图已保存。可编辑的 Figma 原文件仍未获取。[参考资料记录](references/README.md)
 - **Accordion** 已发布于 v7（`7abbcb5`），含 7 个官方示例及 Preview / Rust / TSX。支持默认与受控状态、单项与多项展开、禁用、方向键和 RTL。15 项 Rust 测试、Web 打包及 WASM 校验已通过，浏览器视觉核验受预览端口限制。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#accordion) · [组件源码](src/accordion.rs) · [TSX 参考](references/accordion-tsx/)
 - **Alert** 已发布于 v8（`1e44dc4`），含 6 个官方示例及 Preview / Rust / TSX。支持普通和 destructive 样式、自定义主题颜色、操作按钮和 RTL。无头测试覆盖移动端交互、复制代码和历史导航。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#alert) · [组件源码](src/alert.rs) · [TSX 参考](references/alert-tsx/)
@@ -54,6 +54,7 @@
 - **Progress** 已发布于 v54（`0968031`），含 4 个官方示例及 Preview / Rust / TSX。支持受控进度、自定义范围及标签、当前值的无障碍语义、RTL 和减少动态效果。未知进度显示空轨道并省略当前值。89 项 Rust 测试通过。Chromium 在 1280 × 900 和 390 × 844 验证了定时更新、逐帧填充、减少动态效果、滑块键盘和触控操作、RTL 对齐和本地化百分比。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#progress) · [组件源码](src/progress.rs) · [TSX 参考](references/progress-tsx/)
 - **Questionnaire** 已发布于 v55（`11e3df4`），含 14 个官方示例及 Preview / Rust / TSX。支持单选、多选、自由输入、显式跳过、快捷键、跨题校验、受控步骤、草稿重置、条件项、自定义进度、动画、Card 和 Dialog。演示使用预置草稿，提交仅更新本地反馈。90 项 Rust 测试通过。Chromium 在 1280 × 900 和 390 × 844 验证了全部示例、校验焦点、草稿重置、隐藏答案过滤、键盘和触控操作。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#questionnaire) · [组件源码](src/questionnaire.rs) · [TSX 参考](references/questionnaire-tsx/)
 - **Radio Group** 已发布于 v56（`8fe9b87`），含 7 个官方示例及 Preview / Rust / TSX。支持默认值、受控状态、描述、选项卡片、禁用和无效态。方向键按当前组的阅读方向移动，循环并跳过禁用项。91 项 Rust 测试通过。Chromium 在 1280 × 900 和 390 × 844 验证了互斥选中、Tab 焦点、卡片点击、无障碍状态、RTL 切换保留选中以及代码标签。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#radio-group) · [组件源码](src/radio_group.rs) · [TSX 参考](references/radio-group-tsx/)
+- **Resizable** 已发布于 v57（`9ae2dab`），含 4 个官方示例及 Preview / Rust / TSX。支持横竖嵌套、百分比尺寸、最小和最大约束、受控布局、可见抓手及 RTL。键盘步长为一个百分点，Home 和 End 到达边界。94 项 Rust 测试通过。Chromium 在 1280 × 900 和 390 × 844 验证了鼠标、键盘和触控拖动、嵌套尺寸、无障碍数值、RTL 切换保留比例及代码标签。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#resizable) · [组件源码](src/resizable.rs) · [TSX 参考](references/resizable-tsx/)
 
 ## 按官方顺序跟踪
 
@@ -108,8 +109,8 @@
 | 45 | Progress | 已发布 |
 | 46 | Questionnaire | 已发布 |
 | 47 | Radio Group | 已发布 |
-| 48 | Resizable | 待开始 · 下一项 |
-| 49 | Scroll Area | 待开始 |
+| 48 | Resizable | 已发布 |
+| 49 | Scroll Area | 待开始 · 下一项 |
 | 50 | Select | 待开始 |
 | 51 | Separator | 待开始 |
 | 52 | Sheet | 待开始 |
