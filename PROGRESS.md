@@ -1,12 +1,12 @@
 # nsh-foundation 组件进度
 
-更新于 2026-11-21。已发布 **58 / 66**，本地完成待发布 **7 / 66**，待开始 **1 / 66**。下一项是 **Typography（#66）**。[实施计划](PLAN.md)
+更新于 2026-11-21。**66 / 66 项已实现并完成本地验证**。其中 **58 项已发布**，第 59 至 66 项待 Sites 源码推送授权。[实施计划](PLAN.md)
 
 ## 已交付基线
 
 - **Drawer** 含 9 个交互示例及 Preview / Rust / TSX 标签。v51（`1857e44`）按 Rhea 将 16 px 留白放回 Header、Footer 和各示例正文，正文可独立设置内边距。边缘面板默认留 8 px 外边距，浮动示例为 16 px。滑入 450 ms，普通滑出 320 ms，面板和遮罩在普通关闭时使用同一条缓动曲线。拖拽关闭继续按松手速度调整时长。Chromium 在 1280 × 900 和 390 × 844 验证了间距、逐帧位移、遮罩淡出、触摸拖拽、嵌套层、浮动间距、自定义尺寸和紧凑吸附点；减少动态效果模式也已复测。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#drawer) · [组件源码](src/drawer.rs) · [TSX 参考](references/drawer-tsx/)
-- **线上版本**为 67，发布提交为 `ffd9488`，新增 Table。Web 打包和 WASM 内容校验已完成。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#table)
-- **基线复测**于 2026-11-21 通过 `cargo fmt --check` 和 `cargo test --offline --locked`，共 115 项 Rust 测试（全量复测使用去除调试符号的构建）。
+- **线上版本**为 67，发布提交为 `ffd9488`，新增 Table。完整的 66 项已通过本地 Web 打包、WASM 内容校验和目录直达测试。最终构建再次验证了 Drawer 的间距、进出场、触摸拖动及减少动态效果模式。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#table)
+- **基线复测**于 2026-11-21 通过 `cargo fmt --check` 和 `cargo test --offline --locked`，共 116 项 Rust 测试（全量复测使用去除调试符号的构建）。
 - **设计参考**已固定 shadcn/ui 源码版本，Obra 预览图已保存。可编辑的 Figma 原文件仍未获取。[参考资料记录](references/README.md)
 - **Accordion** 已发布于 v7（`7abbcb5`），含 7 个官方示例及 Preview / Rust / TSX。支持默认与受控状态、单项与多项展开、禁用、方向键和 RTL。15 项 Rust 测试、Web 打包及 WASM 校验已通过，浏览器视觉核验受预览端口限制。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#accordion) · [组件源码](src/accordion.rs) · [TSX 参考](references/accordion-tsx/)
 - **Alert** 已发布于 v8（`1e44dc4`），含 6 个官方示例及 Preview / Rust / TSX。支持普通和 destructive 样式、自定义主题颜色、操作按钮和 RTL。无头测试覆盖移动端交互、复制代码和历史导航。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#alert) · [组件源码](src/alert.rs) · [TSX 参考](references/alert-tsx/)
@@ -81,6 +81,8 @@
 
 - **Trace** 已在本地完成（`299423a`），含 16 个官方示例及 Preview / Rust / TSX。支持状态、标题截断、描述、嵌套折叠、受控展开、资源链接、Dialog、Sheet 和文件差异。聊天、推理和工具记录用本地测试数据分阶段回放，TSX 保留上游聊天夹具适配器。部分图标用字符呈现，示例内的文件与部署跳转改为对应公开文档。Chromium 在 1280 × 900、390 × 844 和 320 × 844 验证了全部示例、窄屏描述留位、减少动态效果、弹层、链接、差异和回放。Rust 测试验证受控展开和工具回放重置。Web 已打包并通过 WASM 校验，Sites 源码推送授权待确认。[组件源码](src/trace.rs) · [TSX 参考](references/trace-tsx/)
 
+- **Typography** 已在本地完成（`595f005`），含 15 个官方示例及 Preview / Rust / TSX。实现四级标题、段落、引用、列表、代码标记、辅助文字和可换行的双色表格。完整文章保留英语、阿拉伯语和希伯来语素材，行内链接使用 Native Shell 链接组件并指向官方文档。Chromium 在 1280 × 900、390 × 844 和 320 × 844 验证了标题层级、键盘和触摸链接、窄屏表格、RTL、主题、代码标签和 66 项目录顺序。Rust 测试验证标题级别和表格角色。Web 已打包并通过 WASM 校验，Sites 源码推送授权待确认。[组件源码](src/typography.rs) · [TSX 参考](references/typography-tsx/)
+
 ## 按官方顺序跟踪
 
 以下按 2026-11-21 的 **All Components** 排列。新增组件从第一个「待开始」条目开始。每完成一项，更新状态并记录已覆盖的示例、验证结果、已知差异和部署版本。[shadcn/ui 组件目录](https://ui.shadcn.com/docs/components#all-components)
@@ -152,4 +154,4 @@
 | 63 | Toggle Group | 本地完成 · 待发布 |
 | 64 | Tooltip | 本地完成 · 待发布 |
 | 65 | Trace | 本地完成 · 待发布 |
-| 66 | Typography | 待开始 · 下一项 |
+| 66 | Typography | 本地完成 · 待发布 |
