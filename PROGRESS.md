@@ -1,12 +1,12 @@
 # nsh-foundation 组件进度
 
-更新于 2026-11-21。已发布 **53 / 66**，待开始 **13 / 66**。下一项是 **Skeleton（#54）**。[实施计划](PLAN.md)
+更新于 2026-11-21。已发布 **54 / 66**，待开始 **12 / 66**。下一项是 **Slider（#55）**。[实施计划](PLAN.md)
 
 ## 已交付基线
 
 - **Drawer** 含 9 个交互示例及 Preview / Rust / TSX 标签。v51（`1857e44`）按 Rhea 将 16 px 留白放回 Header、Footer 和各示例正文，正文可独立设置内边距。边缘面板默认留 8 px 外边距，浮动示例为 16 px。滑入 450 ms，普通滑出 320 ms，面板和遮罩在普通关闭时使用同一条缓动曲线。拖拽关闭继续按松手速度调整时长。Chromium 在 1280 × 900 和 390 × 844 验证了间距、逐帧位移、遮罩淡出、触摸拖拽、嵌套层、浮动间距、自定义尺寸和紧凑吸附点；减少动态效果模式也已复测。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#drawer) · [组件源码](src/drawer.rs) · [TSX 参考](references/drawer-tsx/)
-- **线上版本**为 62，发布提交为 `effff22`，新增 Sidebar。Web 打包和 WASM 内容校验已完成。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#sidebar)
-- **基线复测**于 2026-11-21 通过 `cargo fmt --check` 和 `cargo test --offline --locked`，共 100 项 Rust 测试（全量复测使用去除调试符号的构建）。
+- **线上版本**为 63，发布提交为 `3699695`，新增 Skeleton。Web 打包和 WASM 内容校验已完成。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#skeleton)
+- **基线复测**于 2026-11-21 通过 `cargo fmt --check` 和 `cargo test --offline --locked`，共 101 项 Rust 测试（全量复测使用去除调试符号的构建）。
 - **设计参考**已固定 shadcn/ui 源码版本，Obra 预览图已保存。可编辑的 Figma 原文件仍未获取。[参考资料记录](references/README.md)
 - **Accordion** 已发布于 v7（`7abbcb5`），含 7 个官方示例及 Preview / Rust / TSX。支持默认与受控状态、单项与多项展开、禁用、方向键和 RTL。15 项 Rust 测试、Web 打包及 WASM 校验已通过，浏览器视觉核验受预览端口限制。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#accordion) · [组件源码](src/accordion.rs) · [TSX 参考](references/accordion-tsx/)
 - **Alert** 已发布于 v8（`1e44dc4`），含 6 个官方示例及 Preview / Rust / TSX。支持普通和 destructive 样式、自定义主题颜色、操作按钮和 RTL。无头测试覆盖移动端交互、复制代码和历史导航。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#alert) · [组件源码](src/alert.rs) · [TSX 参考](references/alert-tsx/)
@@ -61,6 +61,7 @@
 - **Separator** 已发布于 v60（`849b8d1`），含 5 个官方示例及 Preview / Rust / TSX。支持横竖排列和主题色，装饰线跳过键盘焦点及无障碍树。带名称的分隔线用 Native Shell 静态文字角色提供名称。Chromium 在 1280 × 900 和 390 × 844 验证了横竖尺寸、响应式菜单、RTL、装饰语义、主题和代码标签。Rust 测试覆盖两轴尺寸与带名称的分隔线。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#separator) · [组件源码](src/separator.rs) · [TSX 参考](references/separator-tsx/)
 - **Sheet** 已发布于 v61（`387a059`），含 4 个官方示例及 Preview / Rust / TSX。支持四边定位、组合部件、独立的面板和遮罩动画、可滚动正文及可选关闭按钮。示例表单保存到页面内状态。Chromium 在 1280 × 900 和 390 × 844 验证了边缘布局、进出场、滚轮和触控滚动、表单、键盘焦点、关闭方式、RTL 及代码标签，也复测了减少动态效果。Rust 测试覆盖四边定位和 Escape。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#sheet) · [组件源码](src/sheet.rs) · [TSX 参考](references/sheet-tsx/)
 - **Sidebar** 已发布于 v62（`effff22`），含工作区主示例、受控模式和 RTL 示例及 Preview / Rust / TSX。支持左右边缘、普通／浮动／内嵌样式、三种折叠方式、可配置宽度及桌面状态持久化。手机使用 Sheet。Chromium 在 1280 × 900 和 390 × 844 验证了折叠、动画、菜单、快捷键、触摸导航、RTL 和代码标签，并复测减少动态效果。工作区命令使用本地反馈，图标使用字符和随站头像。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#sidebar) · [组件源码](src/sidebar.rs) · [TSX 参考](references/sidebar-tsx/)
+- **Skeleton** 已发布于 v63（`3699695`），含 7 个官方示例及 Preview / Rust / TSX。支持自定义尺寸与形状、主题色和可关闭的脉冲动画。装饰形状跳过键盘与无障碍树。Sidebar 菜单占位复用该组件。Chromium 在 1280 × 900、390 × 844 和 320 × 844 验证了尺寸、比例、卡片间距、动画、减少动态效果、RTL、主题和代码标签。Rust 测试覆盖 RTL 镜像时尺寸保持一致。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#skeleton) · [组件源码](src/skeleton.rs) · [TSX 参考](references/skeleton-tsx/)
 
 ## 按官方顺序跟踪
 
@@ -121,8 +122,8 @@
 | 51 | Separator | 已发布 |
 | 52 | Sheet | 已发布 |
 | 53 | Sidebar | 已发布 |
-| 54 | Skeleton | 待开始 · 下一项 |
-| 55 | Slider | 待开始 |
+| 54 | Skeleton | 已发布 |
+| 55 | Slider | 待开始 · 下一项 |
 | 56 | Spinner | 待开始 |
 | 57 | Switch | 待开始 |
 | 58 | Table | 待开始 |
