@@ -7,7 +7,8 @@ use nsh_core::{
 
 use crate::{
     accordion_examples, alert_dialog_examples, alert_examples, aspect_ratio_examples,
-    attachment_examples, avatar_examples, badge_examples, breadcrumb_examples, examples,
+    attachment_examples, avatar_examples, badge_examples, breadcrumb_examples, bubble_examples,
+    examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -135,6 +136,7 @@ enum DocsPage {
     Avatar,
     Badge,
     Breadcrumb,
+    Bubble,
 }
 
 type ComponentRoute = (
@@ -201,6 +203,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#breadcrumb",
         "breadcrumb-docs-scroll",
         breadcrumb_page,
+    ),
+    (
+        DocsPage::Bubble,
+        "Bubble",
+        "#bubble",
+        "bubble-docs-scroll",
+        bubble_page,
     ),
 ];
 
@@ -622,6 +631,46 @@ fn breadcrumb_page() -> View {
     .child(heading("API Reference"))
     .child(api_row("BreadcrumbLink", "Open a URL or supply a custom surface and navigation callback."))
     .child(api_row("BreadcrumbSeparator / BreadcrumbEllipsis", "Customize the separator or represent hidden levels."))
+}
+
+fn bubble_page() -> View {
+    macro_rules! demo {
+        ($module:ident, $name:literal, $title:literal) => {
+            example(
+                $title,
+                bubble_examples::$module::preview(),
+                include_str!(concat!("bubble_examples/", stringify!($module), ".rs")),
+                include_str!(concat!("../references/bubble-tsx/bubble-", $name, ".tsx")),
+            )
+        };
+    }
+    component_article(
+        DocsPage::Bubble,
+        "A conversational surface for messages, actions, and reactions.",
+        "https://ui.shadcn.com/docs/components/base/bubble",
+    )
+    .child(demo!(demo, "demo", "Bubble demo"))
+    .child(heading("Usage"))
+    .child(muted("Wrap a message or control in BubbleContent. Set its variant and alignment on Bubble. Use BubbleGroup for consecutive messages."))
+    .child(heading("Variants"))
+    .child(demo!(variants, "variants", "Variants"))
+    .child(heading("Alignment"))
+    .child(demo!(alignment, "alignment", "Alignment"))
+    .child(heading("Bubble Group"))
+    .child(demo!(group_demo, "group-demo", "Bubble Group"))
+    .child(heading("Links and Buttons"))
+    .child(demo!(link_button, "link-button", "Links and Buttons"))
+    .child(heading("Reactions"))
+    .child(demo!(reactions, "reactions", "Reactions"))
+    .child(heading("Show More / Collapsible"))
+    .child(demo!(collapsible, "collapsible", "Show More / Collapsible"))
+    .child(heading("Tooltip"))
+    .child(demo!(tooltip, "tooltip", "Tooltip"))
+    .child(heading("Popover"))
+    .child(demo!(popover, "popover", "Popover"))
+    .child(heading("API Reference"))
+    .child(api_row("Bubble / BubbleContent", "Set the appearance and alignment. Use text, a button, a link, or a custom surface."))
+    .child(api_row("BubbleReactions", "Position reactions at the top or bottom. Give an emoji-only row a descriptive label."))
 }
 
 fn component_page(

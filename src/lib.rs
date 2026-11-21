@@ -18,6 +18,8 @@ pub mod badge;
 mod badge_examples;
 pub mod breadcrumb;
 mod breadcrumb_examples;
+pub mod bubble;
+mod bubble_examples;
 mod docs;
 pub mod drawer;
 mod examples;
