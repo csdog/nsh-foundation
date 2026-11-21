@@ -151,15 +151,24 @@ fn modal_backdrop_dismisses_the_drawer() {
 }
 
 #[test]
-fn code_tab_copies_the_drawer_recipe_and_can_return_to_preview() {
+fn code_tabs_copy_the_selected_language_and_can_return_to_preview() {
     let mut app = start(1280.0, 900.0);
     let region = "role:region[Delivery time]";
-    interact(&mut app, &format!("{region} >> Code"));
+    interact(&mut app, &format!("{region} >> Rust"));
     interact(&mut app, &format!("{region} >> Copy"));
     let source = app.screen().clipboard().unwrap();
     assert!(source.contains("DrawerTrigger::new"));
     assert!(source.contains("DrawerContent::new"));
     assert!(source.contains("DrawerTitle::new"));
+    interact(&mut app, &format!("{region} >> TSX"));
+    assert!(app.shows("shadcn/ui · React + Base UI"));
+    interact(&mut app, &format!("{region} >> Copy"));
+    let source = app.screen().clipboard().unwrap();
+    assert_eq!(
+        source,
+        include_str!("../references/drawer-tsx/drawer-demo.tsx")
+    );
+    assert!(source.contains("<DrawerTrigger"));
     interact(&mut app, &format!("{region} >> Preview"));
     interact(&mut app, "id:delivery-trigger");
     assert!(app.shows("Pick a delivery time"));

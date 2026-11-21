@@ -111,6 +111,17 @@ const RESPONSIVE: &str = r#"DrawerContent::new(drawer, "Edit profile", profile_f
         ..Default::default()
     })"#;
 
+const TSX_DELIVERY: &str = include_str!("../references/drawer-tsx/drawer-demo.tsx");
+const TSX_SIZED: &str = include_str!("../references/drawer-tsx/drawer-custom-size.tsx");
+const TSX_FLOATING: &str = include_str!("../references/drawer-tsx/drawer-floating.tsx");
+const TSX_POSITION: &str = include_str!("../references/drawer-tsx/drawer-sides.tsx");
+const TSX_HANDLE: &str = include_str!("../references/drawer-tsx/drawer-swipe-handle.tsx");
+const TSX_NESTED: &str = include_str!("../references/drawer-tsx/drawer-nested.tsx");
+const TSX_NON_MODAL: &str = include_str!("../references/drawer-tsx/drawer-non-modal.tsx");
+const TSX_SNAP: &str = include_str!("../references/drawer-tsx/drawer-snap-points.tsx");
+const TSX_RESPONSIVE: &str = include_str!("../references/drawer-tsx/drawer-dialog.tsx");
+const TSX_LICENSE: &str = include_str!("../references/drawer-tsx/LICENSE.md");
+
 pub(crate) fn page() -> View {
     let scroll_ref = element_ref();
     let locations = stored([0.0_f32; SECTIONS.len()]);
@@ -118,6 +129,7 @@ pub(crate) fn page() -> View {
     let dark = signal(false);
     let selected = signal(None::<usize>);
     let status = signal(None::<SharedString>);
+    let show_tsx_license = signal(false);
 
     let go = move |index: usize| {
         selected.set(Some(index));
@@ -167,7 +179,7 @@ pub(crate) fn page() -> View {
                     .child(button("Base UI reference", Variant::Outline, || { let _ = open_url(REFERENCE); }))
                     .child(button("Source", Variant::Ghost, || { let _ = open_url(SOURCE); }))),
         )
-        .child(example("Delivery time", delivery, SIMPLE))
+        .child(example("Delivery time", delivery, SIMPLE, TSX_DELIVERY))
         .child(delivery_panel)
         .child(
             section("Installation", 0, locations)
@@ -177,42 +189,47 @@ pub(crate) fn page() -> View {
         .child(
             section("Usage", 1, locations)
                 .child(muted("Pass the same Drawer to DrawerTrigger and DrawerContent. Build the content from DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter, and DrawerClose."))
-                .child(code_block(SIMPLE)),
+                .child(code_block(SIMPLE))
+                .child(muted("The TSX tabs show React examples for shadcn/ui with Base UI. Use them in a project with the referenced components installed. The delivery example also needs Sonner’s Toaster."))
+                .child(view().items_start().child(button("TSX license", Variant::Outline, move || {
+                    show_tsx_license.update(|open| *open = !*open);
+                })))
+                .child(when(show_tsx_license, || code_block(TSX_LICENSE))),
         )
         .child(section("Composition", 2, locations)
             .child(muted("The trigger can sit anywhere in the layout. DrawerContent supplies the window layer and backdrop, and mounts its children when the drawer opens."))
             .child(code_block("Drawer\n├── DrawerTrigger\n└── DrawerContent\n    ├── DrawerPortal + DrawerOverlay\n    ├── DrawerHeader\n    │   ├── DrawerTitle\n    │   └── DrawerDescription\n    └── DrawerFooter\n        └── DrawerClose")))
         .child(section("Custom Sizes", 3, locations)
             .child(muted("Use height for vertical drawers and width for side drawers. Put long content in a scroll view."))
-            .child(example("Custom Sizes", custom_size, SIZED))
+            .child(example("Custom Sizes", custom_size, SIZED, TSX_SIZED))
             .child(custom_size_panel))
         .child(section("Styling", 4, locations)
             .child(muted("Drawers use the popover, foreground, border, and muted theme tokens. Set inset to float the surface away from the viewport edge."))
-            .child(example("Styling", floating, FLOATING))
+            .child(example("Styling", floating, FLOATING, TSX_FLOATING))
             .child(floating_panel))
         .child(section("Examples", 5, locations))
         .child(section("Position", 6, locations)
             .child(muted("Open the drawer from any of the four screen edges."))
-            .child(example("Position", positions, POSITION))
+            .child(example("Position", positions, POSITION, TSX_POSITION))
             .child(position_panels))
         .child(section("Swipe Handle", 7, locations)
             .child(muted("Drag the handle toward the edge to dismiss the drawer."))
-            .child(example("Swipe Handle", swipe, HANDLE))
+            .child(example("Swipe Handle", swipe, HANDLE, TSX_HANDLE))
             .child(swipe_panel))
         .child(section("Nested", 8, locations)
             .child(muted("Open up to four drawers. Close the topmost drawer to return to the previous one."))
-            .child(example("Nested", nested, NESTED))
+            .child(example("Nested", nested, NESTED, TSX_NESTED))
             .child(nested_panel))
         .child(section("Non Modal", 9, locations)
             .child(muted("Scroll and interact with this page while the drawer stays open."))
-            .child(example("Non Modal", non_modal, NON_MODAL)))
+            .child(example("Non Modal", non_modal, NON_MODAL, TSX_NON_MODAL)))
         .child(section("Snap Points", 10, locations)
             .child(muted("Drag the drawer between a compact peek and its full height."))
-            .child(example("Snap Points", snap, SNAP))
+            .child(example("Snap Points", snap, SNAP, TSX_SNAP))
             .child(snap_panel))
         .child(section("Responsive", 11, locations)
             .child(muted("Edit the profile in a desktop dialog or a mobile drawer."))
-            .child(example("Responsive", responsive, RESPONSIVE))
+            .child(example("Responsive", responsive, RESPONSIVE, TSX_RESPONSIVE))
             .child(responsive_panel))
         .child(section("API Reference", 12, locations)
             .child(muted("Use Drawer::new with an open signal. Drawer::nested links a child to a parent that remains mounted."))
@@ -421,8 +438,20 @@ fn sidebar(go: impl Fn(usize) + Copy + 'static) -> View {
         )
 }
 
-fn example(label: &'static str, contents: impl IntoElement, source: &'static str) -> View {
-    let show_code = signal(false);
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum ExampleTab {
+    Preview,
+    Rust,
+    Tsx,
+}
+
+fn example(
+    label: &'static str,
+    contents: impl IntoElement,
+    rust: &'static str,
+    tsx: &'static str,
+) -> View {
+    let selected = signal(ExampleTab::Preview);
     view()
         .role(AccessibilityRole::Region)
         .label(label)
@@ -439,22 +468,42 @@ fn example(label: &'static str, contents: impl IntoElement, source: &'static str
                 .py_2()
                 .border_b(px(1.0))
                 .border_color(move || theme().border)
-                .child(tab("Preview", show_code, false))
-                .child(tab("Code", show_code, true)),
+                .child(tab("Preview", selected, ExampleTab::Preview))
+                .child(tab("Rust", selected, ExampleTab::Rust))
+                .child(tab("TSX", selected, ExampleTab::Tsx)),
         )
         .child(
             view()
-                .style_when(show_code, |style| style.hidden())
+                .style_when(
+                    move || selected.get() != ExampleTab::Preview,
+                    |style| style.hidden(),
+                )
                 .min_h(px(248.0))
                 .p_4()
                 .items_center()
                 .justify_center()
                 .child(contents),
         )
-        .child(when(show_code, move || code_block(source)))
+        .child(when(
+            move || selected.get() == ExampleTab::Rust,
+            move || code_block(rust),
+        ))
+        .child(when(
+            move || selected.get() == ExampleTab::Tsx,
+            move || {
+                view()
+                    .child(
+                        view()
+                            .px_3()
+                            .py_2()
+                            .child(muted("shadcn/ui · React + Base UI")),
+                    )
+                    .child(code_panel(tsx, true))
+            },
+        ))
 }
 
-fn tab(label: &'static str, selected: Signal<bool>, value: bool) -> View {
+fn tab(label: &'static str, selected: Signal<ExampleTab>, value: ExampleTab) -> View {
     button(label, Variant::Ghost, move || selected.set(value))
         .accessibility_state(move || AccessibilityState {
             selected: selected.get() == value,
@@ -470,6 +519,10 @@ fn tab(label: &'static str, selected: Signal<bool>, value: bool) -> View {
 }
 
 fn code_block(value: &'static str) -> View {
+    code_panel(value, false)
+}
+
+fn code_panel(value: &'static str, scrollable: bool) -> View {
     let copied = signal(false);
     let reset = stored(None::<Spawned<()>>);
     view()
@@ -493,12 +546,18 @@ fn code_block(value: &'static str) -> View {
                 .child(when(copied, || muted("Copied"))),
             ),
         )
-        .child(
-            text(value)
-                .text_sm()
-                .font_family("monospace")
-                .selectable(true),
-        )
+        .child(if scrollable {
+            scroll().h(px(340.0)).child(code_text(value)).into_element()
+        } else {
+            code_text(value).into_element()
+        })
+}
+
+fn code_text(value: &'static str) -> Text {
+    text(value)
+        .text_sm()
+        .font_family("monospace")
+        .selectable(true)
 }
 
 fn api_row(name: &'static str, description: &'static str) -> View {
