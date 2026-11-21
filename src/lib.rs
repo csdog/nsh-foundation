@@ -4,6 +4,8 @@ extern crate self as nsh_foundation;
 
 pub mod accordion;
 mod accordion_examples;
+pub mod alert;
+mod alert_examples;
 mod docs;
 pub mod drawer;
 mod examples;

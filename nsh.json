@@ -6,7 +6,7 @@
   "rust": ".",
   "root": "App",
   "window": {
-    "title": "Drawer \u00b7 nsh-foundation"
+    "title": "nsh-foundation · Components"
   },
   "appearance": "light"
 }

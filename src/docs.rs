@@ -6,7 +6,7 @@ use nsh_core::{
 };
 
 use crate::{
-    accordion_examples, examples,
+    accordion_examples, alert_examples, examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -122,27 +122,57 @@ const TSX_SNAP: &str = include_str!("../references/drawer-tsx/drawer-snap-points
 const TSX_RESPONSIVE: &str = include_str!("../references/drawer-tsx/drawer-dialog.tsx");
 const TSX_LICENSE: &str = include_str!("../references/drawer-tsx/LICENSE.md");
 
+#[derive(Clone, Copy, Default, PartialEq, Eq)]
+enum DocsPage {
+    #[default]
+    Drawer,
+    Accordion,
+    Alert,
+}
+
+impl DocsPage {
+    fn label(self) -> &'static str {
+        match self {
+            Self::Drawer => "Drawer",
+            Self::Accordion => "Accordion",
+            Self::Alert => "Alert",
+        }
+    }
+
+    fn anchor(self) -> &'static str {
+        match self {
+            Self::Drawer => "#drawer",
+            Self::Accordion => "#accordion",
+            Self::Alert => "#alert",
+        }
+    }
+
+    fn from_url(url: &str) -> Self {
+        [Self::Accordion, Self::Alert]
+            .into_iter()
+            .find(|page| url.ends_with(page.anchor()))
+            .unwrap_or_default()
+    }
+}
+
 pub(crate) fn page() -> View {
     use nsh_core::url_scheme::HistoryBehavior;
 
-    let accordion = signal(false);
+    let page = signal(DocsPage::Drawer);
     let dark = signal(false);
     spawn(async move {
         if let Some(url) = app_url().await {
-            accordion.set(url.ends_with("#accordion"));
+            page.set(DocsPage::from_url(&url));
         }
         loop {
-            accordion.set(next_app_url_change().await.url.ends_with("#accordion"));
+            page.set(DocsPage::from_url(&next_app_url_change().await.url));
         }
     });
-    let navigate = move |show_accordion| {
-        accordion.set(show_accordion);
-        let anchor = if show_accordion {
-            "#accordion"
-        } else {
-            "#drawer"
-        };
-        let _ = set_app_url_with(anchor, HistoryBehavior::Push);
+    let navigate = move |target: DocsPage| {
+        if page.get_untracked() != target {
+            page.set(target);
+            let _ = set_app_url_with(target.anchor(), HistoryBehavior::Push);
+        }
     };
     let toggle_theme = move || {
         dark.update(|enabled| *enabled = !*enabled);
@@ -155,39 +185,66 @@ pub(crate) fn page() -> View {
 
     view()
         .flex_1()
-        .child(when(accordion, move || {
-            accordion_page(move || navigate(false), toggle_theme)
-        }))
         .child(when(
-            move || !accordion.get(),
-            move || drawer_page(move || navigate(true), toggle_theme),
+            move || page.get() == DocsPage::Drawer,
+            move || drawer_page(navigate, toggle_theme),
+        ))
+        .child(when(
+            move || page.get() == DocsPage::Accordion,
+            move || {
+                component_page(
+                    DocsPage::Accordion,
+                    accordion_page(),
+                    navigate,
+                    toggle_theme,
+                    "accordion-docs-scroll",
+                )
+            },
+        ))
+        .child(when(
+            move || page.get() == DocsPage::Alert,
+            move || {
+                component_page(
+                    DocsPage::Alert,
+                    alert_page(),
+                    navigate,
+                    toggle_theme,
+                    "alert-docs-scroll",
+                )
+            },
         ))
 }
 
-fn accordion_page(drawer: impl Fn() + 'static, toggle_theme: impl Fn() + 'static) -> View {
-    let article = view()
+fn component_article(page: DocsPage, description: &'static str, reference: &'static str) -> View {
+    view()
         .w_full()
         .max_w(px(820.0))
         .self_center()
         .p_5()
         .gap_6()
-        .child(muted("Components / Accordion"))
+        .child(muted(format!("Components / {}", page.label())))
         .child(
-            text("Accordion")
+            text(page.label())
                 .role(AccessibilityRole::Header)
                 .text_size(px(42.0))
                 .font_weight(FontWeight::BOLD),
         )
-        .child(muted(
-            "Interactive headings that expand and collapse sections of content.",
-        ))
-        .child(
-            view()
-                .items_start()
-                .child(button("Base UI reference", Variant::Outline, || {
-                    let _ = open_url("https://ui.shadcn.com/docs/components/base/accordion");
-                })),
-        );
+        .child(muted(description))
+        .child(view().items_start().child(button(
+            "Base UI reference",
+            Variant::Outline,
+            move || {
+                let _ = open_url(reference);
+            },
+        )))
+}
+
+fn accordion_page() -> View {
+    let article = component_article(
+        DocsPage::Accordion,
+        "Interactive headings that expand and collapse sections of content.",
+        "https://ui.shadcn.com/docs/components/base/accordion",
+    );
     macro_rules! demo {
         ($name:ident, $title:literal) => {
             example(
@@ -205,7 +262,7 @@ fn accordion_page(drawer: impl Fn() + 'static, toggle_theme: impl Fn() + 'static
             )
         };
     }
-    let article = article
+    article
         .child(demo!(demo, "Accordion demo"))
         .child(heading("Usage"))
         .child(muted("Create an Accordion with the IDs of the items that start open. Each AccordionItem pairs a trigger and a content panel. Pass a signal with with_value to share the selection with the rest of your app."))
@@ -224,8 +281,69 @@ fn accordion_page(drawer: impl Fn() + 'static, toggle_theme: impl Fn() + 'static
         .child(heading("API Reference"))
         .child(api_row("Accordion", "Set defaults, share state with a signal, allow multiple open items, or set the layout direction."))
         .child(api_row("AccordionItem", "Assign a stable ID and optionally disable the trigger."))
-        .child(api_row("AccordionTrigger / AccordionContent", "Set the trigger label and supply any Native Shell elements as panel content."));
+        .child(api_row("AccordionTrigger / AccordionContent", "Set the trigger label and supply any Native Shell elements as panel content."))
+}
 
+fn alert_page() -> View {
+    macro_rules! demo {
+        ($name:ident, $title:literal) => {
+            example(
+                $title,
+                view()
+                    .w_full()
+                    .max_w(px(448.0))
+                    .child(alert_examples::$name::preview()),
+                include_str!(concat!("alert_examples/", stringify!($name), ".rs")),
+                include_str!(concat!(
+                    "../references/alert-tsx/alert-",
+                    stringify!($name),
+                    ".tsx"
+                )),
+            )
+        };
+    }
+    component_article(
+        DocsPage::Alert,
+        "A callout that draws attention to a message or action.",
+        "https://ui.shadcn.com/docs/components/base/alert",
+    )
+    .child(demo!(demo, "Alert demo"))
+    .child(heading("Usage"))
+    .child(muted(
+        "Compose an Alert with a title and description. Add an optional icon or action.",
+    ))
+    .child(heading("Basic"))
+    .child(demo!(basic, "Basic"))
+    .child(heading("Destructive"))
+    .child(demo!(destructive, "Destructive"))
+    .child(heading("Action"))
+    .child(demo!(action, "Action"))
+    .child(heading("Custom Colors"))
+    .child(demo!(colors, "Custom Colors"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row(
+        "Alert",
+        "Set the variant, adaptive colors, or layout direction.",
+    ))
+    .child(api_row(
+        "AlertTitle / AlertDescription",
+        "Set the text or render custom description content.",
+    ))
+    .child(api_row(
+        "AlertAction",
+        "Add an action control beside the message.",
+    ))
+}
+
+fn component_page(
+    page: DocsPage,
+    article: View,
+    navigate: impl Fn(DocsPage) + Copy + 'static,
+    toggle_theme: impl Fn() + 'static,
+    scroll_id: &'static str,
+) -> View {
     view()
         .flex_1()
         .bg(move || theme().background)
@@ -241,10 +359,10 @@ fn accordion_page(drawer: impl Fn() + 'static, toggle_theme: impl Fn() + 'static
                 .border_color(move || theme().border)
                 .child(text("nsh-foundation").font_weight(FontWeight::SEMIBOLD))
                 .child(
-                    view()
+                    component_links(page, navigate)
                         .flex_row()
+                        .items_center()
                         .gap_1()
-                        .child(button("Drawer", Variant::Ghost, drawer))
                         .child(button("Theme", Variant::Ghost, toggle_theme)),
                 ),
         )
@@ -252,13 +370,27 @@ fn accordion_page(drawer: impl Fn() + 'static, toggle_theme: impl Fn() + 'static
             scroll()
                 .flex_1()
                 .min_h(px(0.0))
-                .test_id("accordion-docs-scroll")
+                .test_id(scroll_id)
                 .child(article),
         )
 }
 
+fn component_links(page: DocsPage, navigate: impl Fn(DocsPage) + Copy + 'static) -> View {
+    let mut links = view()
+        .role(AccessibilityRole::Navigation)
+        .label("Components");
+    for target in [DocsPage::Accordion, DocsPage::Alert, DocsPage::Drawer] {
+        if target != page {
+            links = links.child(button(target.label(), Variant::Ghost, move || {
+                navigate(target)
+            }));
+        }
+    }
+    links
+}
+
 fn drawer_page(
-    accordion: impl Fn() + Copy + 'static,
+    navigate: impl Fn(DocsPage) + Copy + 'static,
     toggle_theme: impl Fn() + Copy + 'static,
 ) -> View {
     let scroll_ref = element_ref();
@@ -421,8 +553,10 @@ fn drawer_page(
                             },
                         ))
                         .child(
-                            button("Accordion", Variant::Ghost, accordion)
-                                .test_id("open-accordion-docs"),
+                            button("Accordion", Variant::Ghost, move || {
+                                navigate(DocsPage::Accordion)
+                            })
+                            .test_id("open-accordion-docs"),
                         )
                         .child(button("Theme", Variant::Ghost, toggle_theme)),
                 ),
@@ -432,6 +566,7 @@ fn drawer_page(
                 .p_3()
                 .border_b(px(1.0))
                 .border_color(move || theme().border)
+                .child(component_links(DocsPage::Drawer, navigate).flex_row())
                 .child(section_links(go, selected))
         }))
         .child(
@@ -441,7 +576,7 @@ fn drawer_page(
                 .flex_row()
                 .child(when(
                     || window().width.0 >= 940.0,
-                    move || sidebar(go, accordion),
+                    move || sidebar(go, navigate),
                 ))
                 .child(
                     scroll()
@@ -543,7 +678,10 @@ fn section_links(go: impl Fn(usize) + Copy + 'static, selected: Signal<Option<us
     links
 }
 
-fn sidebar(go: impl Fn(usize) + Copy + 'static, accordion: impl Fn() + 'static) -> View {
+fn sidebar(
+    go: impl Fn(usize) + Copy + 'static,
+    navigate: impl Fn(DocsPage) + Copy + 'static,
+) -> View {
     view()
         .w(px(215.0))
         .flex_shrink_0()
@@ -567,11 +705,7 @@ fn sidebar(go: impl Fn(usize) + Copy + 'static, accordion: impl Fn() + 'static) 
             view()
                 .gap_2()
                 .child(muted("Components"))
-                .child(
-                    view()
-                        .items_start()
-                        .child(button("Accordion", Variant::Ghost, accordion)),
-                )
+                .child(component_links(DocsPage::Drawer, navigate).items_start())
                 .child(view().items_start().child(button(
                     "Drawer",
                     Variant::Secondary,

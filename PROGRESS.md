@@ -1,6 +1,6 @@
 # nsh-foundation 组件进度
 
-更新于 2026-11-21。已发布 **1 / 66**，待发布 **1 / 66**，待开始 **64 / 66**。[实施计划](PLAN.md)
+更新于 2026-11-21。已发布 **2 / 66**，其余 **64 / 66** 正按顺序推进。[实施计划](PLAN.md)
 
 ## 已交付基线
 
@@ -8,7 +8,7 @@
 - **线上版本**为 6，发布提交为 `d5e27be`。Web 打包和 WASM 校验已完成。云端预览端口启动受限，浏览器视觉核验仍待复核。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site)
 - **基线复测**于 2026-11-21 通过 `cargo fmt --check` 和 `cargo test --offline`，共 12 项 Rust 测试。
 - **设计参考**已固定 shadcn/ui 源码版本，Obra 预览图已保存。可编辑的 Figma 原文件仍未获取。[参考资料记录](references/README.md)
-- **Accordion** 已实现 7 个官方示例及 Preview / Rust / TSX，支持默认与受控状态、单选与多选、禁用、方向键和 RTL。新增测试覆盖焦点导航、移动端文档切换、复制代码、直达链接和浏览器历史行为。[组件源码](src/accordion.rs) · [TSX 参考](references/accordion-tsx/)
+- **Accordion** 已发布于 v7（`7abbcb5`），含 7 个官方示例及 Preview / Rust / TSX。支持默认与受控状态、单项与多项展开、禁用、方向键和 RTL。15 项 Rust 测试、Web 打包及 WASM 校验已通过，浏览器视觉核验受预览端口限制。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#accordion) · [组件源码](src/accordion.rs) · [TSX 参考](references/accordion-tsx/)
 
 ## 按官方顺序跟踪
 
@@ -16,8 +16,8 @@
 
 | # | 组件 | 状态 |
 | ---: | --- | --- |
-| 1 | Accordion | 已实现 · 待发布 |
-| 2 | Alert | 待开始 · 下一项 |
+| 1 | Accordion | 已发布 |
+| 2 | Alert | 已实现 · 待发布 |
 | 3 | Alert Dialog | 待开始 |
 | 4 | Aspect Ratio | 待开始 |
 | 5 | Attachment | 待开始 |

@@ -1,6 +1,6 @@
 # nsh-foundation
 
-A Native Shell project written in Rust. The Web target renders a responsive component documentation site and an interactive Drawer gallery.
+A Native Shell component library written in Rust. Its Web gallery includes interactive Drawer, Accordion, and Alert examples with Rust and TSX tabs. Follow the [component plan](PLAN.md) and [release progress](PROGRESS.md).
 
 ## Run
 
