@@ -15,7 +15,7 @@ use crate::{
     field_examples, hover_card_examples, input_examples, input_group_examples, input_otp_examples,
     item_examples, kbd_examples, label_examples, marker_examples, menubar_examples,
     message_examples, message_scroller_examples, native_select_examples, navigation_menu_examples,
-    pagination_examples,
+    pagination_examples, popover_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -177,6 +177,7 @@ enum DocsPage {
     NativeSelect,
     NavigationMenu,
     Pagination,
+    Popover,
 }
 
 type ComponentRoute = (
@@ -475,6 +476,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#pagination",
         "pagination-docs-scroll",
         pagination_page,
+    ),
+    (
+        DocsPage::Popover,
+        "Popover",
+        "#popover",
+        "popover-docs-scroll",
+        popover_page,
     ),
 ];
 
@@ -2452,6 +2460,51 @@ Pagination::new(
     .child(api_row("Pagination / PaginationContent / PaginationItem", "Group page controls in a named navigation landmark."))
     .child(api_row("PaginationLink", "Set the current page and an accessible label. Disable unavailable actions or destinations."))
     .child(api_row("PaginationPrevious / PaginationNext / PaginationEllipsis", "Add directional controls and a visual marker for omitted pages. Previous and next collapse to chevrons below 640 points."))
+}
+
+fn popover_page() -> View {
+    macro_rules! demo {
+        ($function:ident, $reference:literal, $name:literal) => {
+            example(
+                $name,
+                popover_examples::$function(),
+                include_str!("popover_examples.rs"),
+                include_str!(concat!(
+                    "../references/popover-tsx/popover-",
+                    $reference,
+                    ".tsx"
+                )),
+            )
+        };
+    }
+    component_article(
+        DocsPage::Popover,
+        "Show contextual information or a small form next to a trigger.",
+        "https://ui.shadcn.com/docs/components/base/popover",
+    )
+    .child(demo!(demo, "demo", "Popover demo"))
+    .child(heading("Usage"))
+    .child(code_block(r#"Popover::new(
+    PopoverTrigger::new("Open Popover"),
+    PopoverContent::new()
+        .label("Dimensions")
+        .align(Align::Start)
+        .child(PopoverHeader::new()
+            .child(PopoverTitle::new("Dimensions"))
+            .child(PopoverDescription::new("Set the dimensions for the layer."))),
+)"#))
+    .child(heading("Basic"))
+    .child(demo!(basic, "basic", "Basic"))
+    .child(heading("Align"))
+    .child(demo!(alignments, "alignments", "Align"))
+    .child(heading("With Form"))
+    .child(demo!(form, "form", "With Form"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("Popover / PopoverTrigger", "Pair an overlay with a trigger. Use open to share state, or set default_open for the initial state."))
+    .child(api_row("PopoverContent", "Set a side, alignment, offsets and preferred width. Native Shell keeps the overlay within the viewport and flips sides when space is limited."))
+    .child(api_row("PopoverHeader / PopoverTitle / PopoverDescription", "Compose the popup text. Give the content an accessible label and set initial_focus for a desktop form."))
 }
 
 fn component_page(

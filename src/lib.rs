@@ -89,6 +89,8 @@ pub mod navigation_menu;
 mod navigation_menu_examples;
 pub mod pagination;
 mod pagination_examples;
+pub mod popover;
+mod popover_examples;
 mod ui;
 
 use nsh_core::prelude::*;
