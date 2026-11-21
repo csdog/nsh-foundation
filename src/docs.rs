@@ -18,7 +18,7 @@ use crate::{
     pagination_examples, popover_examples, progress_examples, questionnaire_examples,
     radio_group_examples, resizable_examples, scroll_area_examples, select_examples,
     separator_examples, sheet_examples, sidebar_examples, skeleton_examples, slider_examples,
-    spinner_examples,
+    spinner_examples, switch_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -193,6 +193,7 @@ enum DocsPage {
     Skeleton,
     Slider,
     Spinner,
+    Switch,
 }
 
 type ComponentRoute = (
@@ -582,6 +583,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#spinner",
         "spinner-docs-scroll",
         spinner_page,
+    ),
+    (
+        DocsPage::Switch,
+        "Switch",
+        "#switch",
+        "switch-docs-scroll",
+        switch_page,
     ),
 ];
 
@@ -3102,6 +3110,47 @@ Spinner::new().size(24.0).label("Loading messages")"#))
     .child(heading("API Reference"))
     .child(api_row("Spinner", "Choose a size, an inherited or custom color, and an optional replacement icon. Rotation follows the reduced-motion setting."))
     .child(api_row("Accessibility", "A named spinner exposes an indeterminate progress indicator. Use decorative inside a control or message with its own loading description."))
+}
+
+fn switch_page() -> View {
+    macro_rules! demo {
+        ($function:ident, $file:literal, $label:literal) => {
+            example(
+                $label,
+                switch_examples::$function(),
+                include_str!("switch_examples.rs"),
+                include_str!(concat!("../references/switch-tsx/switch-", $file, ".tsx")),
+            )
+        };
+    }
+    component_article(
+        DocsPage::Switch,
+        "Turn a setting on or off.",
+        "https://ui.shadcn.com/docs/components/base/switch",
+    )
+    .child(demo!(demo, "demo", "Switch demo"))
+    .child(heading("Usage"))
+    .child(code_block(r#"Switch::new("Airplane Mode").default_checked(false)
+
+let shared = signal(false);
+Switch::new("Share across devices")
+    .checked(shared)
+    .on_change(move |checked| shared.set(checked))"#))
+    .child(heading("Description"))
+    .child(demo!(description, "description", "Description"))
+    .child(heading("Choice Card"))
+    .child(demo!(choice_card, "choice-card", "Choice Card"))
+    .child(heading("Disabled"))
+    .child(demo!(disabled, "disabled", "Disabled"))
+    .child(heading("Invalid"))
+    .child(demo!(invalid, "invalid", "Invalid"))
+    .child(heading("Size"))
+    .child(demo!(sizes, "sizes", "Size"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("Switch", "Set the accessible name and optional description, initial or controlled value, size, disabled state, and validation state."))
+    .child(api_row("Control reference", "Use control_ref to connect a visible label to the switch and apply label activation to the shared value."))
 }
 
 fn component_page(

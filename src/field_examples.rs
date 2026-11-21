@@ -1,6 +1,5 @@
 use nsh_base::{
-    Input, SelectEntry, SelectItem, SliderValue, input, radio, radio_group, select, slider, switch,
-    theme,
+    Input, SelectEntry, SelectItem, SliderValue, input, radio, radio_group, select, slider, theme,
 };
 use nsh_core::{AccessibilityState, prelude::*};
 
@@ -12,6 +11,8 @@ use crate::{
         Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel, FieldLegend,
         FieldLegendVariant, FieldOrientation, FieldSeparator, FieldSet, FieldTitle,
     },
+    label::Label,
+    switch::Switch,
     ui::muted,
 };
 
@@ -337,22 +338,23 @@ pub fn radio_example() -> impl IntoElement {
 
 pub fn switch_example() -> impl IntoElement {
     let enabled = signal(false);
+    let reference = element_ref();
     narrow().child(
         Field::new()
             .orientation(FieldOrientation::Horizontal)
             .justify_between()
-            .child(FieldLabel::new("Multi-factor authentication").flex_shrink(1.0))
             .child(
-                switch()
-                    .accessibility_label("Multi-factor authentication")
+                Label::new("Multi-factor authentication")
+                    .for_control(reference)
+                    .on_activate(move || enabled.update(|enabled| *enabled = !*enabled))
+                    .surface()
+                    .flex_shrink(1.0),
+            )
+            .child(
+                Switch::new("Multi-factor authentication")
                     .checked(enabled)
-                    .on_change(move |next: &bool| enabled.set(*next))
-                    .flex_shrink_0()
-                    .track_class("w-9 h-5 rounded-full bg-input checked:bg-primary")
-                    .thumb_class(
-                        "size-4 rounded-full bg-background translate-x-0.5 checked:translate-x-4",
-                    )
-                    .focus_visible(|s| s.ring(px(2.0)).ring_color(theme().ring)),
+                    .control_ref(reference)
+                    .on_change(move |next| enabled.set(next)),
             ),
     )
 }
