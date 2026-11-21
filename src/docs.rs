@@ -204,7 +204,7 @@ pub(crate) fn page() -> View {
             .child(example("Custom Sizes", custom_size, SIZED, TSX_SIZED))
             .child(custom_size_panel))
         .child(section("Styling", 4, locations)
-            .child(muted("Drawers use the popover, foreground, border, and muted theme tokens. Set inset to float the surface away from the viewport edge."))
+            .child(muted("Drawers use the popover, foreground, border, and muted theme tokens. Edge drawers sit 8 points from the viewport by default. Set inset to override the gap."))
             .child(example("Styling", floating, FLOATING, TSX_FLOATING))
             .child(floating_panel))
         .child(section("Examples", 5, locations))

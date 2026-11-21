@@ -7,6 +7,11 @@ use nsh_core::{element::ElNode, prelude::*};
 
 use crate::ui::{Variant, button_surface, heading, muted};
 
+const OPEN_MS: u64 = 450;
+const CLOSE_MS: u64 = 400;
+const PANEL_EASING: Easing = Easing::Bezier(0.22, 1.0, 0.36, 1.0);
+const OVERLAY_EASING: Easing = Easing::Bezier(0.32, 0.72, 0.0, 1.0);
+
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub enum Direction {
     Up,
@@ -63,7 +68,7 @@ pub enum Modality {
     NonModal,
 }
 
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy)]
 pub struct DrawerOptions {
     pub direction: Direction,
     pub modality: Modality,
@@ -73,10 +78,27 @@ pub struct DrawerOptions {
     pub height: Option<f32>,
     /// Horizontal size override in points.
     pub width: Option<f32>,
+    /// Gap between the panel and viewport edges in points. Defaults to 8.
     pub inset: f32,
     pub snap_points: &'static [SnapPoint],
     /// Present this surface as a centered, non-draggable dialog.
     pub centered: bool,
+}
+
+impl Default for DrawerOptions {
+    fn default() -> Self {
+        Self {
+            direction: Direction::default(),
+            modality: Modality::default(),
+            show_swipe_handle: false,
+            disable_outside_dismissal: false,
+            height: None,
+            width: None,
+            inset: 8.0,
+            snap_points: &[],
+            centered: false,
+        }
+    }
 }
 
 /// A Rust signal that a trigger opens and the Drawer updates on dismissal.
@@ -179,9 +201,10 @@ impl IntoElement for DrawerContent {
             } else if !mounted.get_untracked() || reduce_motion() {
                 mounted.set(false);
             } else {
-                exit.replace(Some(set_timeout(Duration::from_millis(240), move || {
-                    mounted.set(false)
-                })));
+                exit.replace(Some(set_timeout(
+                    Duration::from_millis(CLOSE_MS + 16),
+                    move || mounted.set(false),
+                )));
             }
         });
         if let Some(parent) = drawer.parent_stack {
@@ -258,11 +281,13 @@ impl DrawerOverlay {
         let modal = options.modality == Modality::Modal;
         let fade = animated_value(0.0);
         effect(move || {
-            let target = if modal && drawer.open.get() { 1.0 } else { 0.0 };
+            let open = drawer.open.get();
+            let target = if modal && open { 1.0 } else { 0.0 };
             if reduce_motion() {
                 fade.set(target);
             } else {
-                let _ = fade.timing(target, 200.0, Easing::EaseOut);
+                let duration = if open { OPEN_MS } else { CLOSE_MS };
+                let _ = fade.timing(target, duration as f32, OVERLAY_EASING);
             }
         });
         let layer = view()
@@ -296,7 +321,16 @@ impl Drawer {
     ) -> View {
         let direction = options.direction;
         let vertical = direction.vertical();
-        let offset = animated_value(0.0);
+        let viewport = untracked(window);
+        let viewport_extent = if vertical {
+            viewport.height.0
+        } else {
+            viewport.width.0
+        };
+        let offset = animated_value(viewport_extent * direction.sign());
+        let measured_extent = stored(0.0_f32);
+        let measured = signal(false);
+        let started = stored(false);
         let moving = stored(false);
         let snapped = vertical && !options.snap_points.is_empty() && !options.centered;
         let extent = move || {
@@ -318,37 +352,39 @@ impl Drawer {
             }
         };
 
-        let offscreen = move || {
-            let size = window();
-            (if vertical {
-                size.height.0
-            } else {
-                size.width.0
-            }) * direction.sign()
-        };
-        offset.set(untracked(offscreen));
         let fade = animated_value(0.0);
         let scale = animated_value(1.0);
         effect(move || {
             let open = self.open.get();
             let behind = self.showing_child.get();
-            let fade_target = if open { 1.0 } else { 0.0 };
+            let reduced = reduce_motion();
+            let duration = if open { OPEN_MS } else { CLOSE_MS };
+            if options.centered {
+                let target = if open { 1.0 } else { 0.0 };
+                if reduced {
+                    fade.set(target);
+                } else {
+                    let _ = fade.timing(target, duration as f32, OVERLAY_EASING);
+                }
+                return;
+            }
+            let measured = measured.get();
             let scale_target = if behind { 0.98 } else { 1.0 };
             let target = if open {
                 position(self.snap_index.get()) - if behind { 22.0 * direction.sign() } else { 0.0 }
             } else {
-                offscreen()
+                (measured_extent.get() + options.inset + 2.0) * direction.sign()
             };
-            if reduce_motion() {
-                fade.set(fade_target);
+            if reduced {
+                started.replace(true);
                 scale.set(scale_target);
                 offset.set(target);
-            } else {
-                let _ = fade.timing(fade_target, 200.0, Easing::EaseOut);
-                let _ = scale.timing(scale_target, 220.0, Easing::EaseOut);
-                if !moving.get() || !open {
-                    let _ = offset.timing(target, 220.0, Easing::EaseOut);
+            } else if measured && (!moving.get() || !open) {
+                if !started.replace(true) {
+                    offset.set((measured_extent.get() + options.inset + 2.0) * direction.sign());
                 }
+                let _ = scale.timing(scale_target, duration as f32, PANEL_EASING);
+                let _ = offset.timing(target, duration as f32, PANEL_EASING);
             }
         });
 
@@ -363,7 +399,6 @@ impl Drawer {
             .border_color(move || theme().border)
             .shadow_lg()
             .overflow_hidden()
-            .bind_opacity(&fade)
             .bind_scale(&scale)
             .test_id("drawer-panel");
 
@@ -374,9 +409,25 @@ impl Drawer {
         if options.centered {
             let width = || (window().width.0 - 32.0).clamp(0.0, 425.0);
             return container_centered(
-                panel.w(move || px(width())).rounded(radius).child(children),
+                panel
+                    .w(move || px(width()))
+                    .rounded(radius)
+                    .bind_opacity(&fade)
+                    .child(children),
             );
         }
+
+        panel = panel.on_layout(move |bounds: &Bounds<Points>| {
+            let length = if vertical {
+                bounds.size.height.0
+            } else {
+                bounds.size.width.0
+            };
+            if length > 0.0 {
+                measured_extent.replace(length);
+                measured.set(true);
+            }
+        });
 
         panel = match direction {
             Direction::Up => panel.top(inset).left(inset).right(inset).rounded_b(radius),
@@ -434,6 +485,9 @@ impl Drawer {
                 })
                 .on_pan_end(move |event: &PanEvent| {
                     moving.replace(false);
+                    if !self.open.get_untracked() {
+                        return;
+                    }
                     let current = self.snap_index.get();
                     let (distance, velocity) = direction.movement(event);
                     let next = if event.cancelled {
@@ -447,15 +501,15 @@ impl Drawer {
                         Some(current)
                     };
                     match next {
-                        Some(index) => {
-                            self.snap_index.set(index);
+                        Some(index) if index == current => {
                             let target = position(index);
                             if reduce_motion() {
                                 offset.set(target);
                             } else {
-                                let _ = offset.timing(target, 220.0, Easing::EaseOut);
+                                let _ = offset.timing(target, OPEN_MS as f32, PANEL_EASING);
                             }
                         }
+                        Some(index) => self.snap_index.set(index),
                         None => self.close(),
                     }
                 })

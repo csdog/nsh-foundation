@@ -7,7 +7,7 @@ use nsh_testing::Headless;
 
 const PANEL: &str = "id:drawer-panel";
 const HANDLE: &str = "id:drawer-swipe-handle";
-const MOTION: Duration = Duration::from_millis(300);
+const MOTION: Duration = Duration::from_millis(500);
 
 fn start(width: f32, height: f32) -> Headless {
     let mut app = Headless::start(EngineConfig {
@@ -63,10 +63,17 @@ fn all_directions_open_and_escape_closes() {
         let position = match edge {
             0 => b.origin.x.0,
             1 => b.origin.y.0,
-            2 => b.origin.y.0 + b.size.height.0 - 900.0,
-            _ => b.origin.x.0 + b.size.width.0 - 1280.0,
+            2 => 900.0 - (b.origin.y.0 + b.size.height.0),
+            _ => 1280.0 - (b.origin.x.0 + b.size.width.0),
         };
-        assert!(position.abs() < 1.0, "{label}: {b:?}");
+        assert!((position - 8.0).abs() < 1.0, "{label}: {b:?}");
+        let (cross_start, cross_end) = if edge == 0 || edge == 3 {
+            (b.origin.y.0, 900.0 - b.origin.y.0 - b.size.height.0)
+        } else {
+            (b.origin.x.0, 1280.0 - b.origin.x.0 - b.size.width.0)
+        };
+        assert!((cross_start - 8.0).abs() < 1.0, "{label}: {b:?}");
+        assert!((cross_end - 8.0).abs() < 1.0, "{label}: {b:?}");
         app.press_key("escape").unwrap();
         app.wait(MOTION).unwrap();
         assert_count(&app, 0);
@@ -136,8 +143,9 @@ fn profile_switches_between_centered_dialog_and_bottom_drawer() {
     let mut mobile = start(390.0, 844.0);
     interact(&mut mobile, "id:responsive-trigger");
     let mobile_panel = panel(&mobile);
-    assert!((mobile_panel.size.width.0 - 390.0).abs() < 1.0);
-    assert!((mobile_panel.origin.y.0 + mobile_panel.size.height.0 - 844.0).abs() < 1.0);
+    assert!((mobile_panel.origin.x.0 - 8.0).abs() < 1.0);
+    assert!((mobile_panel.size.width.0 - 374.0).abs() < 1.0);
+    assert!((mobile_panel.origin.y.0 + mobile_panel.size.height.0 - 836.0).abs() < 1.0);
 }
 
 #[test]
