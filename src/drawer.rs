@@ -269,7 +269,10 @@ impl DrawerOverlay {
             .absolute()
             .inset_0()
             .focusable(false)
-            .bg(hsla(0.0, 0.0, 0.0, if modal { 0.5 } else { 0.0 }))
+            .when(modal, |layer| {
+                // shadcn/ui's Rhea drawer overlay uses bg-black/30 and backdrop-blur-sm.
+                layer.bg(hsla(0.0, 0.0, 0.0, 0.30)).backdrop_blur(px(8.0))
+            })
             .bind_opacity(&fade)
             .test_id("drawer-backdrop");
         let layer = if !options.disable_outside_dismissal {

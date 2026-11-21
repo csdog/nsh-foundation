@@ -141,9 +141,16 @@ fn profile_switches_between_centered_dialog_and_bottom_drawer() {
 }
 
 #[test]
-fn modal_backdrop_dismisses_the_drawer() {
+fn modal_backdrop_uses_the_rhea_tint_and_dismisses_the_drawer() {
     let mut app = start(1280.0, 900.0);
     interact(&mut app, "id:delivery-trigger");
+    let backdrop = app
+        .screen()
+        .view_style("id:drawer-backdrop")
+        .unwrap()
+        .unwrap();
+    assert_eq!(backdrop.background_color, Some(0x0000004d));
+    assert!((backdrop.opacity - 1.0).abs() < 0.01);
     app.press_at("id:drawer-backdrop", point(px(20.0), px(100.0)))
         .unwrap();
     app.wait(MOTION).unwrap();
