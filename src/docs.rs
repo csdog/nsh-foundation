@@ -17,7 +17,7 @@ use crate::{
     message_examples, message_scroller_examples, native_select_examples, navigation_menu_examples,
     pagination_examples, popover_examples, progress_examples, questionnaire_examples,
     radio_group_examples, resizable_examples, scroll_area_examples, select_examples,
-    separator_examples,
+    separator_examples, sheet_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -187,6 +187,7 @@ enum DocsPage {
     ScrollArea,
     Select,
     Separator,
+    Sheet,
 }
 
 type ComponentRoute = (
@@ -541,6 +542,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#separator",
         "separator-docs-scroll",
         separator_page,
+    ),
+    (
+        DocsPage::Sheet,
+        "Sheet",
+        "#sheet",
+        "sheet-docs-scroll",
+        sheet_page,
     ),
 ];
 
@@ -2858,6 +2866,46 @@ Separator::new().orientation(SeparatorOrientation::Vertical)"#))
     .child(heading("API Reference"))
     .child(api_row("Separator", "Horizontal lines fill their container width. Vertical lines stretch to the height of their row."))
     .child(api_row("Accessibility", "A line is decorative by default. Use label to expose a named break as static text in Native Shell."))
+}
+
+fn sheet_page() -> View {
+    macro_rules! demo {
+        ($example:ident, $source:literal, $title:literal) => {
+            example(
+                $title,
+                sheet_examples::$example(),
+                include_str!("sheet_examples.rs"),
+                include_str!(concat!("../references/sheet-tsx/sheet-", $source, ".tsx")),
+            )
+        };
+    }
+    component_article(
+        DocsPage::Sheet,
+        "Open a modal panel along an edge to show content related to the current screen.",
+        "https://ui.shadcn.com/docs/components/base/sheet",
+    )
+    .child(demo!(demo, "demo", "Sheet demo"))
+    .child(heading("Usage"))
+    .child(code_block(r#"let sheet = Sheet::new(signal(false));
+view()
+    .child(SheetTrigger::new(sheet, "Open"))
+    .child(
+        SheetContent::new(sheet, SheetHeader::new(SheetTitle::new("Edit profile")))
+            .side(SheetSide::Right)
+            .footer(move || SheetFooter::new().child(SheetClose::new(sheet, "Close"))),
+    )"#))
+    .child(heading("Composition"))
+    .child(muted("Use a trigger and a content panel with a title. Add a description, scrollable body, and footer actions as needed."))
+    .child(heading("Side"))
+    .child(demo!(sides, "side", "Side"))
+    .child(heading("No Close Button"))
+    .child(demo!(no_close_button, "no-close-button", "No Close Button"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("Sheet / SheetTrigger / SheetClose", "Use a Rust signal for open state and open or close the same panel from separate controls."))
+    .child(api_row("SheetContent", "Choose a physical edge, set text direction, and pass None to close_button to hide the corner control."))
+    .child(api_row("SheetHeader / SheetTitle / SheetDescription / SheetFooter", "Name and describe the modal, with footer actions visible while the body scrolls."))
 }
 
 fn component_page(

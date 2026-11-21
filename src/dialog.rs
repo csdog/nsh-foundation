@@ -399,7 +399,7 @@ impl IntoElement for DialogContent {
     }
 }
 
-fn focus_boundary() -> View {
+pub(crate) fn focus_boundary() -> View {
     // Native Shell removes accessibility-hidden views from the tab order.
     view()
         .absolute()
