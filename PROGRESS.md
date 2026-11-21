@@ -39,7 +39,7 @@
 | 10 | Button | 已发布 |
 | 11 | Button Group | 已发布 |
 | 12 | Calendar | 已发布 |
-| 13 | Card | 待开始 · 下一项 |
+| 13 | Card | 已实现 · 待发布 |
 | 14 | Carousel | 待开始 |
 | 15 | Chart | 待开始 |
 | 16 | Checkbox | 待开始 |

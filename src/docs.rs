@@ -8,7 +8,7 @@ use nsh_core::{
 use crate::{
     accordion_examples, alert_dialog_examples, alert_examples, aspect_ratio_examples,
     attachment_examples, avatar_examples, badge_examples, breadcrumb_examples, bubble_examples,
-    button_examples, button_group_examples, calendar_examples, examples,
+    button_examples, button_group_examples, calendar_examples, card_examples, examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -140,6 +140,7 @@ enum DocsPage {
     Button,
     ButtonGroup,
     Calendar,
+    Card,
 }
 
 type ComponentRoute = (
@@ -234,6 +235,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#calendar",
         "calendar-docs-scroll",
         calendar_page,
+    ),
+    (
+        DocsPage::Card,
+        "Card",
+        "#card",
+        "card-docs-scroll",
+        card_page,
     ),
 ];
 
@@ -858,6 +866,41 @@ fn calendar_page() -> View {
     .child(heading("API Reference"))
     .child(api_row("Calendar", "Select single dates or ranges. Configure months, cell size, unavailable dates, RTL, Persian display and week numbers."))
     .child(api_row("local_today / date_at_offset", "Read the device's local calendar date or interpret a timestamp at a fixed offset."))
+}
+
+fn card_page() -> View {
+    macro_rules! demo {
+        ($module:ident, $function:ident, $name:literal, $title:literal) => {
+            example(
+                $title,
+                card_examples::$module::$function(),
+                include_str!(concat!("card_examples/", stringify!($module), ".rs")),
+                include_str!(concat!("../references/card-tsx/card-", $name, ".tsx")),
+            )
+        };
+    }
+    component_article(
+        DocsPage::Card,
+        "Group a title, description, content, and actions in a surface.",
+        "https://ui.shadcn.com/docs/components/base/card",
+    )
+    .child(demo!(login, preview, "demo", "Card demo"))
+    .child(heading("Composition"))
+    .child(muted("Use CardHeader for CardTitle, CardDescription, and CardAction. Put the main body in CardContent and the actions in CardFooter."))
+    .child(heading("Size"))
+    .child(demo!(small, preview, "small", "Small"))
+    .child(heading("Spacing"))
+    .child(demo!(login, spacing, "spacing", "Spacing"))
+    .child(demo!(edge_to_edge, preview, "edge-to-edge", "Edge to Edge"))
+    .child(heading("Image"))
+    .child(demo!(image, preview, "image", "Image"))
+    .child(heading("RTL"))
+    .child(demo!(login, rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("Card", "Set a size, direction, or shared spacing signal. Use media to place a full-width cover before the header."))
+    .child(api_row("CardHeader / CardTitle / CardDescription / CardAction", "Compose the card heading. The optional action sits at the end of the header."))
+    .child(api_row("CardContent", "Add a main section. Use edge_to_edge to span the card and flush_footer to remove the gap above the footer."))
+    .child(api_row("CardFooter", "Add an action row or a stack of controls."))
 }
 
 fn component_page(

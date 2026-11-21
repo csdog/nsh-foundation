@@ -26,6 +26,8 @@ pub mod button_group;
 mod button_group_examples;
 pub mod calendar;
 mod calendar_examples;
+pub mod card;
+mod card_examples;
 mod docs;
 pub mod drawer;
 mod examples;
