@@ -4,8 +4,8 @@
 
 ## 已交付基线
 
-- **Drawer** 含 9 个交互示例及 Preview / Rust / TSX 标签。面板默认预留 8 px 外边距，示例正文、标题和底部操作对齐在 16 px 内边距。手柄按抽屉方向放在可拖动的内侧边缘。滑入用时 450 ms，普通滑出用时 400 ms，退出时先缓慢起步再滑出。遮罩随拖动位移渐淡，短拖松手后面板和遮罩恢复。甩动关闭按剩余距离和松手速度调整时长，退出后卸载。v33 在 Chromium 的桌面和手机尺寸复核了组件导航、深色主题、三种标签、间距、进出场位移和模拟触摸回弹。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#drawer) · [组件源码](src/drawer.rs) · [TSX 参考](references/drawer-tsx/)
-- **线上版本**为 34，发布提交为 `7756fc8`，新增 Dropdown Menu。Web 打包和 WASM 内容校验已完成。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#dropdown-menu)
+- **Drawer** 含 9 个交互示例及 Preview / Rust / TSX 标签。v35 将 16 px 内边距统一应用到 `DrawerContent`，边缘面板默认留 8 px 外边距。开关沿用 Rhea 面板缓动曲线，滑入 450 ms，普通滑出 400 ms。拖拽关闭的跟随动画根据松手速度缩短，遮罩持续变淡，短拖回弹后恢复。打开嵌套抽屉时父层保持挂载并淡出内容。Chromium 在 1280 × 900 和 390 × 844 验证了间距、开关位移、嵌套淡入淡出、触摸回弹、拖拽关闭和减少动态效果设置。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#drawer) · [组件源码](src/drawer.rs) · [TSX 参考](references/drawer-tsx/)
+- **线上版本**为 35，发布提交为 `8c207df`，更新 Drawer 间距与过渡动画。Web 打包和 WASM 内容校验已完成。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#drawer)
 - **基线复测**于 2026-11-21 通过 `cargo fmt --check` 和 `cargo test --offline --locked`，共 71 项 Rust 测试。
 - **设计参考**已固定 shadcn/ui 源码版本，Obra 预览图已保存。可编辑的 Figma 原文件仍未获取。[参考资料记录](references/README.md)
 - **Accordion** 已发布于 v7（`7abbcb5`），含 7 个官方示例及 Preview / Rust / TSX。支持默认与受控状态、单项与多项展开、禁用、方向键和 RTL。15 项 Rust 测试、Web 打包及 WASM 校验已通过，浏览器视觉核验受预览端口限制。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#accordion) · [组件源码](src/accordion.rs) · [TSX 参考](references/accordion-tsx/)
