@@ -10,6 +10,8 @@ mod alert_dialog_examples;
 mod alert_examples;
 pub mod aspect_ratio;
 mod aspect_ratio_examples;
+pub mod attachment;
+mod attachment_examples;
 mod docs;
 pub mod drawer;
 mod examples;

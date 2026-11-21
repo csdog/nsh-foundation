@@ -69,6 +69,7 @@ fn mobile_docs_link_to_accordion_and_back_to_drawer() {
         app.screen().clipboard().unwrap(),
         include_str!("../references/accordion-tsx/accordion-basic.tsx")
     );
+    app.press("role:button[Components]").unwrap();
     app.press("role:button[Drawer]").unwrap();
     assert!(app.shows("Drawer"));
     assert_eq!(app.screen().count("id:drawer-docs-scroll"), Ok(1));
@@ -80,6 +81,7 @@ fn accordion_deep_link_and_history_restore_the_correct_page() {
     let mut app = Headless::start_at_page(config, "https://foundation.test/#accordion").unwrap();
     app.first_render().unwrap();
     app.wait_for("id:accordion-docs-scroll").unwrap();
+    app.press("role:button[Components]").unwrap();
     app.press("role:button[Drawer]").unwrap();
     assert_eq!(app.browser().url(), Some("https://foundation.test/#drawer"));
     app.browser().back().unwrap();

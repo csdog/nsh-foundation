@@ -39,6 +39,7 @@ fn alert_docs_expose_all_examples_and_the_action_updates_its_message() {
         app.screen().clipboard().unwrap(),
         include_str!("../references/alert-tsx/alert-action.tsx")
     );
+    app.press("role:button[Components]").unwrap();
     app.press("role:button[Accordion]").unwrap();
     assert_eq!(
         app.browser().url(),

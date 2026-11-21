@@ -6,7 +6,8 @@ use nsh_core::{
 };
 
 use crate::{
-    accordion_examples, alert_dialog_examples, alert_examples, aspect_ratio_examples, examples,
+    accordion_examples, alert_dialog_examples, alert_examples, aspect_ratio_examples,
+    attachment_examples, examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -130,6 +131,7 @@ enum DocsPage {
     Alert,
     AlertDialog,
     AspectRatio,
+    Attachment,
 }
 
 impl DocsPage {
@@ -140,6 +142,7 @@ impl DocsPage {
             Self::Alert => "Alert",
             Self::AlertDialog => "Alert Dialog",
             Self::AspectRatio => "Aspect Ratio",
+            Self::Attachment => "Attachment",
         }
     }
 
@@ -150,6 +153,7 @@ impl DocsPage {
             Self::Alert => "#alert",
             Self::AlertDialog => "#alert-dialog",
             Self::AspectRatio => "#aspect-ratio",
+            Self::Attachment => "#attachment",
         }
     }
 
@@ -159,6 +163,7 @@ impl DocsPage {
             Self::Alert,
             Self::AlertDialog,
             Self::AspectRatio,
+            Self::Attachment,
         ]
         .into_iter()
         .find(|page| url.ends_with(page.anchor()))
@@ -245,6 +250,18 @@ pub(crate) fn page() -> View {
                     navigate,
                     toggle_theme,
                     "aspect-ratio-docs-scroll",
+                )
+            },
+        ))
+        .child(when(
+            move || page.get() == DocsPage::Attachment,
+            move || {
+                component_page(
+                    DocsPage::Attachment,
+                    attachment_page(),
+                    navigate,
+                    toggle_theme,
+                    "attachment-docs-scroll",
                 )
             },
         ))
@@ -449,6 +466,46 @@ fn aspect_ratio_page() -> View {
     .child(api_row("AspectRatio::new(ratio, child)", "Use a positive width-to-height ratio. The ratio can be bound to a signal."))
 }
 
+fn attachment_page() -> View {
+    macro_rules! demo {
+        ($name:ident, $title:literal) => {
+            example(
+                $title,
+                attachment_examples::$name::preview(),
+                include_str!(concat!("attachment_examples/", stringify!($name), ".rs")),
+                include_str!(concat!(
+                    "../references/attachment-tsx/attachment-",
+                    stringify!($name),
+                    ".tsx"
+                )),
+            )
+        };
+    }
+    component_article(
+        DocsPage::Attachment,
+        "File cards with previews, status, and independent actions.",
+        "https://ui.shadcn.com/docs/components/base/attachment",
+    )
+    .child(demo!(demo, "Attachment demo"))
+    .child(heading("Usage"))
+    .child(muted("Compose AttachmentMedia, AttachmentContent, and optional AttachmentActions. Set the state, size, and orientation on Attachment."))
+    .child(heading("Image"))
+    .child(demo!(image, "Image"))
+    .child(heading("States"))
+    .child(demo!(states, "States"))
+    .child(heading("Sizes"))
+    .child(demo!(sizes, "Sizes"))
+    .child(heading("Group"))
+    .child(demo!(group, "Group"))
+    .child(heading("Trigger"))
+    .child(demo!(trigger, "Trigger"))
+    .child(heading("Accessibility"))
+    .child(muted("Label the card trigger and each icon-only action. Use Left and Right to scroll a focused group. Describe failures in text."))
+    .child(heading("API Reference"))
+    .child(api_row("Attachment", "Set idle, uploading, processing, error, or done. Use default, small, or extra-small sizes."))
+    .child(api_row("AttachmentGroup", "Arrange equal-width cards in a horizontal scrolling group."))
+}
+
 fn component_page(
     page: DocsPage,
     article: View,
@@ -456,6 +513,7 @@ fn component_page(
     toggle_theme: impl Fn() + 'static,
     scroll_id: &'static str,
 ) -> View {
+    let menu = signal(false);
     view()
         .flex_1()
         .bg(move || theme().background)
@@ -472,14 +530,33 @@ fn component_page(
                 .border_color(move || theme().border)
                 .child(text("nsh-foundation").font_weight(FontWeight::SEMIBOLD))
                 .child(
-                    component_links(page, navigate)
+                    view()
                         .flex_row()
                         .flex_wrap()
                         .items_center()
                         .gap_1()
+                        .child(button("Components", Variant::Ghost, move || {
+                            menu.update(|open| *open = !*open)
+                        }))
                         .child(button("Theme", Variant::Ghost, toggle_theme)),
                 ),
         )
+        .child(when(menu, move || {
+            scroll()
+                .max_h(px(240.0))
+                .flex_shrink_0()
+                .border_b(px(1.0))
+                .border_color(move || theme().border)
+                .child(
+                    component_links(page, move |target| {
+                        menu.set(false);
+                        navigate(target);
+                    })
+                    .px_4()
+                    .py_2()
+                    .items_start(),
+                )
+        }))
         .child(
             scroll()
                 .flex_1()
@@ -498,6 +575,7 @@ fn component_links(page: DocsPage, navigate: impl Fn(DocsPage) + Copy + 'static)
         DocsPage::Alert,
         DocsPage::AlertDialog,
         DocsPage::AspectRatio,
+        DocsPage::Attachment,
         DocsPage::Drawer,
     ] {
         if target != page {
@@ -686,7 +764,11 @@ fn drawer_page(
                 .p_3()
                 .border_b(px(1.0))
                 .border_color(move || theme().border)
-                .child(component_links(DocsPage::Drawer, navigate).flex_row())
+                .child(
+                    component_links(DocsPage::Drawer, navigate)
+                        .flex_row()
+                        .flex_wrap(),
+                )
                 .child(section_links(go, selected))
         }))
         .child(
