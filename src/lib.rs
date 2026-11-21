@@ -32,6 +32,8 @@ pub mod carousel;
 mod carousel_examples;
 pub mod chart;
 mod chart_examples;
+pub mod checkbox;
+mod checkbox_examples;
 mod docs;
 pub mod drawer;
 mod examples;

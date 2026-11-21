@@ -9,7 +9,7 @@ use crate::{
     accordion_examples, alert_dialog_examples, alert_examples, aspect_ratio_examples,
     attachment_examples, avatar_examples, badge_examples, breadcrumb_examples, bubble_examples,
     button_examples, button_group_examples, calendar_examples, card_examples, carousel_examples,
-    chart_examples, examples,
+    chart_examples, checkbox_examples, examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -144,6 +144,7 @@ enum DocsPage {
     Card,
     Carousel,
     Chart,
+    Checkbox,
 }
 
 type ComponentRoute = (
@@ -259,6 +260,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#chart",
         "chart-docs-scroll",
         chart_page,
+    ),
+    (
+        DocsPage::Checkbox,
+        "Checkbox",
+        "#checkbox",
+        "checkbox-docs-scroll",
+        checkbox_page,
     ),
 ];
 
@@ -1003,6 +1011,47 @@ fn chart_page() -> View {
     .child(muted("Tab to the plot. The arrow keys move between points, Home and End go to either edge, and Escape clears the selected point."))
     .child(heading("RTL"))
     .child(demo!(rtl, "rtl", "RTL"))
+}
+
+fn checkbox_page() -> View {
+    macro_rules! demo {
+        ($example:ident, $name:literal, $title:literal) => {
+            example(
+                $title,
+                checkbox_examples::$example(),
+                include_str!("checkbox_examples.rs"),
+                include_str!(concat!(
+                    "../references/checkbox-tsx/checkbox-",
+                    $name,
+                    ".tsx"
+                )),
+            )
+        };
+    }
+    component_article(
+        DocsPage::Checkbox,
+        "Select an option or indicate a partial selection.",
+        "https://ui.shadcn.com/docs/components/base/checkbox",
+    )
+    .child(demo!(demo, "demo", "Checkbox demo"))
+    .child(heading("Checked State"))
+    .child(muted("Use default_checked to set the initial value. To control a checkbox, pass checked and update the state in on_change. Pressing a mixed checkbox requests a checked value."))
+    .child(heading("Invalid State"))
+    .child(demo!(invalid, "invalid", "Invalid State"))
+    .child(heading("Basic"))
+    .child(demo!(basic, "basic", "Basic"))
+    .child(heading("Description"))
+    .child(demo!(description, "description", "Description"))
+    .child(heading("Disabled"))
+    .child(demo!(disabled, "disabled", "Disabled"))
+    .child(heading("Group"))
+    .child(demo!(group, "group", "Group"))
+    .child(heading("Table"))
+    .child(demo!(table, "table", "Table"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("Checkbox", "An accessible toggle with a label, optional description, and a checked, unchecked, or mixed value. Use icon_only for a labeled box inside a table or another compact layout."))
 }
 
 fn component_page(

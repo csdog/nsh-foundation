@@ -45,7 +45,7 @@
 | 13 | Card | 已发布 |
 | 14 | Carousel | 已发布 |
 | 15 | Chart | 已发布 |
-| 16 | Checkbox | 待开始 · 下一项 |
+| 16 | Checkbox | 已实现 · 待发布 |
 | 17 | Code Block | 待开始 |
 | 18 | Collapsible | 待开始 |
 | 19 | Combobox | 待开始 |
