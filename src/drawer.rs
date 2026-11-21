@@ -10,8 +10,9 @@ use nsh_core::{
 use crate::ui::{Variant, button_surface, heading, muted};
 
 const OPEN_MS: f32 = 450.0;
-const CLOSE_MS: f32 = 400.0;
-const PANEL_EASING: Easing = Easing::Bezier(0.22, 1.0, 0.36, 1.0);
+const CLOSE_MS: f32 = 320.0;
+const OPEN_EASING: Easing = Easing::Bezier(0.22, 1.0, 0.36, 1.0);
+const CLOSE_EASING: Easing = Easing::Bezier(0.4, 0.0, 0.6, 1.0);
 const SWIPE_EXIT_EASING: Easing = Easing::Bezier(0.22, 0.65, 0.4, 1.0);
 const STACK_CONTENT_EASING: Easing = Easing::Bezier(0.45, 1.005, 0.0, 1.005);
 const OVERLAY_EASING: Easing = Easing::Bezier(0.32, 0.72, 0.0, 1.0);
@@ -305,7 +306,8 @@ impl DrawerOverlay {
                 fade.set(target);
             } else {
                 let duration = if open { OPEN_MS } else { close_ms.get() };
-                let _ = fade.timing(target, duration, OVERLAY_EASING);
+                let easing = if open { OVERLAY_EASING } else { CLOSE_EASING };
+                let _ = fade.timing(target, duration, easing);
             }
         });
         let layer = view()
@@ -415,7 +417,8 @@ impl Drawer {
                     fade.set(target);
                     return;
                 }
-                fade.timing(target, duration, OVERLAY_EASING)
+                let easing = if open { OVERLAY_EASING } else { CLOSE_EASING };
+                fade.timing(target, duration, easing)
             } else {
                 let closed_position =
                     |length: f32| (length + options.inset + 2.0) * direction.sign();
@@ -449,10 +452,10 @@ impl Drawer {
                     return;
                 }
                 let released = !open && swipe_dismissal.get();
-                let easing = if released {
-                    SWIPE_EXIT_EASING
-                } else {
-                    PANEL_EASING
+                let easing = match (open, released) {
+                    (true, _) => OPEN_EASING,
+                    (false, true) => SWIPE_EXIT_EASING,
+                    (false, false) => CLOSE_EASING,
                 };
                 let _ = scale.timing(scale_target, duration, easing);
                 // On a swipe dismissal keep the drag origin fixed so the
@@ -484,7 +487,6 @@ impl Drawer {
             .flex_1()
             .min_h(px(0.0))
             .min_w(px(0.0))
-            .p_4()
             .overflow_hidden()
             .bind_opacity(&stack_visibility)
             .test_id("drawer-content")
@@ -614,8 +616,8 @@ impl Drawer {
                                 offset.set(target);
                                 resting_offset.set(target);
                             } else {
-                                let _ = offset.timing(target, OPEN_MS, PANEL_EASING);
-                                let _ = resting_offset.timing(target, OPEN_MS, PANEL_EASING);
+                                let _ = offset.timing(target, OPEN_MS, OPEN_EASING);
+                                let _ = resting_offset.timing(target, OPEN_MS, OPEN_EASING);
                             }
                         }
                         Some(index) => self.snap_index.set(index),
@@ -799,6 +801,8 @@ impl DrawerHeader {
         Self(
             view()
                 .flex_shrink_0()
+                .px_4()
+                .pt_4()
                 .gap(move || px(if window().width.0 >= 768.0 { 6.0 } else { 2.0 })),
         )
     }
@@ -826,7 +830,7 @@ impl DrawerDescription {
 
 impl DrawerFooter {
     pub fn new() -> Self {
-        Self(view().mt(auto()).flex_shrink_0().gap_2())
+        Self(view().mt(auto()).flex_shrink_0().px_4().pb_4().gap_2())
     }
 }
 

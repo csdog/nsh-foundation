@@ -60,7 +60,7 @@ const SIZED: &str = r#"DrawerContent::new(drawer, "Notification history", move |
     view().flex_1().min_h(px(0.0))
         .child(DrawerHeader::new()
             .child(DrawerTitle::new("Notification history")))
-        .child(scroll().flex_1().min_h(px(0.0)).py_4().child(text("Order confirmed")))
+        .child(scroll().flex_1().min_h(px(0.0)).p_4().child(text("Order confirmed")))
         .child(DrawerFooter::new().child(DrawerClose::new(drawer, "Done")))
 })
 .options(|| DrawerOptions {
@@ -2563,7 +2563,7 @@ fn drawer_page(
             .child(example("Custom Sizes", custom_size, SIZED, TSX_SIZED))
             .child(custom_size_panel))
         .child(section("Styling", 4, locations)
-            .child(muted("Edge drawers sit 8 points from the viewport by default. Set inset to override the gap. DrawerContent provides 16 points of inner padding around the header, body, and footer."))
+            .child(muted("Edge drawers sit 8 points from the viewport by default. Set inset to override the gap. The header and footer add 16 points of padding at the panel edges. Use p_4() on the body for matching spacing or set its own padding for edge-to-edge content."))
             .child(example("Styling", floating, FLOATING, TSX_FLOATING))
             .child(floating_panel))
         .child(section("Examples", 5, locations))

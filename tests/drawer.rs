@@ -291,11 +291,13 @@ fn independently_styled_trigger_and_close_compose_with_lazy_content() {
     assert!(app.shows(description));
     let panel = panel(&app);
     let title = bounds(&app, "parts-title");
+    let body = bounds(&app, "parts-body");
     let button = bounds(&app, "parts-close");
-    for id in ["parts-title", "parts-body", "parts-close"] {
-        let part = bounds(&app, id);
+    for part in [title, button] {
         assert!((part.origin.x.0 - panel.origin.x.0 - 17.0).abs() < 1.0);
     }
+    assert!((body.origin.x.0 - panel.origin.x.0 - 1.0).abs() < 1.0);
+    assert!((panel.right().0 - body.right().0 - 1.0).abs() < 1.0);
     assert!((title.origin.y.0 - panel.origin.y.0 - 17.0).abs() < 1.0);
     assert!((panel.bottom().0 - button.bottom().0 - 17.0).abs() < 1.0);
     interact(&mut app, "Reopen during exit");

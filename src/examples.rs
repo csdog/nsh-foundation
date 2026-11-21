@@ -127,7 +127,7 @@ pub(crate) fn delivery(
                         "We'll prepare your order as soon as possible.",
                     )),
             )
-            .child(scroll().flex_shrink(1.0).py_4().child(choices))
+            .child(scroll().flex_shrink(1.0).p_4().child(choices))
             .child(
                 DrawerFooter::new()
                     .child(button(
@@ -284,7 +284,7 @@ pub(crate) fn custom_size() -> (impl IntoElement, impl IntoElement) {
                 scroll()
                     .flex_1()
                     .min_h(px(0.0))
-                    .py_4()
+                    .p_4()
                     .test_id("drawer-notifications")
                     .child(items),
             )
@@ -334,14 +334,14 @@ pub(crate) fn snap() -> (impl IntoElement, impl IntoElement) {
     let content = DrawerContent::new(drawer, "Snap points", move || {
         view()
             .h(move || {
-                let height = window().height.0;
+                let height = (window().height.0 - 16.0).max(0.0);
                 let visible = if drawer.snap_index.get() == 0 {
                     height.min(496.0)
                 } else {
                     height
                 };
-                // Reserve space for the 28-point handle, content padding, and border.
-                px((visible - 62.0).max(0.0))
+                // Reserve space for the 28-point handle and both panel borders.
+                px((visible - 30.0).max(0.0))
             })
             .child(example_header(
                 "Snap points",
@@ -380,7 +380,7 @@ pub(crate) fn responsive(
             ))
             .child(
                 view()
-                    .py_4()
+                    .p_4()
                     .gap_4()
                     .child(field("Email", email, save))
                     .child(field("Username", username, save))
@@ -446,7 +446,7 @@ fn example_header(title: &'static str, description: &'static str) -> DrawerHeade
 }
 
 fn placeholder(height: f32) -> View {
-    view().flex_1().py_4().child(
+    view().flex_1().p_4().child(
         view()
             .min_h(px(height))
             .flex_1()
