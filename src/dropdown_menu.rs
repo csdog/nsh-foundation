@@ -1,10 +1,7 @@
 //! Button-triggered menus using Native Shell positioning and keyboard navigation.
 
 use nsh_base::{MenuEvent, menu};
-use nsh_core::{
-    element::{LayoutDirection, layout_rtl},
-    prelude::*,
-};
+use nsh_core::{element::LayoutDirection, prelude::*};
 
 use crate::{
     button::{Button, ButtonVariant},
@@ -127,26 +124,17 @@ impl IntoElement for DropdownMenu {
             || use_direction().map(LayoutDirection::from),
             Reactive::Static,
         );
-        let align = move || {
-            let local_rtl = match direction.get() {
-                LayoutDirection::Inherit => layout_rtl(),
-                value => value == LayoutDirection::Rtl,
-            };
-            if placement.is_horizontal() || local_rtl == layout_rtl() {
-                align
-            } else {
-                match align {
-                    Align::Start => Align::End,
-                    Align::End => Align::Start,
-                    Align::Center => Align::Center,
-                }
-            }
+        let class = move || {
+            // Native Shell's touch sheet uses the available viewport width.
+            Some(SharedString::from(
+                width.filter(|_| is_desktop()).map_or_else(
+                    || POPUP.to_owned(),
+                    |width| format!("{POPUP} w-[{width}px]"),
+                ),
+            ))
         };
-        let class = width.map_or_else(
-            || POPUP.to_owned(),
-            |width| format!("{POPUP} w-[{width}px]"),
-        );
         menu()
+            .direction(direction)
             .open(move || open.map(|open| open.get()))
             .on_open_change(move |event: &MenuEvent| {
                 if let (Some(open), MenuEvent::OpenChange(next, _)) = (open, event) {
