@@ -19,7 +19,7 @@
 | ---: | --- | --- |
 | 1 | Accordion | 已发布 |
 | 2 | Alert | 已发布 |
-| 3 | Alert Dialog | 待开始 · 下一项 |
+| 3 | Alert Dialog | 已实现 · 待发布 |
 | 4 | Aspect Ratio | 待开始 |
 | 5 | Attachment | 待开始 |
 | 6 | Avatar | 待开始 |

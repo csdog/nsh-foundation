@@ -4,6 +4,7 @@ use nsh_core::prelude::*;
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Variant {
     Primary,
+    Destructive,
     Secondary,
     Outline,
     Ghost,
@@ -31,6 +32,7 @@ pub(crate) fn button_surface(label: &'static str, variant: Variant) -> View {
         })
         .bg(move || match variant {
             Variant::Primary => theme().primary,
+            Variant::Destructive => theme().destructive,
             Variant::Secondary => theme().secondary,
             _ => hsla(0.0, 0.0, 0.0, 0.0).into(),
         })
@@ -43,6 +45,7 @@ pub(crate) fn button_surface(label: &'static str, variant: Variant) -> View {
                 .font_weight(FontWeight::MEDIUM)
                 .text_color(move || match variant {
                     Variant::Primary => theme().primary_foreground,
+                    Variant::Destructive => rgb(0xffffff).into(),
                     _ => theme().foreground,
                 }),
         )

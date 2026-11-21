@@ -6,7 +6,7 @@ use nsh_core::{
 };
 
 use crate::{
-    accordion_examples, alert_examples, examples,
+    accordion_examples, alert_dialog_examples, alert_examples, examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -128,6 +128,7 @@ enum DocsPage {
     Drawer,
     Accordion,
     Alert,
+    AlertDialog,
 }
 
 impl DocsPage {
@@ -136,6 +137,7 @@ impl DocsPage {
             Self::Drawer => "Drawer",
             Self::Accordion => "Accordion",
             Self::Alert => "Alert",
+            Self::AlertDialog => "Alert Dialog",
         }
     }
 
@@ -144,11 +146,12 @@ impl DocsPage {
             Self::Drawer => "#drawer",
             Self::Accordion => "#accordion",
             Self::Alert => "#alert",
+            Self::AlertDialog => "#alert-dialog",
         }
     }
 
     fn from_url(url: &str) -> Self {
-        [Self::Accordion, Self::Alert]
+        [Self::Accordion, Self::Alert, Self::AlertDialog]
             .into_iter()
             .find(|page| url.ends_with(page.anchor()))
             .unwrap_or_default()
@@ -210,6 +213,18 @@ pub(crate) fn page() -> View {
                     navigate,
                     toggle_theme,
                     "alert-docs-scroll",
+                )
+            },
+        ))
+        .child(when(
+            move || page.get() == DocsPage::AlertDialog,
+            move || {
+                component_page(
+                    DocsPage::AlertDialog,
+                    alert_dialog_page(),
+                    navigate,
+                    toggle_theme,
+                    "alert-dialog-docs-scroll",
                 )
             },
         ))
@@ -337,6 +352,50 @@ fn alert_page() -> View {
     ))
 }
 
+fn alert_dialog_page() -> View {
+    macro_rules! demo {
+        ($module:ident, $name:literal, $title:literal) => {
+            example(
+                $title,
+                alert_dialog_examples::$module::preview(),
+                include_str!(concat!(
+                    "alert_dialog_examples/",
+                    stringify!($module),
+                    ".rs"
+                )),
+                include_str!(concat!(
+                    "../references/alert-dialog-tsx/alert-dialog-",
+                    $name,
+                    ".tsx"
+                )),
+            )
+        };
+    }
+    component_article(
+        DocsPage::AlertDialog,
+        "A modal dialog that asks the user to confirm an important action.",
+        "https://ui.shadcn.com/docs/components/base/alert-dialog",
+    )
+    .child(demo!(demo, "demo", "Alert Dialog demo"))
+    .child(heading("Usage"))
+    .child(muted("Share one AlertDialog state between the trigger and content. Compose the header and footer, and pass a callback to AlertDialogAction to handle confirmation."))
+    .child(heading("Basic"))
+    .child(demo!(basic, "basic", "Basic"))
+    .child(heading("Small"))
+    .child(demo!(small, "small", "Small"))
+    .child(heading("Media"))
+    .child(demo!(media, "media", "Media"))
+    .child(heading("Small with Media"))
+    .child(demo!(small_media, "small-media", "Small with Media"))
+    .child(heading("Destructive"))
+    .child(demo!(destructive, "destructive", "Destructive"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("AlertDialogContent", "Default and Small sizes. Set direction for right-to-left layouts."))
+    .child(api_row("AlertDialogHeader / AlertDialogFooter", "Compose the title, description, optional media, cancel, and confirm actions."))
+}
+
 fn component_page(
     page: DocsPage,
     article: View,
@@ -351,6 +410,7 @@ fn component_page(
         .child(
             view()
                 .flex_row()
+                .flex_wrap()
                 .items_center()
                 .justify_between()
                 .min_h(px(58.0))
@@ -361,6 +421,7 @@ fn component_page(
                 .child(
                     component_links(page, navigate)
                         .flex_row()
+                        .flex_wrap()
                         .items_center()
                         .gap_1()
                         .child(button("Theme", Variant::Ghost, toggle_theme)),
@@ -379,7 +440,12 @@ fn component_links(page: DocsPage, navigate: impl Fn(DocsPage) + Copy + 'static)
     let mut links = view()
         .role(AccessibilityRole::Navigation)
         .label("Components");
-    for target in [DocsPage::Accordion, DocsPage::Alert, DocsPage::Drawer] {
+    for target in [
+        DocsPage::Accordion,
+        DocsPage::Alert,
+        DocsPage::AlertDialog,
+        DocsPage::Drawer,
+    ] {
         if target != page {
             links = links.child(button(target.label(), Variant::Ghost, move || {
                 navigate(target)
