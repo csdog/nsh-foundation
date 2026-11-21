@@ -1,11 +1,11 @@
 # nsh-foundation 组件进度
 
-更新于 2026-11-21。已发布 **27 / 66**，待开始 **39 / 66**。下一项是 **Empty（#28）**。[实施计划](PLAN.md)
+更新于 2026-11-21。已发布 **28 / 66**，待开始 **38 / 66**。下一项是 **Field（#29）**。[实施计划](PLAN.md)
 
 ## 已交付基线
 
 - **Drawer** 含 9 个交互示例及 Preview / Rust / TSX 标签。v35 将 16 px 内边距统一应用到 `DrawerContent`，边缘面板默认留 8 px 外边距。开关沿用 Rhea 面板缓动曲线，滑入 450 ms，普通滑出 400 ms。拖拽关闭的跟随动画根据松手速度缩短，遮罩持续变淡，短拖回弹后恢复。打开嵌套抽屉时父层保持挂载并淡出内容。Chromium 在 1280 × 900 和 390 × 844 验证了间距、开关位移、嵌套淡入淡出、触摸回弹、拖拽关闭和减少动态效果设置。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#drawer) · [组件源码](src/drawer.rs) · [TSX 参考](references/drawer-tsx/)
-- **线上版本**为 35，发布提交为 `8c207df`，更新 Drawer 间距与过渡动画。Web 打包和 WASM 内容校验已完成。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#drawer)
+- **线上版本**为 36，发布提交为 `9ead589`，新增 Empty。Web 打包和 WASM 内容校验已完成。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#empty)
 - **基线复测**于 2026-11-21 通过 `cargo fmt --check` 和 `cargo test --offline --locked`，共 71 项 Rust 测试。
 - **设计参考**已固定 shadcn/ui 源码版本，Obra 预览图已保存。可编辑的 Figma 原文件仍未获取。[参考资料记录](references/README.md)
 - **Accordion** 已发布于 v7（`7abbcb5`），含 7 个官方示例及 Preview / Rust / TSX。支持默认与受控状态、单项与多项展开、禁用、方向键和 RTL。15 项 Rust 测试、Web 打包及 WASM 校验已通过，浏览器视觉核验受预览端口限制。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#accordion) · [组件源码](src/accordion.rs) · [TSX 参考](references/accordion-tsx/)
@@ -34,6 +34,7 @@
 - **Dialog** 已发布于 v32（`fc5f352`），含 6 个官方示例及 Preview / Rust / TSX。提供组合式 Trigger、Content、Header、Footer、Overlay 和 Close，支持自定义关闭按钮、独立的 Escape 与外点关闭设置、正文滚动和固定底栏。使用 Native Shell 淡入淡出，表单保存到示例本地状态。Chromium 验证了 Tab / Shift+Tab 循环、输入框内 Escape 关闭、焦点恢复、RTL，以及手机滑动正文时底栏保持位置。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#dialog) · [组件源码](src/dialog.rs) · [TSX 参考](references/dialog-tsx/)
 - **Direction** 已发布于 v33（`d13dc58`）。提供可响应 Rust 信号的 `DirectionProvider` 和读取最近作用域的 `use_direction()`。复用 Card RTL 示例，可切换英语、阿拉伯语和希伯来语，含 Preview / Rust / TSX。Rust 测试覆盖嵌套覆盖、同级隔离和保留节点，Chromium 验证了桌面、手机的实际布局变化。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#direction) · [组件源码](src/direction.rs) · [TSX 参考](references/direction-tsx/)
 - **Dropdown Menu** 已发布于 v34（`7756fc8`），含 13 个官方示例及 Preview / Rust / TSX。复用 Context Menu 的菜单项，支持多级子菜单、复选与单选、头像和 RTL。Chromium 验证了键盘焦点恢复、禁用项、三级菜单、状态保留、RTL 右对齐、深色主题和手机全宽底部菜单。示例使用字符图标、快捷键提示和本地操作反馈。RTL 子菜单沿用 Native Shell 的 → 展开和 ← 返回规则。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#dropdown-menu) · [组件源码](src/dropdown_menu.rs) · [TSX 参考](references/dropdown-menu-tsx/)
+- **Empty** 已发布于 v36（`9ead589`），含 7 个官方示例及 Preview / Rust / TSX。提供组合式 Header、Media、Title、Description 和 Content。Chromium 在 1280 × 900 和 390 × 844 验证了虚线边框、头像重叠、键盘与触屏操作、搜索框提交、RTL 按钮顺序、代码标签、深色主题和组件导航。头像沿用项目的大号尺寸，操作仅显示本地演示反馈，搜索框中的斜杠为视觉提示。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#empty) · [组件源码](src/empty.rs) · [TSX 参考](references/empty-tsx/)
 
 ## 按官方顺序跟踪
 
@@ -68,8 +69,8 @@
 | 25 | Direction | 已发布 |
 | 26 | Drawer | 已发布 · 已复核 |
 | 27 | Dropdown Menu | 已发布 |
-| 28 | Empty | 待开始 · 下一项 |
-| 29 | Field | 待开始 |
+| 28 | Empty | 已发布 |
+| 29 | Field | 待开始 · 下一项 |
 | 30 | Hover Card | 待开始 |
 | 31 | Input | 待开始 |
 | 32 | Input Group | 待开始 |
