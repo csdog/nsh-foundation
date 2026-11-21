@@ -11,7 +11,7 @@ use crate::{
     button_examples, button_group_examples, calendar_examples, card_examples, carousel_examples,
     chart_examples, checkbox_examples, code_block_examples, collapsible_examples,
     combobox_examples, command_examples, context_menu_examples, data_table_examples,
-    date_picker_examples, dialog_examples, dropdown_menu_examples, examples,
+    date_picker_examples, dialog_examples, dropdown_menu_examples, empty_examples, examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -157,6 +157,7 @@ enum DocsPage {
     Dialog,
     Direction,
     DropdownMenu,
+    Empty,
 }
 
 type ComponentRoute = (
@@ -349,6 +350,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#dropdown-menu",
         "dropdown-menu-docs-scroll",
         dropdown_menu_page,
+    ),
+    (
+        DocsPage::Empty,
+        "Empty",
+        "#empty",
+        "empty-docs-scroll",
+        empty_page,
     ),
 ];
 
@@ -1570,6 +1578,48 @@ fn dropdown_menu_page() -> View {
     .child(api_row("DropdownMenuContent", "Choose placement, alignment, and width. The native menu keeps the popup within available space and can show a sheet on touch devices."))
     .child(api_row("DropdownMenuItem", "Use on_select to run an action. A Rust signal can supply checked or radio state. Set close_on_select(false) to keep the menu open while editing settings."))
     .child(api_row("DropdownMenuSubmenu", "Add nested items or another submenu. Use the arrow keys to navigate, Enter to select, and Escape to go back or dismiss."))
+}
+
+fn empty_page() -> View {
+    macro_rules! demo {
+        ($example:ident, $source:literal, $title:literal) => {
+            example(
+                $title,
+                empty_examples::$example(),
+                include_str!("empty_examples.rs"),
+                include_str!(concat!("../references/empty-tsx/empty-", $source, ".tsx")),
+            )
+        };
+    }
+    component_article(
+        DocsPage::Empty,
+        "Display an empty state and guide users to their next action.",
+        "https://ui.shadcn.com/docs/components/base/empty",
+    )
+    .child(demo!(demo, "demo", "Empty demo"))
+    .child(heading("Usage"))
+    .child(code_block("Empty::new()\n    .child(EmptyHeader::new()\n        .child(EmptyTitle::new(\"No data\"))\n        .child(EmptyDescription::new(\"No data found\")))\n    .child(EmptyContent::new().child(Button::new(\"Add data\")))"))
+    .child(heading("Composition"))
+    .child(muted("Group the media, title, and description in EmptyHeader. Add buttons, inputs, or links to EmptyContent."))
+    .child(heading("Outline"))
+    .child(demo!(outline, "outline", "Outline"))
+    .child(heading("Background"))
+    .child(demo!(background, "background", "Background"))
+    .child(heading("Avatar"))
+    .child(demo!(avatar, "avatar", "Avatar"))
+    .child(heading("Avatar Group"))
+    .child(demo!(avatar_group, "avatar-group", "Avatar Group"))
+    .child(heading("InputGroup"))
+    .child(demo!(input_group, "input-group", "InputGroup"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("Empty", "Centers the empty state. Use Native Shell style methods to set the border, background, and padding."))
+    .child(api_row("EmptyHeader", "Groups centered media, title, and description."))
+    .child(api_row("EmptyMedia", "Holds arbitrary media. EmptyMediaVariant::Icon adds a muted 40-point tile."))
+    .child(api_row("EmptyTitle", "Displays a centered title from static or reactive text."))
+    .child(api_row("EmptyDescription", "Displays centered muted text. Use render to compose links or richer content."))
+    .child(api_row("EmptyContent", "Holds actions and fields. Apply flex_row and flex_wrap for a responsive row."))
 }
 
 fn component_page(
