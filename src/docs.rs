@@ -16,6 +16,7 @@ use crate::{
     item_examples, kbd_examples, label_examples, marker_examples, menubar_examples,
     message_examples, message_scroller_examples, native_select_examples, navigation_menu_examples,
     pagination_examples, popover_examples, progress_examples, questionnaire_examples,
+    radio_group_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -180,6 +181,7 @@ enum DocsPage {
     Popover,
     Progress,
     Questionnaire,
+    RadioGroup,
 }
 
 type ComponentRoute = (
@@ -499,6 +501,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#questionnaire",
         "questionnaire-docs-scroll",
         questionnaire_page,
+    ),
+    (
+        DocsPage::RadioGroup,
+        "Radio Group",
+        "#radio-group",
+        "radio-group-docs-scroll",
+        radio_group_page,
     ),
 ];
 
@@ -2614,6 +2623,51 @@ Questionnaire::new(ITEMS).on_submit(move |answers| {
     .child(api_row("QuestionnaireItem / QuestionnaireChoice / QuestionnaireInput", "Declare named items and fixed answers, and optionally add a named text field. Items can be required, accept multiple answers, or depend on earlier answers."))
     .child(api_row("Questionnaire / QuestionnaireAnswers", "Provide defaults, share the active item with a Rust signal, and receive the answers from enabled items in the submission handler."))
     .child(api_row("QuestionnaireProgress / QuestionnaireError", "Render the current step and total, or report a validation error on a specific item."))
+}
+
+fn radio_group_page() -> View {
+    macro_rules! demo {
+        ($function:ident, $file:literal, $name:literal) => {
+            example(
+                $name,
+                radio_group_examples::$function(),
+                include_str!("radio_group_examples.rs"),
+                include_str!(concat!(
+                    "../references/radio-group-tsx/radio-group-",
+                    $file,
+                    ".tsx"
+                )),
+            )
+        };
+    }
+    component_article(
+        DocsPage::RadioGroup,
+        "Choose one option from a set with a visible selection and keyboard navigation.",
+        "https://ui.shadcn.com/docs/components/base/radio-group",
+    )
+    .child(demo!(demo, "demo", "Radio Group demo"))
+    .child(heading("Usage"))
+    .child(code_block(r#"RadioGroup::new("Display density")
+    .default_value("comfortable")
+    .item(RadioGroupItem::new("default", "Default"))
+    .item(RadioGroupItem::new("comfortable", "Comfortable"))
+    .item(RadioGroupItem::new("compact", "Compact"))"#))
+    .child(heading("Description"))
+    .child(demo!(description, "description", "Description"))
+    .child(heading("Choice Card"))
+    .child(demo!(choice_card, "choice-card", "Choice Card"))
+    .child(heading("Fieldset"))
+    .child(demo!(fieldset, "fieldset", "Fieldset"))
+    .child(heading("Disabled"))
+    .child(demo!(disabled, "disabled", "Disabled"))
+    .child(heading("Invalid"))
+    .child(demo!(invalid, "invalid", "Invalid"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("RadioGroup", "Set a default value or bind a Rust signal. Use on_change to receive user selections, and invalid to expose an invalid group."))
+    .child(api_row("RadioGroupItem", "Give each item a unique value and a label. Add a description, disable an option, or use card for a full-width choice."))
+    .child(api_row("Keyboard", "Tab enters at the selected item or first enabled item. Arrow keys wrap and skip disabled options, and Space selects the focused one."))
 }
 
 fn component_page(

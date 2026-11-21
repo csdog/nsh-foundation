@@ -95,6 +95,8 @@ pub mod progress;
 mod progress_examples;
 pub mod questionnaire;
 mod questionnaire_examples;
+pub mod radio_group;
+mod radio_group_examples;
 mod ui;
 
 use nsh_core::prelude::*;
