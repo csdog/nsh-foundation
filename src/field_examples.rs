@@ -109,7 +109,7 @@ pub fn textarea() -> impl IntoElement {
     ))
 }
 
-fn selection(
+pub(crate) fn selection(
     label: &'static str,
     placeholder: &'static str,
     items: Vec<SelectItem>,

@@ -12,7 +12,7 @@ use crate::{
     chart_examples, checkbox_examples, code_block_examples, collapsible_examples,
     combobox_examples, command_examples, context_menu_examples, data_table_examples,
     date_picker_examples, dialog_examples, dropdown_menu_examples, empty_examples, examples,
-    field_examples, hover_card_examples,
+    field_examples, hover_card_examples, input_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -161,6 +161,7 @@ enum DocsPage {
     Empty,
     Field,
     HoverCard,
+    Input,
 }
 
 type ComponentRoute = (
@@ -374,6 +375,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#hover-card",
         "hover-card-docs-scroll",
         hover_card_page,
+    ),
+    (
+        DocsPage::Input,
+        "Input",
+        "#input",
+        "input-docs-scroll",
+        input_page,
     ),
 ];
 
@@ -1742,6 +1750,64 @@ fn hover_card_page() -> View {
     .child(api_row("HoverCard", "Use open(signal) to control the card or default_open(true) to start open. Escape and an outside press dismiss it."))
     .child(api_row("HoverCardTrigger", "Set open and close delays in milliseconds. Desktop uses pointer hover. A tap toggles the preview on touch layouts."))
     .child(api_row("HoverCardContent", "Choose physical or logical side, alignment, offsets, and width. Native Shell flips placement when available space requires it."))
+}
+
+fn input_page() -> View {
+    macro_rules! demo {
+        ($example:ident, $source:literal, $title:literal) => {
+            example(
+                $title,
+                input_examples::$example(),
+                include_str!("input_examples.rs"),
+                include_str!(concat!("../references/input-tsx/input-", $source, ".tsx")),
+            )
+        };
+    }
+    component_article(
+        DocsPage::Input,
+        "Enter text, passwords, and contact details in a native control.",
+        "https://ui.shadcn.com/docs/components/base/input",
+    )
+    .child(demo!(demo, "demo", "Input demo"))
+    .child(heading("Usage"))
+    .child(code_block(r#"use nsh_foundation::input::input;
+
+input()
+    .label("Email")
+    .placeholder("name@example.com")
+    .keyboard_type(KeyboardType::Email)"#))
+    .child(heading("Basic"))
+    .child(demo!(basic, "basic", "Basic"))
+    .child(heading("Field"))
+    .child(demo!(field, "field", "Field"))
+    .child(heading("Field Group"))
+    .child(demo!(field_group, "fieldgroup", "Field Group"))
+    .child(heading("Disabled"))
+    .child(demo!(disabled, "disabled", "Disabled"))
+    .child(heading("Invalid"))
+    .child(demo!(invalid, "invalid", "Invalid"))
+    .child(heading("File"))
+    .child(demo!(file, "file", "File"))
+    .child(heading("Inline"))
+    .child(demo!(inline, "inline", "Inline"))
+    .child(heading("Grid"))
+    .child(demo!(grid, "grid", "Grid"))
+    .child(heading("Required"))
+    .child(demo!(required, "required", "Required"))
+    .child(heading("Badge"))
+    .child(demo!(badge, "badge", "Badge"))
+    .child(heading("Input Group"))
+    .child(demo!(input_group, "input-group", "Input Group"))
+    .child(heading("Button Group"))
+    .child(demo!(button_group, "button-group", "Button Group"))
+    .child(heading("Form"))
+    .child(demo!(form, "form", "Form"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("input", "Configure the native control with label, placeholder, value, masked, disabled, keyboard_type and input events."))
+    .child(api_row("invalid_input", "Pass a reactive boolean to bind error styling and the accessible invalid state. Use Field to place labels, descriptions and errors."))
+    .child(api_row("file_input", "Open the system picker with a FilePickRequest. Receive selected files in a callback. The preview displays the selected filename."))
 }
 
 fn component_page(
