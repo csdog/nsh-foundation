@@ -228,6 +228,78 @@ fn nested_level(drawer: Drawer, level: usize) -> View {
     }))
 }
 
+pub(crate) fn custom_size() -> (View, impl IntoElement) {
+    let drawer = Drawer::new(signal(false));
+    let preview = trigger(drawer, "Open Scrollable Drawer").test_id("custom-size-trigger");
+    let content = drawer.content(
+        "Notification history",
+        || DrawerOptions {
+            height: Some(360.0),
+            ..Default::default()
+        },
+        move || {
+            let mut items = view().gap_3();
+            for (title, detail) in [
+                ("Order confirmed", "Your order has reached the kitchen."),
+                ("Preparing your order", "The kitchen has started cooking."),
+                (
+                    "Driver assigned",
+                    "Your driver will collect your order shortly.",
+                ),
+                ("Picked up", "Your driver is on the way."),
+                ("Arriving soon", "Your order is two minutes away."),
+                ("Delivered", "Your order is at your door."),
+            ] {
+                items = items.child(
+                    view()
+                        .gap_1()
+                        .p_3()
+                        .rounded(px(8.0))
+                        .bg(move || theme().muted)
+                        .child(text(title).text_sm().font_weight(FontWeight::SEMIBOLD))
+                        .child(muted(detail)),
+                );
+            }
+            view()
+                .flex_1()
+                .min_h(px(0.0))
+                .child(header(
+                    "Notification history",
+                    "Scroll the updates. The header and close button stay in place.",
+                ))
+                .child(
+                    scroll()
+                        .flex_1()
+                        .min_h(px(0.0))
+                        .px_4()
+                        .py_2()
+                        .test_id("drawer-notifications")
+                        .child(items),
+                )
+                .child(footer().child(close(drawer, "Done")))
+        },
+    );
+    (preview, content)
+}
+
+pub(crate) fn floating() -> (View, impl IntoElement) {
+    let drawer = Drawer::new(signal(false));
+    (
+        trigger(drawer, "Open Floating Drawer").test_id("floating-trigger"),
+        demo_panel(
+            drawer,
+            "Floating Drawer",
+            "A 16 point inset on every side.",
+            || DrawerOptions {
+                direction: Direction::Right,
+                width: Some(360.0),
+                inset: 16.0,
+                ..Default::default()
+            },
+        ),
+    )
+}
+
 pub(crate) fn non_modal() -> (View, impl IntoElement) {
     let drawer = Drawer::new(signal(false));
     (
@@ -252,9 +324,16 @@ pub(crate) fn snap() -> (View, impl IntoElement) {
             ..Default::default()
         },
         move || {
-            let available = || window().height.0.min(496.0);
             view()
-                .h(move || px(available() - 30.0))
+                .h(move || {
+                    let height = window().height.0;
+                    let visible = if drawer.snap_index.get() == 0 {
+                        height.min(496.0)
+                    } else {
+                        height
+                    };
+                    px((visible - 30.0).max(0.0))
+                })
                 .child(header(
                     "Snap points",
                     "Drag the drawer to snap between a compact peek and a near full-height view.",

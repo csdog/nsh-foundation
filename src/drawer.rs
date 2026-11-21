@@ -296,12 +296,16 @@ impl Drawer {
                 .rounded_l(radius),
         };
 
+        if options.inset > 0.0 {
+            panel = panel.rounded(radius);
+        }
+
         if vertical {
             panel = panel.max_h(move || {
-                px(if snapped {
+                px(if snapped || options.height.is_some() {
                     extent()
                 } else {
-                    (extent() - 96.0).max(80.0)
+                    (extent() - 96.0).max(0.0)
                 })
             });
             if snapped || options.height.is_some() {
@@ -311,10 +315,12 @@ impl Drawer {
         } else {
             panel = panel
                 .w(move || {
+                    let viewport = window().width.0;
+                    let default_width = 384.0_f32.min(viewport * 0.75);
                     px(options
                         .width
-                        .unwrap_or(384.0)
-                        .min((window().width.0 * 0.75 - options.inset).max(0.0)))
+                        .unwrap_or(default_width)
+                        .min((viewport - options.inset * 2.0).max(0.0)))
                 })
                 .bind_translate_x(&offset);
         }
