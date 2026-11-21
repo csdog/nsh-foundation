@@ -134,6 +134,17 @@ fn swipe_and_snap_handle_gestures() {
 }
 
 #[test]
+fn short_swipe_settles_without_dismissing_the_drawer() {
+    let mut app = start(390.0, 844.0);
+    interact(&mut app, "id:swipe-trigger");
+    app.drag(HANDLE, point(px(0.0), px(48.0))).unwrap();
+    app.wait(MOTION).unwrap();
+    assert_count(&app, 1);
+    interact(&mut app, "Close");
+    assert_count(&app, 0);
+}
+
+#[test]
 fn profile_switches_between_centered_dialog_and_bottom_drawer() {
     let mut desktop = start(1280.0, 900.0);
     interact(&mut desktop, "id:responsive-trigger");

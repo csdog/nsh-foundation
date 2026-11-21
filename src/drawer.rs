@@ -1,13 +1,19 @@
 //! Composable Native Shell Drawer parts sharing one controlled Rust state.
 
 use nsh_base::{dialog, theme};
-use nsh_core::{TransformOrigin, element::ElNode, prelude::*};
+use nsh_core::{
+    TransformOrigin,
+    element::{AnimatedNode, ElNode},
+    prelude::*,
+};
 
 use crate::ui::{Variant, button_surface, heading, muted};
 
 const OPEN_MS: f32 = 450.0;
 const CLOSE_MS: f32 = 400.0;
 const PANEL_EASING: Easing = Easing::Bezier(0.22, 1.0, 0.36, 1.0);
+const EXIT_EASING: Easing = Easing::Bezier(0.4, 0.0, 0.6, 1.0);
+const SWIPE_EXIT_EASING: Easing = Easing::Bezier(0.22, 0.65, 0.4, 1.0);
 const OVERLAY_EASING: Easing = Easing::Bezier(0.32, 0.72, 0.0, 1.0);
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
@@ -201,7 +207,7 @@ impl IntoElement for DrawerContent {
             let options = (self.options)();
             let ready = signal(options.centered);
             let close_ms = stored(CLOSE_MS);
-            let surface = drawer.surface(
+            let (surface, swipe_visibility) = drawer.surface(
                 options,
                 self.label,
                 (self.body)(),
@@ -211,7 +217,13 @@ impl IntoElement for DrawerContent {
                 move || mounted.set(false),
             );
             DrawerPortal::new(drawer, self.label, options.modality)
-                .child(DrawerOverlay::with_motion(drawer, options, ready, close_ms))
+                .child(DrawerOverlay::with_motion(
+                    drawer,
+                    options,
+                    ready,
+                    close_ms,
+                    swipe_visibility.as_ref(),
+                ))
                 .child(surface)
         })
         .into_element()
@@ -270,7 +282,7 @@ impl IntoElement for DrawerPortal {
 
 impl DrawerOverlay {
     pub fn new(drawer: Drawer, options: DrawerOptions) -> Self {
-        Self::with_motion(drawer, options, signal(true), stored(CLOSE_MS))
+        Self::with_motion(drawer, options, signal(true), stored(CLOSE_MS), None)
     }
 
     fn with_motion(
@@ -278,6 +290,7 @@ impl DrawerOverlay {
         options: DrawerOptions,
         ready: Signal<bool>,
         close_ms: Stored<f32>,
+        swipe_visibility: Option<&AnimatedNode>,
     ) -> Self {
         let modal = options.modality == Modality::Modal;
         let fade = animated_value(0.0);
@@ -291,7 +304,8 @@ impl DrawerOverlay {
                 fade.set(target);
             } else {
                 let duration = if open { OPEN_MS } else { close_ms.get() };
-                let _ = fade.timing(target, duration, OVERLAY_EASING);
+                let easing = if open { OVERLAY_EASING } else { EXIT_EASING };
+                let _ = fade.timing(target, duration, easing);
             }
         });
         let layer = view()
@@ -309,8 +323,11 @@ impl DrawerOverlay {
                 // shadcn/ui's Rhea drawer overlay uses bg-black/30 and backdrop-blur-sm.
                 layer.bg(hsla(0.0, 0.0, 0.0, 0.30)).backdrop_blur(px(8.0))
             })
-            .bind_opacity(&fade)
             .test_id("drawer-backdrop");
+        let layer = match swipe_visibility {
+            Some(visibility) => layer.bind_opacity(&fade.mul(visibility)),
+            None => layer.bind_opacity(&fade),
+        };
         let layer = if !options.disable_outside_dismissal {
             layer.on_press(move || drawer.close())
         } else {
@@ -330,7 +347,7 @@ impl Drawer {
         ready: Signal<bool>,
         close_ms: Stored<f32>,
         on_exit: impl Fn() + Copy + 'static,
-    ) -> View {
+    ) -> (View, Option<AnimatedNode>) {
         let direction = options.direction;
         let vertical = direction.vertical();
         let viewport = untracked(window);
@@ -339,12 +356,23 @@ impl Drawer {
         } else {
             viewport.width.0
         };
-        let offset = animated_value(viewport_extent * direction.sign());
+        let initial_offset = viewport_extent * direction.sign();
+        let offset = animated_value(initial_offset);
+        // Native pans move only `offset`, so their displacement from the
+        // animated resting position can also drive the backdrop on the UI thread.
+        let resting_offset = animated_value(initial_offset);
+        let swipe_distance = animated_value(1.0);
         let measured_extent = signal(None::<f32>);
         let started = stored(false);
         let moving = stored(false);
         let exit = stored(None::<Spawned<()>>);
         let snapped = vertical && !options.snap_points.is_empty() && !options.centered;
+        let minimum_visibility = if snapped { 0.5 } else { 0.0 };
+        let swipe_visibility = offset
+            .sub(&resting_offset)
+            .mul(direction.sign())
+            .div(&swipe_distance)
+            .interpolate(&[0.0, 1.0], &[1.0, minimum_visibility]);
         let extent = move || {
             let available = (window().height.0 - 2.0 * options.inset).max(0.0);
             let maximum = options
@@ -385,7 +413,8 @@ impl Drawer {
                     fade.set(target);
                     return;
                 }
-                fade.timing(target, duration, OVERLAY_EASING)
+                let easing = if open { OVERLAY_EASING } else { EXIT_EASING };
+                fade.timing(target, duration, easing)
             } else {
                 let closed_position =
                     |length: f32| (length + options.inset + 2.0) * direction.sign();
@@ -395,6 +424,7 @@ impl Drawer {
                     };
                     started.replace(true);
                     offset.set(closed_position(length));
+                    resting_offset.set(closed_position(length));
                     ready.set(true);
                 }
                 if open && moving.get() {
@@ -402,19 +432,31 @@ impl Drawer {
                 }
                 let behind = self.showing_child.get();
                 let scale_target = if behind { 0.95 } else { 1.0 };
+                let length = measured_extent.get_untracked().unwrap_or(viewport_extent);
                 let target = if open {
-                    position(self.snap_index.get())
-                        - if behind { 16.0 * direction.sign() } else { 0.0 }
+                    let position = position(self.snap_index.get());
+                    swipe_distance.set((length - position.abs()).max(1.0));
+                    let peek = if behind { 16.0 + length * 0.05 } else { 0.0 };
+                    position - peek * direction.sign()
                 } else {
-                    closed_position(measured_extent.get_untracked().unwrap_or(viewport_extent))
+                    closed_position(length)
                 };
                 if reduce_motion() {
                     scale.set(scale_target);
                     offset.set(target);
+                    resting_offset.set(target);
                     return;
                 }
-                let _ = scale.timing(scale_target, duration, PANEL_EASING);
-                offset.timing(target, duration, PANEL_EASING)
+                let easing = if open {
+                    PANEL_EASING
+                } else if duration < CLOSE_MS {
+                    SWIPE_EXIT_EASING
+                } else {
+                    EXIT_EASING
+                };
+                let _ = scale.timing(scale_target, duration, easing);
+                let _ = resting_offset.timing(target, duration, easing);
+                offset.timing(target, duration, easing)
             };
             if !open {
                 exit.replace(Some(spawn(async move {
@@ -445,12 +487,15 @@ impl Drawer {
 
         if options.centered {
             let width = || (window().width.0 - 32.0).clamp(0.0, 425.0);
-            return container_centered(
-                panel
-                    .w(move || px(width()))
-                    .rounded(radius)
-                    .bind_opacity(&fade)
-                    .child(children),
+            return (
+                container_centered(
+                    panel
+                        .w(move || px(width()))
+                        .rounded(radius)
+                        .bind_opacity(&fade)
+                        .child(children),
+                ),
+                None,
             );
         }
 
@@ -512,7 +557,7 @@ impl Drawer {
 
         let drag = |surface: View| {
             surface
-                .pan_enabled(move || self.open.get())
+                .pan_enabled(move || self.open.get() && !self.showing_child.get())
                 .pan_values(
                     if vertical { None } else { Some(&offset) },
                     if vertical { Some(&offset) } else { None },
@@ -520,6 +565,7 @@ impl Drawer {
                 .pan_scroll_handoff(direction == Direction::Down)
                 .on_pan_start(move |_: &PanEvent| {
                     moving.replace(true);
+                    resting_offset.stop();
                 })
                 .on_pan_end(move |event: &PanEvent| {
                     moving.replace(false);
@@ -543,8 +589,10 @@ impl Drawer {
                             let target = position(index);
                             if reduce_motion() {
                                 offset.set(target);
+                                resting_offset.set(target);
                             } else {
                                 let _ = offset.timing(target, OPEN_MS, PANEL_EASING);
+                                let _ = resting_offset.timing(target, OPEN_MS, PANEL_EASING);
                             }
                         }
                         Some(index) => self.snap_index.set(index),
@@ -563,7 +611,7 @@ impl Drawer {
                 })
         };
 
-        if options.show_swipe_handle {
+        let panel = if options.show_swipe_handle {
             let handle = DrawerSwipeHandle(drag(swipe_handle(vertical, move || {
                 if snapped {
                     self.snap_index
@@ -574,20 +622,28 @@ impl Drawer {
                 Some(style) => style(handle),
                 None => handle,
             };
-            if vertical {
-                panel.child(handle).child(children)
-            } else {
-                panel.child(
+            match direction {
+                Direction::Down => panel.child(handle).child(children),
+                Direction::Up => panel.child(children).child(handle),
+                Direction::Left => panel.child(
+                    view()
+                        .flex_1()
+                        .flex_row()
+                        .child(children.flex_1())
+                        .child(handle),
+                ),
+                Direction::Right => panel.child(
                     view()
                         .flex_1()
                         .flex_row()
                         .child(handle)
                         .child(children.flex_1()),
-                )
+                ),
             }
         } else {
             drag(panel).child(children)
-        }
+        };
+        (panel, Some(swipe_visibility))
     }
 }
 
@@ -784,9 +840,9 @@ pub fn footer() -> View {
 
 fn swipe_handle(vertical: bool, on_press: impl Fn() + 'static) -> View {
     let (width, height, mark_width, mark_height) = if vertical {
-        (80.0, 28.0, 40.0, 4.0)
+        (112.0, 28.0, 100.0, 6.0)
     } else {
-        (22.0, 80.0, 4.0, 40.0)
+        (28.0, 112.0, 6.0, 100.0)
     };
     view()
         .w(px(width))
