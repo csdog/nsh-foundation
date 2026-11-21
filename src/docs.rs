@@ -18,7 +18,7 @@ use crate::{
     pagination_examples, popover_examples, progress_examples, questionnaire_examples,
     radio_group_examples, resizable_examples, scroll_area_examples, select_examples,
     separator_examples, sheet_examples, sidebar_examples, skeleton_examples, slider_examples,
-    spinner_examples, switch_examples, table_examples,
+    spinner_examples, switch_examples, table_examples, tabs_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -195,6 +195,7 @@ enum DocsPage {
     Spinner,
     Switch,
     Table,
+    Tabs,
 }
 
 type ComponentRoute = (
@@ -598,6 +599,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#table",
         "table-docs-scroll",
         table_page,
+    ),
+    (
+        DocsPage::Tabs,
+        "Tabs",
+        "#tabs",
+        "tabs-docs-scroll",
+        tabs_page,
     ),
 ];
 
@@ -3200,6 +3208,48 @@ fn table_page() -> View {
     .child(heading("API Reference"))
     .child(api_row("Table / TableColumn", "Set fixed and minimum widths. When the viewport is wider, flexible columns share the extra space. When it is narrower, the table scrolls horizontally."))
     .child(api_row("TableRow / TableHead / TableCell", "Use native table semantics, logical alignment, and optional selection styles. Cells can hold text or interactive elements."))
+}
+
+fn tabs_page() -> View {
+    macro_rules! demo {
+        ($function:ident, $file:literal, $label:literal) => {
+            example(
+                $label,
+                tabs_examples::$function(),
+                include_str!("tabs_examples.rs"),
+                include_str!(concat!("../references/tabs-tsx/tabs-", $file, ".tsx")),
+            )
+        };
+    }
+    component_article(
+        DocsPage::Tabs,
+        "Switch between related sections of content.",
+        "https://ui.shadcn.com/docs/components/base/tabs",
+    )
+    .child(demo!(demo, "demo", "Tabs demo"))
+    .child(heading("Usage"))
+    .child(code_block(r#"Tabs::new(TabsList::new("Account")
+    .trigger(TabsTrigger::new("account", "Account"))
+    .trigger(TabsTrigger::new("password", "Password")))
+    .default_value("account")
+    .content(TabsContent::new("account", || text("Make changes to your account.")))
+    .content(TabsContent::new("password", || text("Change your password.")))"#))
+    .child(heading("Composition"))
+    .child(muted("Give each trigger a distinct value. A content panel with the same value appears when its trigger is selected."))
+    .child(heading("Line"))
+    .child(demo!(line, "line", "Line"))
+    .child(heading("Vertical"))
+    .child(demo!(vertical, "vertical", "Vertical"))
+    .child(heading("Disabled"))
+    .child(demo!(disabled, "disabled", "Disabled"))
+    .child(heading("Icons"))
+    .child(demo!(icons, "icons", "Icons"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("Tabs", "Set the initial or bound value. Read changes with on_change. Use vertical orientation for a stacked list."))
+    .child(api_row("TabsList / TabsTrigger", "Arrow keys, Home, and End move focus. Enter or Space selects the focused tab. Enable activate_on_focus to select as arrow keys move focus."))
+    .child(api_row("TabsContent", "The active panel is exposed as a named, focusable Native Shell region."))
 }
 
 fn component_page(

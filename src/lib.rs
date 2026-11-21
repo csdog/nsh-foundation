@@ -119,6 +119,8 @@ pub mod switch;
 mod switch_examples;
 pub mod table;
 mod table_examples;
+pub mod tabs;
+mod tabs_examples;
 mod ui;
 
 use nsh_core::prelude::*;
