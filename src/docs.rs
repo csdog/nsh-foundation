@@ -13,7 +13,7 @@ use crate::{
     combobox_examples, command_examples, context_menu_examples, data_table_examples,
     date_picker_examples, dialog_examples, dropdown_menu_examples, empty_examples, examples,
     field_examples, hover_card_examples, input_examples, input_group_examples, input_otp_examples,
-    item_examples, kbd_examples, label_examples, marker_examples,
+    item_examples, kbd_examples, label_examples, marker_examples, menubar_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -169,6 +169,7 @@ enum DocsPage {
     Kbd,
     Label,
     Marker,
+    Menubar,
 }
 
 type ComponentRoute = (
@@ -425,6 +426,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#marker",
         "marker-docs-scroll",
         marker_page,
+    ),
+    (
+        DocsPage::Menubar,
+        "Menubar",
+        "#menubar",
+        "menubar-docs-scroll",
+        menubar_page,
     ),
 ];
 
@@ -2132,6 +2140,50 @@ fn marker_page() -> View {
     .child(api_row("Marker", "Choose a layout variant. Use stacked for a vertical icon and label, href for a link, and on_press for a button."))
     .child(api_row("MarkerIcon", "Add a decorative icon. Assistive technologies read the adjacent content."))
     .child(api_row("MarkerContent", "Display static or reactive text. Use shimmer for a moving highlight and status on Marker to announce text changes."))
+}
+
+fn menubar_page() -> View {
+    macro_rules! demo {
+        ($name:ident, $source:literal, $label:literal) => {
+            example(
+                $label,
+                menubar_examples::$name(),
+                include_str!("menubar_examples.rs"),
+                include_str!(concat!(
+                    "../references/menubar-tsx/menubar-",
+                    $source,
+                    ".tsx"
+                )),
+            )
+        };
+    }
+    component_article(
+        DocsPage::Menubar,
+        "Organize application commands in a persistent row of menus.",
+        "https://ui.shadcn.com/docs/components/base/menubar",
+    )
+    .child(demo!(demo, "demo", "Menubar demo"))
+    .child(heading("Usage"))
+    .child(code_block(r#"Menubar::new("Application menu").menu(MenubarMenu::new(
+    MenubarTrigger::new("File"),
+    MenubarContent::new().child(
+        MenubarItem::new("New Tab").on_select(open_tab),
+    ),
+))"#))
+    .child(heading("Checkbox"))
+    .child(demo!(checkboxes, "checkbox", "Checkbox"))
+    .child(heading("Radio"))
+    .child(demo!(radio, "radio", "Radio"))
+    .child(heading("Submenu"))
+    .child(demo!(submenu, "submenu", "Submenu"))
+    .child(heading("With Icons"))
+    .child(demo!(icons, "icons", "With Icons"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("Menubar", "Group application menus in one keyboard stop. Use the arrow keys to move between menus."))
+    .child(api_row("MenubarMenu / MenubarTrigger / MenubarContent", "Pair each top-level label with one menu. Its popup anchors to the trigger or uses the native sheet on touch screens."))
+    .child(api_row("MenubarItem / MenubarSub", "Use ordinary actions, separators, nested menus, checkboxes, or radio choices. Store checked values in Rust signals and define actual keyboard shortcuts in the application."))
 }
 
 fn component_page(

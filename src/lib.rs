@@ -77,6 +77,8 @@ mod label_examples;
 pub mod marker;
 mod marker_examples;
 mod menu_parts;
+pub mod menubar;
+mod menubar_examples;
 mod ui;
 
 use nsh_core::prelude::*;

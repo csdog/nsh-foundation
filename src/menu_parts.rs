@@ -13,6 +13,8 @@ pub struct MenuItem {
     shortcut: Option<&'static str>,
     checked: Option<Box<dyn Fn() -> bool>>,
     radio: bool,
+    inset: bool,
+    leading_check: bool,
     direction: Option<LayoutDirection>,
     close_on_select: bool,
     on_select: Box<dyn Fn()>,
@@ -28,6 +30,8 @@ impl MenuItem {
             shortcut: None,
             checked: None,
             radio: false,
+            inset: false,
+            leading_check: false,
             direction: None,
             close_on_select: true,
             on_select: Box::new(|| {}),
@@ -64,6 +68,16 @@ impl MenuItem {
         self.checkbox(checked)
     }
 
+    pub fn inset(mut self) -> Self {
+        self.inset = true;
+        self
+    }
+
+    pub fn leading_check(mut self) -> Self {
+        self.leading_check = true;
+        self
+    }
+
     pub fn direction(mut self, direction: LayoutDirection) -> Self {
         self.direction = Some(direction);
         self
@@ -91,6 +105,8 @@ impl IntoElement for MenuItem {
             shortcut,
             checked,
             radio,
+            inset,
+            leading_check,
             direction,
             close_on_select,
             on_select,
@@ -107,6 +123,25 @@ impl IntoElement for MenuItem {
             } else {
                 theme().accent
             }
+        };
+        let check = checked.with(|value| {
+            value.as_ref().map(|_| {
+                text(move || {
+                    if is_checked() == Some(true) {
+                        "✓"
+                    } else {
+                        ""
+                    }
+                })
+                .w(px(16.0))
+                .text_sm()
+                .accessibility_elements_hidden(true)
+            })
+        });
+        let (first_check, last_check) = if leading_check {
+            (check, None)
+        } else {
+            (None, check)
         };
         menu_item()
             .disabled(disabled)
@@ -128,6 +163,8 @@ impl IntoElement for MenuItem {
                     .direction(direction)
                     .items_center()
                     .gap_2()
+                    .child(first_check)
+                    .child(inset.then(|| view().w(px(16.0)).accessibility_elements_hidden(true)))
                     .child(icon.map(|icon| {
                         text(icon)
                             .w(px(16.0))
@@ -142,20 +179,7 @@ impl IntoElement for MenuItem {
                         }
                     }))
                     .child(shortcut.map(hint))
-                    .child(checked.with(|value| {
-                        value.as_ref().map(|_| {
-                            text(move || {
-                                if is_checked() == Some(true) {
-                                    "✓"
-                                } else {
-                                    ""
-                                }
-                            })
-                            .w(px(16.0))
-                            .text_sm()
-                            .accessibility_elements_hidden(true)
-                        })
-                    })),
+                    .child(last_check),
             )
             .into_element()
     }
