@@ -21,6 +21,7 @@ use crate::{
     spinner_examples, switch_examples, table_examples, tabs_examples, textarea_examples,
     toast::Toaster,
     toast_examples, toggle_examples, toggle_group_examples, tooltip_examples, trace_examples,
+    typography_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -204,6 +205,7 @@ enum DocsPage {
     ToggleGroup,
     Tooltip,
     Trace,
+    Typography,
 }
 
 type ComponentRoute = (
@@ -656,6 +658,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#trace",
         "trace-docs-scroll",
         trace_page,
+    ),
+    (
+        DocsPage::Typography,
+        "Typography",
+        "#typography",
+        "typography-docs-scroll",
+        typography_page,
     ),
 ];
 
@@ -3574,6 +3583,58 @@ fn trace_page() -> View {
     .child(api_row("TraceLine", "Compose a title, icon, indicator, and description. Running titles respect reduced motion."))
     .child(api_row("TraceCollapsible", "Set a default or bound open state and compose a trigger and detail content."))
     .child(muted("The Rust chat, reasoning and tool previews play prerecorded examples. The TSX versions use the shadcn docs chat fixture helper."))
+}
+
+fn typography_page() -> View {
+    macro_rules! demo {
+        ($function:ident, $name:literal, $label:literal) => {
+            example(
+                $label,
+                typography_examples::$function(),
+                include_str!("typography_examples.rs"),
+                include_str!(concat!(
+                    "../references/typography-tsx/typography-",
+                    $name,
+                    ".tsx"
+                )),
+            )
+        };
+    }
+
+    component_article(
+        DocsPage::Typography,
+        "Set the hierarchy and rhythm of headings, paragraphs, and other article content.",
+        "https://ui.shadcn.com/docs/components/base/typography",
+    )
+    .child(demo!(demo, "demo", "Typography demo"))
+    .child(heading("h1"))
+    .child(demo!(h1, "h1", "h1"))
+    .child(heading("h2"))
+    .child(demo!(h2, "h2", "h2"))
+    .child(heading("h3"))
+    .child(demo!(h3, "h3", "h3"))
+    .child(heading("h4"))
+    .child(demo!(h4, "h4", "h4"))
+    .child(heading("p"))
+    .child(demo!(p, "p", "p"))
+    .child(heading("blockquote"))
+    .child(demo!(blockquote, "blockquote", "blockquote"))
+    .child(heading("table"))
+    .child(demo!(table, "table", "table"))
+    .child(heading("list"))
+    .child(demo!(list, "list", "list"))
+    .child(heading("Inline code"))
+    .child(demo!(inline_code, "inline-code", "Inline code"))
+    .child(heading("Lead"))
+    .child(demo!(lead, "lead", "Lead"))
+    .child(heading("Large"))
+    .child(demo!(large, "large", "Large"))
+    .child(heading("Small"))
+    .child(demo!(small, "small", "Small"))
+    .child(heading("Muted"))
+    .child(demo!(muted, "muted", "Muted"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
 }
 
 fn component_page(

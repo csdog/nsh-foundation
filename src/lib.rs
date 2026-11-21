@@ -133,6 +133,8 @@ pub mod tooltip;
 mod tooltip_examples;
 pub mod trace;
 mod trace_examples;
+pub mod typography;
+mod typography_examples;
 mod ui;
 
 use nsh_core::prelude::*;
