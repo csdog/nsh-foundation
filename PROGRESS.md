@@ -1,12 +1,12 @@
 # nsh-foundation 组件进度
 
-更新于 2026-11-21。已发布 **17 / 66**，待开始 **49 / 66**。下一项是 **Code Block（#17）**。[实施计划](PLAN.md)
+更新于 2026-11-21。已发布 **18 / 66**，待开始 **48 / 66**。下一项是 **Collapsible（#18）**。[实施计划](PLAN.md)
 
 ## 已交付基线
 
 - **Drawer** 已拆成纯 Rust 组合组件，包括 `DrawerTrigger`、`DrawerContent`、`DrawerHeader`、`DrawerTitle`、`DrawerDescription`、`DrawerFooter` 和 `DrawerClose`。文档已有 9 个交互示例及 Preview / Rust / TSX 标签。面板默认留 8 点外边距，示例正文内边距为 16 点，并与标题和底部操作对齐。普通滑入和滑出分别用时 450 ms 和 400 ms。甩动关闭按剩余距离和松手速度调整时长，退出动画播完再卸载内容。测试覆盖退出途中重新打开及内容间距。[组件源码](src/drawer.rs) · [TSX 参考](references/drawer-tsx/)
-- **线上版本**为 23，发布提交为 `f82eaaa`，新增 Checkbox。Web 打包和 WASM 校验已完成。云端预览端口启动受限，浏览器视觉核验仍待复核。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#checkbox)
-- **基线复测**于 2026-11-21 通过 `cargo fmt --check` 和 `cargo test --offline --locked`，共 48 项 Rust 测试。
+- **线上版本**为 24，发布提交为 `3791d21`，新增 Code Block。Web 打包和 WASM 内容校验已完成。云端预览端口启动受限，浏览器视觉核验仍待复核。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#code-block)
+- **基线复测**于 2026-11-21 通过 `cargo fmt --check` 和 `cargo test --offline --locked`，共 50 项 Rust 测试。
 - **设计参考**已固定 shadcn/ui 源码版本，Obra 预览图已保存。可编辑的 Figma 原文件仍未获取。[参考资料记录](references/README.md)
 - **Accordion** 已发布于 v7（`7abbcb5`），含 7 个官方示例及 Preview / Rust / TSX。支持默认与受控状态、单项与多项展开、禁用、方向键和 RTL。15 项 Rust 测试、Web 打包及 WASM 校验已通过，浏览器视觉核验受预览端口限制。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#accordion) · [组件源码](src/accordion.rs) · [TSX 参考](references/accordion-tsx/)
 - **Alert** 已发布于 v8（`1e44dc4`），含 6 个官方示例及 Preview / Rust / TSX。支持普通和 destructive 样式、自定义主题颜色、操作按钮和 RTL。无头测试覆盖移动端交互、复制代码和历史导航。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#alert) · [组件源码](src/alert.rs) · [TSX 参考](references/alert-tsx/)
@@ -24,6 +24,7 @@
 - **Carousel** 已发布于 v21（`5198b2e`），含 7 个预览及 Preview / Rust / TSX。支持横竖排列、响应式尺寸、可配间距、索引信号、循环和自动播放。Rust 示例使用原生滚动吸附和 Rust 定时器。无头测试覆盖拖动、边界按钮、垂直方向键、悬停暂停和局部 RTL。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#carousel) · [组件源码](src/carousel.rs) · [TSX 参考](references/carousel-tsx/)
 - **Chart** 已发布于 v22（`412bbdf`），含 8 个预览及 Preview / Rust / TSX。纯 Rust 分组柱状图复用 Native Shell 绘图，支持系列切换、主题色、网格、坐标轴、图例及 RTL。提示框支持悬停、键盘导航和自定义格式。无头测试覆盖系列切换、提示框关闭和反向坐标轴。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#chart) · [组件源码](src/chart.rs) · [TSX 参考](references/chart-tsx/)
 - **Checkbox** 已发布于 v23（`f82eaaa`），含 8 个预览及 Preview / Rust / TSX。支持受控与非受控状态、描述、禁用、无效状态、混合选择和 RTL。Rust 表格在只有部分行选中时显示混合状态。无头测试覆盖空格键切换、无障碍状态、全选和 RTL 布局。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#checkbox) · [组件源码](src/checkbox.rs) · [TSX 参考](references/checkbox-tsx/)
+- **Code Block** 已发布于 v24（`3791d21`），含 25 个预览及 Preview / Rust / TSX。支持组合式标题和操作、行号及起始行、折行、差异标记、复制、展开、RTL、基于 Syntect 的着色、基础 ANSI 颜色和本地流式回放。Rust 演示仍缺文件下载，流式着色会重新处理当前文本。无头测试校验复制内容、ANSI 控制码去除、折行、展开、文件切换和回放。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#code-block) · [组件源码](src/code_block/mod.rs) · [TSX 参考](references/code-block-tsx/)
 
 ## 按官方顺序跟踪
 
@@ -47,8 +48,8 @@
 | 14 | Carousel | 已发布 |
 | 15 | Chart | 已发布 |
 | 16 | Checkbox | 已发布 |
-| 17 | Code Block | 已实现 · 待发布 |
-| 18 | Collapsible | 待开始 |
+| 17 | Code Block | 已发布 |
+| 18 | Collapsible | 待开始 · 下一项 |
 | 19 | Combobox | 待开始 |
 | 20 | Command | 待开始 |
 | 21 | Context Menu | 待开始 |
