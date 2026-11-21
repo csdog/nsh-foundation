@@ -9,7 +9,8 @@ use crate::{
     accordion_examples, alert_dialog_examples, alert_examples, aspect_ratio_examples,
     attachment_examples, avatar_examples, badge_examples, breadcrumb_examples, bubble_examples,
     button_examples, button_group_examples, calendar_examples, card_examples, carousel_examples,
-    chart_examples, checkbox_examples, code_block_examples, collapsible_examples, examples,
+    chart_examples, checkbox_examples, code_block_examples, collapsible_examples,
+    combobox_examples, examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -147,6 +148,7 @@ enum DocsPage {
     Checkbox,
     CodeBlock,
     Collapsible,
+    Combobox,
 }
 
 type ComponentRoute = (
@@ -283,6 +285,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#collapsible",
         "collapsible-docs-scroll",
         collapsible_page,
+    ),
+    (
+        DocsPage::Combobox,
+        "Combobox",
+        "#combobox",
+        "combobox-docs-scroll",
+        combobox_page,
     ),
 ];
 
@@ -1162,6 +1171,51 @@ fn collapsible_page() -> View {
     .child(demo!(rtl, "rtl", "RTL"))
     .child(heading("API Reference"))
     .child(api_row("Collapsible / CollapsibleTrigger / CollapsibleContent", "Compose a disclosure, style the trigger using its open state, and provide the content that expands. Use disabled to block activation or reveal(false) to switch instantly."))
+}
+
+fn combobox_page() -> View {
+    macro_rules! demos {
+        ($page:expr; $(($function:ident, $name:literal, $title:literal)),+ $(,)?) => {
+            $page$(.child(heading($title)).child(example(
+                $title,
+                combobox_examples::$function(),
+                include_str!("combobox_examples.rs"),
+                include_str!(concat!("../references/combobox-tsx/combobox-", $name, ".tsx")),
+            )))+
+        };
+    }
+    let page = component_article(
+        DocsPage::Combobox,
+        "Filter a list and select one or more options.",
+        "https://ui.shadcn.com/docs/components/base/combobox",
+    )
+    .child(example(
+        "Combobox demo",
+        combobox_examples::demo(),
+        include_str!("combobox_examples.rs"),
+        include_str!("../references/combobox-tsx/combobox-demo.tsx"),
+    ))
+    .child(heading("Usage"))
+    .child(muted("Supply options as ComboboxItem values. Use group to add section labels and render_item to show additional information."))
+    .child(heading("Multiple Selection"))
+    .child(muted("Set multiple(true) to keep several items. Each chosen item has a remove button. Bind a value signal to read or update the selection from Rust."));
+    demos!(page;
+        (basic, "basic", "Basic"),
+        (multiple, "multiple", "Multiple"),
+        (clear, "clear", "Clear Button"),
+        (groups, "groups", "Groups"),
+        (custom, "custom", "Custom Items"),
+        (invalid, "invalid", "Invalid"),
+        (disabled, "disabled", "Disabled"),
+        (auto_highlight, "auto-highlight", "Auto Highlight"),
+        (popup, "popup", "Popup"),
+        (input_group, "input-group", "Input Group"),
+        (rtl, "rtl", "RTL"),
+    )
+    .child(heading("API Reference"))
+    .child(api_row("Combobox", "Type to filter and highlight the first result. Use the arrow keys to move among results, Enter to select, and Escape to close."))
+    .child(api_row("ComboboxItem", "Give each option a unique value and a label. Items can be grouped or disabled."))
+    .child(api_row("Popup and input addons", "Use popup() for a searchable list behind a button, or prefix() to add content before the editable input."))
 }
 
 fn component_page(

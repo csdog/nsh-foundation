@@ -38,6 +38,8 @@ pub mod code_block;
 mod code_block_examples;
 pub mod collapsible;
 mod collapsible_examples;
+pub mod combobox;
+mod combobox_examples;
 mod docs;
 pub mod drawer;
 mod examples;
