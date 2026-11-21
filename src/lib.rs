@@ -42,6 +42,8 @@ pub mod combobox;
 mod combobox_examples;
 pub mod command;
 mod command_examples;
+pub mod context_menu;
+mod context_menu_examples;
 mod docs;
 pub mod drawer;
 mod examples;

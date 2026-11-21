@@ -10,7 +10,7 @@ use crate::{
     attachment_examples, avatar_examples, badge_examples, breadcrumb_examples, bubble_examples,
     button_examples, button_group_examples, calendar_examples, card_examples, carousel_examples,
     chart_examples, checkbox_examples, code_block_examples, collapsible_examples,
-    combobox_examples, command_examples, examples,
+    combobox_examples, command_examples, context_menu_examples, examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -150,6 +150,7 @@ enum DocsPage {
     Collapsible,
     Combobox,
     Command,
+    ContextMenu,
 }
 
 type ComponentRoute = (
@@ -300,6 +301,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#command",
         "command-docs-scroll",
         command_page,
+    ),
+    (
+        DocsPage::ContextMenu,
+        "Context Menu",
+        "#context-menu",
+        "context-menu-docs-scroll",
+        context_menu_page,
     ),
 ];
 
@@ -1265,6 +1273,57 @@ fn command_page() -> View {
     .child(api_row("Command", "Use the arrows to navigate and Enter to select. Escape clears the search before dismissing an open dialog."))
     .child(api_row("CommandDialog", "Open the palette from a button or bind a shortcut such as mod+j."))
     .child(api_row("CommandItem", "Supply labels, grouping, keywords, disabled state and shortcut hints. Bind any item shortcuts in the application that owns the actions."))
+}
+
+fn context_menu_page() -> View {
+    macro_rules! demo {
+        ($example:ident, $source:literal, $title:literal) => {
+            example(
+                $title,
+                context_menu_examples::$example(),
+                include_str!("context_menu_examples.rs"),
+                include_str!(concat!(
+                    "../references/context-menu-tsx/context-menu-",
+                    $source,
+                    ".tsx"
+                )),
+            )
+        };
+    }
+    component_article(
+        DocsPage::ContextMenu,
+        "Show actions for an area with a right click or a touch hold.",
+        "https://ui.shadcn.com/docs/components/base/context-menu",
+    )
+    .child(demo!(demo, "demo", "Context Menu demo"))
+    .child(heading("Usage"))
+    .child(muted("Right click or hold the trigger on a touchscreen. With the trigger focused, use Shift+F10 or the Menu key. Use the arrow keys to navigate and Escape to dismiss."))
+    .child(heading("Composition"))
+    .child(muted("Create a ContextMenu with a trigger view. Add ContextMenuItem rows, labels, separators, and submenus as children. Keep checkbox and radio values in Rust signals."))
+    .child(heading("Basic"))
+    .child(demo!(basic, "basic", "Basic"))
+    .child(heading("Submenu"))
+    .child(demo!(submenu, "submenu", "Submenu"))
+    .child(heading("Shortcuts"))
+    .child(demo!(shortcuts, "shortcuts", "Shortcuts"))
+    .child(heading("Groups"))
+    .child(demo!(groups, "groups", "Groups"))
+    .child(heading("Icons"))
+    .child(demo!(icons, "icons", "Icons"))
+    .child(heading("Checkboxes"))
+    .child(demo!(checkboxes, "checkboxes", "Checkboxes"))
+    .child(heading("Radio"))
+    .child(demo!(radio_items, "radio", "Radio"))
+    .child(heading("Destructive"))
+    .child(demo!(destructive, "destructive", "Destructive"))
+    .child(heading("Sides"))
+    .child(demo!(sides, "sides", "Sides"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("ContextMenu", "Pass in a trigger view. An optional placement chooses the preferred popup side. Native Shell may flip the popup to fit or show it as a sheet on compact touch devices."))
+    .child(api_row("ContextMenuItem", "Attach an on_select callback. Use checkbox or radio for checked state. Shortcut labels describe application key bindings."))
+    .child(api_row("Labels, separators and submenus", "Use these parts to compose groups or reveal additional actions without leaving the current context."))
 }
 
 fn component_page(
