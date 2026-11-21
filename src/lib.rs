@@ -129,6 +129,8 @@ pub mod toggle;
 mod toggle_examples;
 pub mod toggle_group;
 mod toggle_group_examples;
+pub mod tooltip;
+mod tooltip_examples;
 mod ui;
 
 use nsh_core::prelude::*;

@@ -20,7 +20,7 @@ use crate::{
     separator_examples, sheet_examples, sidebar_examples, skeleton_examples, slider_examples,
     spinner_examples, switch_examples, table_examples, tabs_examples, textarea_examples,
     toast::Toaster,
-    toast_examples, toggle_examples, toggle_group_examples,
+    toast_examples, toggle_examples, toggle_group_examples, tooltip_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -202,6 +202,7 @@ enum DocsPage {
     Toast,
     Toggle,
     ToggleGroup,
+    Tooltip,
 }
 
 type ComponentRoute = (
@@ -640,6 +641,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#toggle-group",
         "toggle-group-docs-scroll",
         toggle_group_page,
+    ),
+    (
+        DocsPage::Tooltip,
+        "Tooltip",
+        "#tooltip",
+        "tooltip-docs-scroll",
+        tooltip_page,
     ),
 ];
 
@@ -3454,6 +3462,46 @@ fn toggle_group_page() -> View {
     .child(heading("API Reference"))
     .child(api_row("ToggleGroup", "Set the default or bound values, optional multiple selection, size, spacing, and orientation. Arrow keys move focus along the group and Enter or Space changes selection."))
     .child(api_row("ToggleGroupItem", "Set a stable value and label. Optionally disable the item or replace its text with custom content."))
+}
+
+fn tooltip_page() -> View {
+    macro_rules! demo {
+        ($function:ident, $label:literal) => {
+            example(
+                $label,
+                tooltip_examples::$function(),
+                include_str!("tooltip_examples.rs"),
+                include_str!(concat!(
+                    "../references/tooltip-tsx/tooltip-",
+                    stringify!($function),
+                    ".tsx"
+                )),
+            )
+        };
+    }
+
+    component_article(
+        DocsPage::Tooltip,
+        "Describe a control when the pointer rests on it or the keyboard focuses it.",
+        "https://ui.shadcn.com/docs/components/base/tooltip",
+    )
+    .child(demo!(demo, "Tooltip demo"))
+    .child(heading("Usage"))
+    .child(code_block(r#"TooltipContent::new("Add to library")
+    .attach(Button::new("Hover").variant(ButtonVariant::Outline).surface())"#))
+    .child(heading("Composition"))
+    .child(muted("Attach tooltip content to an interactive surface. The same control handles pointer and keyboard focus."))
+    .child(heading("Side"))
+    .child(demo!(sides, "Side"))
+    .child(heading("With Keyboard Shortcut"))
+    .child(demo!(keyboard, "With Keyboard Shortcut"))
+    .child(heading("Disabled Button"))
+    .child(demo!(disabled, "Disabled Button"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("TooltipContent", "Set the side, alignment, offset, or pointer delay. Use render for custom content."))
+    .child(api_row("attach", "Attach the tooltip to a control or a focusable wrapper around a disabled control. Escape dismisses it. Touch alone follows Native Shell’s hint behavior."))
 }
 
 fn component_page(
