@@ -30,6 +30,8 @@ pub mod card;
 mod card_examples;
 pub mod carousel;
 mod carousel_examples;
+pub mod chart;
+mod chart_examples;
 mod docs;
 pub mod drawer;
 mod examples;

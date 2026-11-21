@@ -9,7 +9,7 @@ use crate::{
     accordion_examples, alert_dialog_examples, alert_examples, aspect_ratio_examples,
     attachment_examples, avatar_examples, badge_examples, breadcrumb_examples, bubble_examples,
     button_examples, button_group_examples, calendar_examples, card_examples, carousel_examples,
-    examples,
+    chart_examples, examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -143,6 +143,7 @@ enum DocsPage {
     Calendar,
     Card,
     Carousel,
+    Chart,
 }
 
 type ComponentRoute = (
@@ -251,6 +252,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#carousel",
         "carousel-docs-scroll",
         carousel_page,
+    ),
+    (
+        DocsPage::Chart,
+        "Chart",
+        "#chart",
+        "chart-docs-scroll",
+        chart_page,
     ),
 ];
 
@@ -955,6 +963,46 @@ fn carousel_page() -> View {
     .child(api_row("Carousel", "Set orientation, direction, looping, a controlled index, or an autoplay delay."))
     .child(api_row("CarouselContent / CarouselItem", "Set the track spacing, vertical viewport height, and each slide's share of the viewport."))
     .child(api_row("CarouselPrevious / CarouselNext", "The controls disable automatically at the ends and accept localized labels."))
+}
+
+fn chart_page() -> View {
+    macro_rules! demo {
+        ($example:ident, $name:literal, $title:literal) => {
+            example(
+                $title,
+                chart_examples::$example(),
+                include_str!("chart_examples.rs"),
+                include_str!(concat!("../references/chart-tsx/chart-", $name, ".tsx")),
+            )
+        };
+    }
+    component_article(
+        DocsPage::Chart,
+        "Build accessible, themed charts with Native Shell plots.",
+        "https://ui.shadcn.com/docs/components/base/chart",
+    )
+    .child(demo!(demo, "demo", "Interactive Bar Chart"))
+    .child(heading("Your First Chart"))
+    .child(demo!(basic, "example", "Basic"))
+    .child(heading("Add a Grid"))
+    .child(demo!(with_grid, "example-grid", "Grid"))
+    .child(heading("Add an Axis"))
+    .child(demo!(with_axis, "example-axis", "Axis"))
+    .child(heading("Add Tooltip"))
+    .child(demo!(with_tooltip, "example-tooltip", "Add Tooltip"))
+    .child(heading("Add Legend"))
+    .child(demo!(with_legend, "example-legend", "Legend"))
+    .child(heading("Chart Config"))
+    .child(muted("ChartConfig maps each series key to a label and color. Pass values in series order and use tick to shorten the axis label."))
+    .child(heading("Theming"))
+    .child(muted("Use reactive theme colors such as theme().chart_1 or pass a custom color. The series color also supplies the legend and tooltip marker."))
+    .child(heading("Tooltip"))
+    .child(demo!(tooltip_styles, "tooltip", "Tooltip styles"))
+    .child(api_row("ChartTooltipContent / ChartLegendContent", "Display series names and values with dot, line, dashed, or hidden indicators. Use formatted to supply display text for a tooltip value."))
+    .child(heading("Accessibility"))
+    .child(muted("Tab to the plot. The arrow keys move between points, Home and End go to either edge, and Escape clears the selected point."))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
 }
 
 fn component_page(

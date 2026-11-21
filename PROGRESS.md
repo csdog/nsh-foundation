@@ -43,7 +43,7 @@
 | 12 | Calendar | 已发布 |
 | 13 | Card | 已发布 |
 | 14 | Carousel | 已发布 |
-| 15 | Chart | 待开始 · 下一项 |
+| 15 | Chart | 已实现 · 待发布 |
 | 16 | Checkbox | 待开始 |
 | 17 | Code Block | 待开始 |
 | 18 | Collapsible | 待开始 |
