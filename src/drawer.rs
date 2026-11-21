@@ -12,8 +12,8 @@ use crate::ui::{Variant, button_surface, heading, muted};
 const OPEN_MS: f32 = 450.0;
 const CLOSE_MS: f32 = 400.0;
 const PANEL_EASING: Easing = Easing::Bezier(0.22, 1.0, 0.36, 1.0);
-const EXIT_EASING: Easing = Easing::Bezier(0.4, 0.0, 0.6, 1.0);
 const SWIPE_EXIT_EASING: Easing = Easing::Bezier(0.22, 0.65, 0.4, 1.0);
+const STACK_CONTENT_EASING: Easing = Easing::Bezier(0.45, 1.005, 0.0, 1.005);
 const OVERLAY_EASING: Easing = Easing::Bezier(0.32, 0.72, 0.0, 1.0);
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
@@ -155,7 +155,8 @@ type DrawerBody = Box<dyn Fn() -> View>;
 type DrawerConfiguration = Box<dyn Fn() -> DrawerOptions>;
 type SwipeHandleStyle = Box<dyn Fn(DrawerSwipeHandle) -> DrawerSwipeHandle>;
 
-/// The popup. Its body is built when the drawer opens and released after it exits.
+/// The popup gives its body 16 points of padding. The body is built when the
+/// drawer opens and released after it exits.
 pub struct DrawerContent {
     drawer: Drawer,
     label: &'static str,
@@ -304,8 +305,7 @@ impl DrawerOverlay {
                 fade.set(target);
             } else {
                 let duration = if open { OPEN_MS } else { close_ms.get() };
-                let easing = if open { OVERLAY_EASING } else { EXIT_EASING };
-                let _ = fade.timing(target, duration, easing);
+                let _ = fade.timing(target, duration, OVERLAY_EASING);
             }
         });
         let layer = view()
@@ -365,6 +365,7 @@ impl Drawer {
         let measured_extent = signal(None::<f32>);
         let started = stored(false);
         let moving = stored(false);
+        let swipe_dismissal = stored(false);
         let exit = stored(None::<Spawned<()>>);
         let snapped = vertical && !options.snap_points.is_empty() && !options.centered;
         let minimum_visibility = if snapped { 0.5 } else { 0.0 };
@@ -401,6 +402,7 @@ impl Drawer {
             let open = self.open.get();
             if open {
                 close_ms.replace(CLOSE_MS);
+                swipe_dismissal.replace(false);
             }
             if !open && (reduce_motion() || !ready.get_untracked()) {
                 on_exit();
@@ -413,8 +415,7 @@ impl Drawer {
                     fade.set(target);
                     return;
                 }
-                let easing = if open { OVERLAY_EASING } else { EXIT_EASING };
-                fade.timing(target, duration, easing)
+                fade.timing(target, duration, OVERLAY_EASING)
             } else {
                 let closed_position =
                     |length: f32| (length + options.inset + 2.0) * direction.sign();
@@ -447,15 +448,18 @@ impl Drawer {
                     resting_offset.set(target);
                     return;
                 }
-                let easing = if open {
-                    PANEL_EASING
-                } else if duration < CLOSE_MS {
+                let released = !open && swipe_dismissal.get();
+                let easing = if released {
                     SWIPE_EXIT_EASING
                 } else {
-                    EXIT_EASING
+                    PANEL_EASING
                 };
                 let _ = scale.timing(scale_target, duration, easing);
-                let _ = resting_offset.timing(target, duration, easing);
+                // On a swipe dismissal keep the drag origin fixed so the
+                // backdrop cannot brighten as the panel follows through.
+                if !released {
+                    let _ = resting_offset.timing(target, duration, easing);
+                }
                 offset.timing(target, duration, easing)
             };
             if !open {
@@ -466,6 +470,25 @@ impl Drawer {
                 })));
             }
         });
+
+        let stack_visibility = animated_value(1.0);
+        effect(move || {
+            let opacity = if self.showing_child.get() { 0.0 } else { 1.0 };
+            if reduce_motion() {
+                stack_visibility.set(opacity);
+            } else {
+                let _ = stack_visibility.timing(opacity, 300.0, STACK_CONTENT_EASING);
+            }
+        });
+        let children = view()
+            .flex_1()
+            .min_h(px(0.0))
+            .min_w(px(0.0))
+            .p_4()
+            .overflow_hidden()
+            .bind_opacity(&stack_visibility)
+            .test_id("drawer-content")
+            .child(children);
 
         let radius = px(24.0);
         let inset = px(options.inset);
@@ -557,7 +580,7 @@ impl Drawer {
 
         let drag = |surface: View| {
             surface
-                .pan_enabled(move || self.open.get() && !self.showing_child.get())
+                .pan_enabled(move || ready.get() && self.open.get() && !self.showing_child.get())
                 .pan_values(
                     if vertical { None } else { Some(&offset) },
                     if vertical { Some(&offset) } else { None },
@@ -605,6 +628,7 @@ impl Drawer {
                             close_ms.replace(
                                 (remaining / velocity.max(1.0) * 1000.0).clamp(160.0, CLOSE_MS),
                             );
+                            swipe_dismissal.replace(true);
                             self.close();
                         }
                     }
@@ -622,6 +646,7 @@ impl Drawer {
                 Some(style) => style(handle),
                 None => handle,
             };
+            let handle = handle.bind_opacity(&stack_visibility);
             match direction {
                 Direction::Down => panel.child(handle).child(children),
                 Direction::Up => panel.child(children).child(handle),
@@ -774,8 +799,6 @@ impl DrawerHeader {
         Self(
             view()
                 .flex_shrink_0()
-                .px_4()
-                .pt_4()
                 .gap(move || px(if window().width.0 >= 768.0 { 6.0 } else { 2.0 })),
         )
     }
@@ -803,7 +826,7 @@ impl DrawerDescription {
 
 impl DrawerFooter {
     pub fn new() -> Self {
-        Self(view().flex_shrink_0().px_4().pb_4().gap_2())
+        Self(view().mt(auto()).flex_shrink_0().gap_2())
     }
 }
 

@@ -252,7 +252,7 @@ fn PartsExample() -> impl IntoElement {
                         )),
                 )
                 .child(
-                    view().p_4().child(
+                    view().py_4().child(
                         view()
                             .test_id("parts-body")
                             .label("Reopen during exit")
