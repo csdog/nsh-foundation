@@ -10,6 +10,10 @@ pub(crate) enum Variant {
 }
 
 pub(crate) fn button(label: &'static str, variant: Variant, press: impl Fn() + 'static) -> View {
+    button_surface(label, variant).on_press(press)
+}
+
+pub(crate) fn button_surface(label: &'static str, variant: Variant) -> View {
     view()
         .role(AccessibilityRole::Button)
         .label(label)
@@ -33,7 +37,6 @@ pub(crate) fn button(label: &'static str, variant: Variant, press: impl Fn() + '
         .hover(|style| style.opacity(0.78))
         .active(|style| style.opacity(0.62))
         .focus_visible(|style| style.outline(px(2.0)).outline_color(rgb(0x71717a)))
-        .on_press(press)
         .child(
             text(label)
                 .text_sm()
@@ -51,7 +54,7 @@ pub(crate) fn muted(label: impl IntoReactive<SharedString>) -> Text {
         .text_color(move || theme().muted_foreground)
 }
 
-pub(crate) fn heading(label: &'static str) -> Text {
+pub(crate) fn heading(label: impl IntoReactive<SharedString>) -> Text {
     text(label)
         .role(AccessibilityRole::Header)
         .text_lg()

@@ -156,12 +156,10 @@ fn code_tab_copies_the_drawer_recipe_and_can_return_to_preview() {
     let region = "role:region[Delivery time]";
     interact(&mut app, &format!("{region} >> Code"));
     interact(&mut app, &format!("{region} >> Copy"));
-    assert!(
-        app.screen()
-            .clipboard()
-            .unwrap()
-            .contains("Drawer::new(signal(false))")
-    );
+    let source = app.screen().clipboard().unwrap();
+    assert!(source.contains("DrawerTrigger::new"));
+    assert!(source.contains("DrawerContent::new"));
+    assert!(source.contains("DrawerTitle::new"));
     interact(&mut app, &format!("{region} >> Preview"));
     interact(&mut app, "id:delivery-trigger");
     assert!(app.shows("Pick a delivery time"));
@@ -181,4 +179,54 @@ fn custom_size_keeps_the_footer_visible_and_inset_floats_the_panel() {
     assert!((floating.origin.x.0 + floating.size.width.0 - 1264.0).abs() < 1.0);
     assert!((floating.origin.y.0 - 16.0).abs() < 1.0);
     assert!((floating.size.width.0 - 360.0).abs() < 1.0);
+}
+
+#[component]
+fn PartsExample() -> impl IntoElement {
+    use nsh_foundation::drawer::{
+        Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader,
+        DrawerTitle, DrawerTrigger,
+    };
+
+    let drawer = Drawer::new(signal(false));
+    view()
+        .child(
+            DrawerTrigger::render(
+                drawer,
+                view().p_4().label("Custom opener").child(text("Open")),
+            )
+            .test_id("parts-trigger"),
+        )
+        .child(DrawerContent::new(drawer, "Compound Drawer", move || {
+            view()
+                .child(
+                    DrawerHeader::new()
+                        .child(DrawerTitle::new("Compound Drawer"))
+                        .child(DrawerDescription::new(
+                            "Only mounted while the drawer is visible.",
+                        )),
+                )
+                .child(DrawerFooter::new().child(DrawerClose::render(
+                    drawer,
+                    view().p_4().label("Custom closer").child(text("Done")),
+                )))
+        }))
+}
+
+#[test]
+fn independently_styled_trigger_and_close_compose_with_lazy_content() {
+    let mut app = Headless::start(EngineConfig {
+        viewport: Size::new(px(390.0), px(844.0)),
+        ..EngineConfig::new(Root::of::<PartsExample>())
+    })
+    .unwrap();
+    app.first_render().unwrap();
+    let description = "Only mounted while the drawer is visible.";
+    assert!(!app.shows(description));
+    interact(&mut app, "id:parts-trigger");
+    assert_count(&app, 1);
+    assert!(app.shows(description));
+    interact(&mut app, "Custom closer");
+    assert_count(&app, 0);
+    assert!(!app.shows(description));
 }

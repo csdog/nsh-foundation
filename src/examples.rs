@@ -3,9 +3,10 @@ use nsh_core::{AccessibilityState, Checked, prelude::*};
 
 use crate::{
     drawer::{
-        Direction, Drawer, DrawerOptions, Modality, SnapPoint, close, footer, header, trigger,
+        Direction, Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter,
+        DrawerHeader, DrawerOptions, DrawerTitle, DrawerTrigger, Modality, SnapPoint,
     },
-    ui::{Variant, button, muted},
+    ui::{Variant, button, button_surface, muted},
 };
 
 pub(crate) const BREAKPOINT: f32 = 768.0;
@@ -31,12 +32,14 @@ const DELIVERY: [(&str, &str); 5] = [
     ("6:30 PM – 6:45 PM", "Last slot before kitchen closes"),
 ];
 
-pub(crate) fn delivery(status: Signal<Option<SharedString>>) -> (View, impl IntoElement) {
+pub(crate) fn delivery(
+    status: Signal<Option<SharedString>>,
+) -> (impl IntoElement, impl IntoElement) {
     let drawer = Drawer::new(signal(false));
     let selection = signal(0_usize);
-    let trigger = button("Open Drawer", Variant::Secondary, move || drawer.open())
+    let trigger = DrawerTrigger::render(drawer, button_surface("Open Drawer", Variant::Secondary))
         .test_id("delivery-trigger");
-    let content = drawer.content("Pick a delivery time", adaptive, move || {
+    let content = DrawerContent::new(drawer, "Pick a delivery time", move || {
         let mut choices = view()
             .gap_2()
             .role(AccessibilityRole::Radiogroup)
@@ -117,13 +120,16 @@ pub(crate) fn delivery(status: Signal<Option<SharedString>>) -> (View, impl Into
         }
         view()
             .flex_1()
-            .child(header(
-                "Pick a delivery time",
-                "We'll prepare your order as soon as possible.",
-            ))
+            .child(
+                DrawerHeader::new()
+                    .child(DrawerTitle::new("Pick a delivery time"))
+                    .child(DrawerDescription::new(
+                        "We'll prepare your order as soon as possible.",
+                    )),
+            )
             .child(scroll().flex_shrink(1.0).px_4().py_2().child(choices))
             .child(
-                footer()
+                DrawerFooter::new()
                     .child(button(
                         "Confirm Delivery Time",
                         Variant::Primary,
@@ -133,13 +139,17 @@ pub(crate) fn delivery(status: Signal<Option<SharedString>>) -> (View, impl Into
                             drawer.close();
                         },
                     ))
-                    .child(button("Cancel", Variant::Outline, move || drawer.close())),
+                    .child(DrawerClose::render(
+                        drawer,
+                        button_surface("Cancel", Variant::Outline),
+                    )),
             )
-    });
+    })
+    .options(adaptive);
     (trigger, content)
 }
 
-pub(crate) fn positions() -> (View, impl IntoElement) {
+pub(crate) fn positions() -> (impl IntoElement, impl IntoElement) {
     let left = Drawer::new(signal(false));
     let top = Drawer::new(signal(false));
     let bottom = Drawer::new(signal(false));
@@ -149,10 +159,10 @@ pub(crate) fn positions() -> (View, impl IntoElement) {
         .flex_wrap()
         .justify_center()
         .gap_2()
-        .child(trigger(left, "Open Left Drawer"))
-        .child(trigger(top, "Top"))
-        .child(trigger(bottom, "Bottom"))
-        .child(trigger(right, "Right"));
+        .child(DrawerTrigger::new(left, "Open Left Drawer"))
+        .child(DrawerTrigger::new(top, "Top"))
+        .child(DrawerTrigger::new(bottom, "Bottom"))
+        .child(DrawerTrigger::new(right, "Right"));
     let panels = view()
         .child(demo_panel(
             left,
@@ -178,10 +188,11 @@ pub(crate) fn positions() -> (View, impl IntoElement) {
     (openers, panels)
 }
 
-pub(crate) fn swipe() -> (View, impl IntoElement) {
+pub(crate) fn swipe() -> (impl IntoElement, impl IntoElement) {
     let drawer = Drawer::new(signal(false));
     (
-        button("Open Drawer", Variant::Secondary, move || drawer.open()).test_id("swipe-trigger"),
+        DrawerTrigger::render(drawer, button_surface("Open Drawer", Variant::Secondary))
+            .test_id("swipe-trigger"),
         demo_panel(drawer, "Drawer", "Drawer with a swipe handle.", || {
             DrawerOptions {
                 show_swipe_handle: true,
@@ -191,10 +202,11 @@ pub(crate) fn swipe() -> (View, impl IntoElement) {
     )
 }
 
-pub(crate) fn nested() -> (View, impl IntoElement) {
+pub(crate) fn nested() -> (impl IntoElement, impl IntoElement) {
     let first = Drawer::new(signal(false));
     (
-        button("Open Drawer", Variant::Secondary, move || first.open()).test_id("nested-trigger"),
+        DrawerTrigger::render(first, button_surface("Open Drawer", Variant::Secondary))
+            .test_id("nested-trigger"),
         nested_level(first, 0),
     )
 }
@@ -207,85 +219,89 @@ fn nested_level(drawer: Drawer, level: usize) -> View {
         "Two drawers are stacked behind this one.",
         "This is the frontmost drawer in the stack.",
     ];
-    view().child(drawer.content(titles[level], adaptive, move || {
-        let mut actions = footer();
-        if level + 1 < titles.len() {
-            let next = Drawer::nested(drawer);
-            let labels = [
-                "Open Nested Drawer",
-                "Open Third Drawer",
-                "Open Fourth Drawer",
-            ];
-            actions = actions
-                .child(trigger(next, labels[level]))
-                .child(nested_level(next, level + 1));
-        }
-        view()
-            .flex_1()
-            .child(header(titles[level], descriptions[level]))
-            .child(placeholder(140.0))
-            .child(actions.child(button("Close", Variant::Outline, move || drawer.close())))
-    }))
-}
-
-pub(crate) fn custom_size() -> (View, impl IntoElement) {
-    let drawer = Drawer::new(signal(false));
-    let preview = trigger(drawer, "Open Scrollable Drawer").test_id("custom-size-trigger");
-    let content = drawer.content(
-        "Notification history",
-        || DrawerOptions {
-            height: Some(360.0),
-            ..Default::default()
-        },
-        move || {
-            let mut items = view().gap_3();
-            for (title, detail) in [
-                ("Order confirmed", "Your order has reached the kitchen."),
-                ("Preparing your order", "The kitchen has started cooking."),
-                (
-                    "Driver assigned",
-                    "Your driver will collect your order shortly.",
-                ),
-                ("Picked up", "Your driver is on the way."),
-                ("Arriving soon", "Your order is two minutes away."),
-                ("Delivered", "Your order is at your door."),
-            ] {
-                items = items.child(
-                    view()
-                        .gap_1()
-                        .p_3()
-                        .rounded(px(8.0))
-                        .bg(move || theme().muted)
-                        .child(text(title).text_sm().font_weight(FontWeight::SEMIBOLD))
-                        .child(muted(detail)),
-                );
+    view().child(
+        DrawerContent::new(drawer, titles[level], move || {
+            let mut actions = DrawerFooter::new();
+            if level + 1 < titles.len() {
+                let next = Drawer::nested(drawer);
+                let labels = [
+                    "Open Nested Drawer",
+                    "Open Third Drawer",
+                    "Open Fourth Drawer",
+                ];
+                actions = actions
+                    .child(DrawerTrigger::new(next, labels[level]))
+                    .child(nested_level(next, level + 1));
             }
             view()
                 .flex_1()
-                .min_h(px(0.0))
-                .child(header(
-                    "Notification history",
-                    "Scroll the updates. The header and close button stay in place.",
-                ))
-                .child(
-                    scroll()
-                        .flex_1()
-                        .min_h(px(0.0))
-                        .px_4()
-                        .py_2()
-                        .test_id("drawer-notifications")
-                        .child(items),
-                )
-                .child(footer().child(close(drawer, "Done")))
-        },
-    );
+                .child(example_header(titles[level], descriptions[level]))
+                .child(placeholder(140.0))
+                .child(actions.child(DrawerClose::render(
+                    drawer,
+                    button_surface("Close", Variant::Outline),
+                )))
+        })
+        .options(adaptive),
+    )
+}
+
+pub(crate) fn custom_size() -> (impl IntoElement, impl IntoElement) {
+    let drawer = Drawer::new(signal(false));
+    let preview =
+        DrawerTrigger::new(drawer, "Open Scrollable Drawer").test_id("custom-size-trigger");
+    let content = DrawerContent::new(drawer, "Notification history", move || {
+        let mut items = view().gap_3();
+        for (title, detail) in [
+            ("Order confirmed", "Your order has reached the kitchen."),
+            ("Preparing your order", "The kitchen has started cooking."),
+            (
+                "Driver assigned",
+                "Your driver will collect your order shortly.",
+            ),
+            ("Picked up", "Your driver is on the way."),
+            ("Arriving soon", "Your order is two minutes away."),
+            ("Delivered", "Your order is at your door."),
+        ] {
+            items = items.child(
+                view()
+                    .gap_1()
+                    .p_3()
+                    .rounded(px(8.0))
+                    .bg(move || theme().muted)
+                    .child(text(title).text_sm().font_weight(FontWeight::SEMIBOLD))
+                    .child(muted(detail)),
+            );
+        }
+        view()
+            .flex_1()
+            .min_h(px(0.0))
+            .child(example_header(
+                "Notification history",
+                "Scroll the updates. The header and close button stay in place.",
+            ))
+            .child(
+                scroll()
+                    .flex_1()
+                    .min_h(px(0.0))
+                    .px_4()
+                    .py_2()
+                    .test_id("drawer-notifications")
+                    .child(items),
+            )
+            .child(DrawerFooter::new().child(DrawerClose::new(drawer, "Done")))
+    })
+    .options(|| DrawerOptions {
+        height: Some(360.0),
+        ..Default::default()
+    });
     (preview, content)
 }
 
-pub(crate) fn floating() -> (View, impl IntoElement) {
+pub(crate) fn floating() -> (impl IntoElement, impl IntoElement) {
     let drawer = Drawer::new(signal(false));
     (
-        trigger(drawer, "Open Floating Drawer").test_id("floating-trigger"),
+        DrawerTrigger::new(drawer, "Open Floating Drawer").test_id("floating-trigger"),
         demo_panel(
             drawer,
             "Floating Drawer",
@@ -300,10 +316,10 @@ pub(crate) fn floating() -> (View, impl IntoElement) {
     )
 }
 
-pub(crate) fn non_modal() -> (View, impl IntoElement) {
+pub(crate) fn non_modal() -> (impl IntoElement, impl IntoElement) {
     let drawer = Drawer::new(signal(false));
     (
-        trigger(drawer, "Non Modal").test_id("non-modal-trigger"),
+        DrawerTrigger::new(drawer, "Non Modal").test_id("non-modal-trigger"),
         demo_panel(drawer, "Non Modal Drawer", "", || DrawerOptions {
             direction: Direction::Right,
             modality: Modality::NonModal,
@@ -313,75 +329,74 @@ pub(crate) fn non_modal() -> (View, impl IntoElement) {
     )
 }
 
-pub(crate) fn snap() -> (View, impl IntoElement) {
+pub(crate) fn snap() -> (impl IntoElement, impl IntoElement) {
     let drawer = Drawer::new(signal(false));
-    let open = trigger(drawer, "Open Snap Drawer").test_id("snap-trigger");
-    let content = drawer.content(
-        "Snap points",
-        || DrawerOptions {
-            show_swipe_handle: true,
-            snap_points: &[SnapPoint::Rem(31.0), SnapPoint::Fraction(1.0)],
-            ..Default::default()
-        },
-        move || {
-            view()
-                .h(move || {
-                    let height = window().height.0;
-                    let visible = if drawer.snap_index.get() == 0 {
-                        height.min(496.0)
-                    } else {
-                        height
-                    };
-                    px((visible - 30.0).max(0.0))
-                })
-                .child(header(
-                    "Snap points",
-                    "Drag the drawer to snap between a compact peek and a near full-height view.",
-                ))
-                .child(placeholder(200.0))
-                .child(footer().child(close(drawer, "Close")))
-        },
-    );
+    let open = DrawerTrigger::new(drawer, "Open Snap Drawer").test_id("snap-trigger");
+    let content = DrawerContent::new(drawer, "Snap points", move || {
+        view()
+            .h(move || {
+                let height = window().height.0;
+                let visible = if drawer.snap_index.get() == 0 {
+                    height.min(496.0)
+                } else {
+                    height
+                };
+                px((visible - 30.0).max(0.0))
+            })
+            .child(example_header(
+                "Snap points",
+                "Drag the drawer to snap between a compact peek and a near full-height view.",
+            ))
+            .child(placeholder(200.0))
+            .child(DrawerFooter::new().child(DrawerClose::new(drawer, "Close")))
+    })
+    .options(|| DrawerOptions {
+        show_swipe_handle: true,
+        snap_points: &[SnapPoint::Rem(31.0), SnapPoint::Fraction(1.0)],
+        ..Default::default()
+    });
     (open, content)
 }
 
-pub(crate) fn responsive(status: Signal<Option<SharedString>>) -> (View, impl IntoElement) {
+pub(crate) fn responsive(
+    status: Signal<Option<SharedString>>,
+) -> (impl IntoElement, impl IntoElement) {
     let drawer = Drawer::new(signal(false));
     let saved_email = signal("shadcn@example.com".to_owned());
     let saved_username = signal("@shadcn".to_owned());
-    let content = drawer.content(
-        "Edit profile",
-        || DrawerOptions {
-            centered: window().width.0 >= BREAKPOINT,
-            ..Default::default()
-        },
-        move || {
-            let email = signal(saved_email.get_untracked());
-            let username = signal(saved_username.get_untracked());
-            let save = move || {
-                saved_email.set(email.get());
-                saved_username.set(username.get());
-                status.set(Some("Profile updated".into()));
-                drawer.close();
-            };
-            view()
-                .child(header(
-                    "Edit profile",
-                    "Make changes to your profile here. Click save when you're done.",
-                ))
-                .child(
-                    view()
-                        .p_4()
-                        .gap_4()
-                        .child(field("Email", email, save))
-                        .child(field("Username", username, save))
-                        .child(button("Save changes", Variant::Primary, save))
-                        .child(button("Cancel", Variant::Outline, move || drawer.close())),
-                )
-        },
-    );
+    let content = DrawerContent::new(drawer, "Edit profile", move || {
+        let email = signal(saved_email.get_untracked());
+        let username = signal(saved_username.get_untracked());
+        let save = move || {
+            saved_email.set(email.get());
+            saved_username.set(username.get());
+            status.set(Some("Profile updated".into()));
+            drawer.close();
+        };
+        view()
+            .child(example_header(
+                "Edit profile",
+                "Make changes to your profile here. Click save when you're done.",
+            ))
+            .child(
+                view()
+                    .p_4()
+                    .gap_4()
+                    .child(field("Email", email, save))
+                    .child(field("Username", username, save))
+                    .child(button("Save changes", Variant::Primary, save))
+                    .child(DrawerClose::render(
+                        drawer,
+                        button_surface("Cancel", Variant::Outline),
+                    )),
+            )
+    })
+    .options(|| DrawerOptions {
+        centered: window().width.0 >= BREAKPOINT,
+        ..Default::default()
+    });
     (
-        trigger(drawer, "Edit Profile").test_id("responsive-trigger"),
+        DrawerTrigger::new(drawer, "Edit Profile").test_id("responsive-trigger"),
         content,
     )
 }
@@ -411,13 +426,23 @@ fn demo_panel(
     description: &'static str,
     options: impl Fn() -> DrawerOptions + 'static,
 ) -> impl IntoElement {
-    drawer.content(title, options, move || {
+    DrawerContent::new(drawer, title, move || {
         view()
             .flex_1()
-            .child(header(title, description))
+            .child(example_header(title, description))
             .child(placeholder(240.0))
-            .child(footer().child(close(drawer, "Close")))
+            .child(DrawerFooter::new().child(DrawerClose::new(drawer, "Close")))
     })
+    .options(options)
+}
+
+fn example_header(title: &'static str, description: &'static str) -> DrawerHeader {
+    let header = DrawerHeader::new().child(DrawerTitle::new(title));
+    if description.is_empty() {
+        header
+    } else {
+        header.child(DrawerDescription::new(description))
+    }
 }
 
 fn placeholder(height: f32) -> View {

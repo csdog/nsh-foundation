@@ -28,71 +28,88 @@ const SECTIONS: [&str; 13] = [
     "API Reference",
 ];
 
-const SIMPLE: &str = r#"let drawer = Drawer::new(signal(false));
-
-view()
-    .child(trigger(drawer, "Open Drawer"))
-    .child(drawer.content("Drawer", DrawerOptions::default, move || {
-        view()
-            .child(header("Drawer", "A panel at the edge of the screen."))
-            .child(footer().child(close(drawer, "Close")))
-    }))"#;
-
-const SIZED: &str = r#"let options = || DrawerOptions {
-    height: Some(360.0),
-    ..Default::default()
+const SIMPLE: &str = r#"use nsh_core::prelude::*;
+use nsh_foundation::drawer::{
+    Drawer, DrawerClose, DrawerContent, DrawerDescription,
+    DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger,
 };
 
-drawer.content("Notification history", options, move || {
+fn example() -> impl IntoElement {
+    let drawer = Drawer::new(signal(false));
+    view()
+        .child(DrawerTrigger::new(drawer, "Open Drawer"))
+        .child(DrawerContent::new(drawer, "Drawer", move || {
+            view()
+                .child(DrawerHeader::new()
+                    .child(DrawerTitle::new("Drawer"))
+                    .child(DrawerDescription::new("A panel at the edge.")))
+                .child(DrawerFooter::new()
+                    .child(DrawerClose::new(drawer, "Close")))
+        }))
+}"#;
+
+const SIZED: &str = r#"DrawerContent::new(drawer, "Notification history", move || {
     view().flex_1().min_h(px(0.0))
-        .child(header("Notification history", "Recent order updates"))
+        .child(DrawerHeader::new()
+            .child(DrawerTitle::new("Notification history")))
         .child(scroll().flex_1().min_h(px(0.0)).child(text("Order confirmed")))
-        .child(footer().child(close(drawer, "Done")))
+        .child(DrawerFooter::new().child(DrawerClose::new(drawer, "Done")))
+})
+.options(|| DrawerOptions {
+    height: Some(360.0),
+    ..Default::default()
 })"#;
 
-const FLOATING: &str = r#"drawer.content("Floating Drawer", || DrawerOptions {
-    direction: Direction::Right,
-    width: Some(360.0),
-    inset: 16.0,
-    ..Default::default()
-}, body)"#;
+const FLOATING: &str = r#"DrawerContent::new(drawer, "Floating Drawer", body)
+    .options(|| DrawerOptions {
+        direction: Direction::Right,
+        width: Some(360.0),
+        inset: 16.0,
+        ..Default::default()
+    })"#;
 
-const POSITION: &str = r#"drawer.content("Move Goal", || DrawerOptions {
-    direction: Direction::Left,
-    ..Default::default()
-}, body)"#;
+const POSITION: &str = r#"DrawerContent::new(drawer, "Move Goal", body)
+    .options(|| DrawerOptions {
+        direction: Direction::Left,
+        ..Default::default()
+    })"#;
 
-const HANDLE: &str = r#"drawer.content("Drawer", || DrawerOptions {
-    show_swipe_handle: true,
-    ..Default::default()
-}, body)"#;
+const HANDLE: &str = r#"DrawerContent::new(drawer, "Drawer", body)
+    .options(|| DrawerOptions {
+        show_swipe_handle: true,
+        ..Default::default()
+    })"#;
 
-const NESTED: &str = r#"parent.content("Parent", DrawerOptions::default, move || {
+const NESTED: &str = r#"DrawerContent::new(parent, "Parent", move || {
     let child = Drawer::nested(parent);
     view()
-        .child(trigger(child, "Open Nested Drawer"))
-        .child(child.content("Nested Drawer", DrawerOptions::default, move || {
-            footer().child(close(child, "Close"))
+        .child(DrawerTrigger::new(child, "Open Nested Drawer"))
+        .child(DrawerContent::new(child, "Nested Drawer", move || {
+            view().child(DrawerFooter::new()
+                .child(DrawerClose::new(child, "Close")))
         }))
 })"#;
 
-const NON_MODAL: &str = r#"drawer.content("Non Modal Drawer", || DrawerOptions {
-    direction: Direction::Right,
-    modality: Modality::NonModal,
-    disable_outside_dismissal: true,
-    ..Default::default()
-}, body)"#;
+const NON_MODAL: &str = r#"DrawerContent::new(drawer, "Non Modal Drawer", body)
+    .options(|| DrawerOptions {
+        direction: Direction::Right,
+        modality: Modality::NonModal,
+        disable_outside_dismissal: true,
+        ..Default::default()
+    })"#;
 
-const SNAP: &str = r#"drawer.content("Snap points", || DrawerOptions {
-    show_swipe_handle: true,
-    snap_points: &[SnapPoint::Rem(31.0), SnapPoint::Fraction(1.0)],
-    ..Default::default()
-}, body)"#;
+const SNAP: &str = r#"DrawerContent::new(drawer, "Snap points", body)
+    .options(|| DrawerOptions {
+        show_swipe_handle: true,
+        snap_points: &[SnapPoint::Rem(31.0), SnapPoint::Fraction(1.0)],
+        ..Default::default()
+    })"#;
 
-const RESPONSIVE: &str = r#"drawer.content("Edit profile", || DrawerOptions {
-    centered: window().width.0 >= 768.0,
-    ..Default::default()
-}, profile_form)"#;
+const RESPONSIVE: &str = r#"DrawerContent::new(drawer, "Edit profile", profile_form)
+    .options(|| DrawerOptions {
+        centered: window().width.0 >= 768.0,
+        ..Default::default()
+    })"#;
 
 pub(crate) fn page() -> View {
     let scroll_ref = element_ref();
@@ -159,13 +176,12 @@ pub(crate) fn page() -> View {
         )
         .child(
             section("Usage", 1, locations)
-                .child(muted("Give Drawer a shared open signal and compose its header, body, and footer."))
+                .child(muted("Pass the same Drawer to DrawerTrigger and DrawerContent. Build the content from DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter, and DrawerClose."))
                 .child(code_block(SIMPLE)),
         )
         .child(section("Composition", 2, locations)
-            .child(muted("The trigger opens the surface. Place the heading, scrollable content, and actions inside it."))
-            .child(code_block("Drawer → Trigger, Content
-Content → Header, Body, Footer")))
+            .child(muted("The trigger can sit anywhere in the layout. DrawerContent supplies the window layer and backdrop, and mounts its children when the drawer opens."))
+            .child(code_block("Drawer\n├── DrawerTrigger\n└── DrawerContent\n    ├── DrawerPortal + DrawerOverlay\n    ├── DrawerHeader\n    │   ├── DrawerTitle\n    │   └── DrawerDescription\n    └── DrawerFooter\n        └── DrawerClose")))
         .child(section("Custom Sizes", 3, locations)
             .child(muted("Use height for vertical drawers and width for side drawers. Put long content in a scroll view."))
             .child(example("Custom Sizes", custom_size, SIZED))
@@ -200,6 +216,10 @@ Content → Header, Body, Footer")))
             .child(responsive_panel))
         .child(section("API Reference", 12, locations)
             .child(muted("Use Drawer::new with an open signal. Drawer::nested links a child to a parent that remains mounted."))
+            .child(api_row("DrawerTrigger / DrawerClose", "Use new for the default button or render to attach drawer behavior to your own control."))
+            .child(api_row("DrawerContent", "Creates the window layer and backdrop. Set placement, size, and behavior with options."))
+            .child(api_row("DrawerHeader / DrawerTitle / DrawerDescription / DrawerFooter", "Compose the visible content with ordinary Native Shell children and styles."))
+            .child(api_row("DrawerPortal / DrawerOverlay / DrawerSwipeHandle", "Customize the window layer or backdrop, or style the generated drag handle."))
             .child(api_row("direction", "Edge of the viewport. Defaults to Down."))
             .child(api_row("modality", "Modal traps focus. NonModal leaves the page interactive."))
             .child(api_row("disable_outside_dismissal", "Keeps the drawer open on outside presses."))
@@ -401,7 +421,7 @@ fn sidebar(go: impl Fn(usize) + Copy + 'static) -> View {
         )
 }
 
-fn example(label: &'static str, contents: View, source: &'static str) -> View {
+fn example(label: &'static str, contents: impl IntoElement, source: &'static str) -> View {
     let show_code = signal(false);
     view()
         .role(AccessibilityRole::Region)

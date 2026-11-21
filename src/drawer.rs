@@ -1,11 +1,11 @@
-//! A controlled Drawer composed of a container, surface, and reusable content slots.
+//! Composable Native Shell Drawer parts sharing one controlled Rust state.
 
 use std::time::Duration;
 
 use nsh_base::{dialog, theme};
-use nsh_core::prelude::*;
+use nsh_core::{element::ElNode, prelude::*};
 
-use crate::ui::{Variant, button, heading, muted};
+use crate::ui::{Variant, button_surface, heading, muted};
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub enum Direction {
@@ -114,19 +114,67 @@ impl Drawer {
         self.open.set(false);
     }
 
+    #[deprecated(note = "Use DrawerContent::new(drawer, label, body).options(options)")]
     pub fn content(
         self,
-        title: &'static str,
+        label: &'static str,
         options: impl Fn() -> DrawerOptions + 'static,
-        children: impl Fn() -> View + 'static,
+        body: impl Fn() -> View + 'static,
     ) -> impl IntoElement {
+        DrawerContent::new(self, label, body).options(options)
+    }
+}
+
+type DrawerBody = Box<dyn Fn() -> View>;
+type DrawerConfiguration = Box<dyn Fn() -> DrawerOptions>;
+type SwipeHandleStyle = Box<dyn Fn(DrawerSwipeHandle) -> DrawerSwipeHandle>;
+
+/// The popup. Its body is built when the drawer opens and released after it exits.
+pub struct DrawerContent {
+    drawer: Drawer,
+    label: &'static str,
+    options: DrawerConfiguration,
+    body: DrawerBody,
+    handle_style: Option<SwipeHandleStyle>,
+}
+
+impl DrawerContent {
+    pub fn new(drawer: Drawer, label: &'static str, body: impl Fn() -> View + 'static) -> Self {
+        Self {
+            drawer,
+            label,
+            options: Box::new(DrawerOptions::default),
+            body: Box::new(body),
+            handle_style: None,
+        }
+    }
+
+    /// Supplies options each time the content opens.
+    pub fn options(mut self, options: impl Fn() -> DrawerOptions + 'static) -> Self {
+        self.options = Box::new(options);
+        self
+    }
+
+    /// Styles the interactive handle supplied by `show_swipe_handle`.
+    pub fn swipe_handle(
+        mut self,
+        style: impl Fn(DrawerSwipeHandle) -> DrawerSwipeHandle + 'static,
+    ) -> Self {
+        self.handle_style = Some(Box::new(style));
+        self
+    }
+}
+
+impl IntoElement for DrawerContent {
+    fn into_element(self) -> AnyElement {
+        let drawer = self.drawer;
         let mounted = signal(false);
         let exit = stored(None::<Spawned<()>>);
         effect(move || {
             if let Some(task) = exit.replace(None) {
                 task.cancel();
             }
-            if self.open.get() {
+            if drawer.open.get() {
                 mounted.set(true);
             } else if !mounted.get_untracked() || reduce_motion() {
                 mounted.set(false);
@@ -136,42 +184,81 @@ impl Drawer {
                 })));
             }
         });
-        if let Some(parent) = self.parent_stack {
+        if let Some(parent) = drawer.parent_stack {
             effect(move || parent.set(mounted.get()));
         }
         when(mounted, move || {
-            let options = options();
-            let surface = self.surface(options, title, children());
-            match options.modality {
-                Modality::Modal => {
-                    let layer = dialog()
-                        .animation(ModalAnimation::None)
-                        .close_on_escape(false)
-                        .close_on_backdrop_press(false)
-                        .close_on_swipe(false)
-                        .label(title)
-                        .on_cancel(move || self.close());
-                    let backdrop = self.backdrop(options, true);
-                    layer.child(backdrop).child(surface).into_element()
-                }
-                Modality::NonModal => {
-                    on_key("escape", move |_| self.close());
-                    view()
-                        .absolute()
-                        .inset_0()
-                        .pointer_events(PointerEvents::BoxNone)
-                        .child(self.backdrop(options, false))
-                        .child(surface)
-                        .into_element()
-                }
-            }
+            let options = (self.options)();
+            let surface = drawer.surface(
+                options,
+                self.label,
+                (self.body)(),
+                self.handle_style.as_deref(),
+            );
+            DrawerPortal::new(drawer, self.label, options.modality)
+                .child(DrawerOverlay::new(drawer, options))
+                .child(surface)
         })
+        .into_element()
+    }
+}
+
+/// The window layer used by DrawerContent. Mount it only while its contents are visible.
+pub struct DrawerPortal {
+    drawer: Drawer,
+    label: &'static str,
+    modality: Modality,
+    children: Vec<AnyElement>,
+}
+
+impl DrawerPortal {
+    pub fn new(drawer: Drawer, label: &'static str, modality: Modality) -> Self {
+        Self {
+            drawer,
+            label,
+            modality,
+            children: Vec::new(),
+        }
     }
 
-    fn backdrop(self, options: DrawerOptions, visible: bool) -> View {
+    pub fn child(mut self, child: impl IntoElement) -> Self {
+        self.children.push(child.into_element());
+        self
+    }
+}
+
+impl IntoElement for DrawerPortal {
+    fn into_element(self) -> AnyElement {
+        let drawer = self.drawer;
+        match self.modality {
+            Modality::Modal => dialog()
+                .animation(ModalAnimation::None)
+                .close_on_escape(false)
+                .close_on_backdrop_press(false)
+                .close_on_swipe(false)
+                .label(self.label)
+                .on_cancel(move || drawer.close())
+                .children(self.children)
+                .into_element(),
+            Modality::NonModal => {
+                on_key("escape", move |_| drawer.close());
+                view()
+                    .absolute()
+                    .inset_0()
+                    .pointer_events(PointerEvents::BoxNone)
+                    .children(self.children)
+                    .into_element()
+            }
+        }
+    }
+}
+
+impl DrawerOverlay {
+    pub fn new(drawer: Drawer, options: DrawerOptions) -> Self {
+        let modal = options.modality == Modality::Modal;
         let fade = animated_value(0.0);
         effect(move || {
-            let target = if visible && self.open.get() { 1.0 } else { 0.0 };
+            let target = if modal && drawer.open.get() { 1.0 } else { 0.0 };
             if reduce_motion() {
                 fade.set(target);
             } else {
@@ -182,21 +269,28 @@ impl Drawer {
             .absolute()
             .inset_0()
             .focusable(false)
-            .bg(hsla(0.0, 0.0, 0.0, if visible { 0.5 } else { 0.0 }))
+            .bg(hsla(0.0, 0.0, 0.0, if modal { 0.5 } else { 0.0 }))
             .bind_opacity(&fade)
             .test_id("drawer-backdrop");
-        if options.disable_outside_dismissal {
-            if visible {
-                layer
-            } else {
-                layer.pointer_events(PointerEvents::None)
-            }
+        let layer = if !options.disable_outside_dismissal {
+            layer.on_press(move || drawer.close())
+        } else if modal {
+            layer
         } else {
-            layer.on_press(move || self.close())
-        }
+            layer.pointer_events(PointerEvents::None)
+        };
+        Self(layer)
     }
+}
 
-    fn surface(self, options: DrawerOptions, title: &'static str, children: View) -> View {
+impl Drawer {
+    fn surface(
+        self,
+        options: DrawerOptions,
+        title: &'static str,
+        children: View,
+        handle_style: Option<&dyn Fn(DrawerSwipeHandle) -> DrawerSwipeHandle>,
+    ) -> View {
         let direction = options.direction;
         let vertical = direction.vertical();
         let offset = animated_value(0.0);
@@ -365,12 +459,16 @@ impl Drawer {
         };
 
         if options.show_swipe_handle {
-            let handle = drag(swipe_handle(vertical, move || {
+            let handle = DrawerSwipeHandle(drag(swipe_handle(vertical, move || {
                 if snapped {
                     self.snap_index
                         .update(|index| *index = (*index + 1) % options.snap_points.len());
                 }
-            }));
+            })));
+            let handle = match handle_style {
+                Some(style) => style(handle),
+                None => handle,
+            };
             if vertical {
                 panel.child(handle).child(children)
             } else {
@@ -430,30 +528,147 @@ fn settle_snap(
         .map(|(index, _)| index)
 }
 
-pub fn header(title: &'static str, description: &'static str) -> View {
-    view()
-        .flex_shrink_0()
-        .px_4()
-        .pt_4()
-        .pb_2()
-        .gap_1()
-        .child(heading(title))
-        .child(when(
-            move || !description.is_empty(),
-            move || muted(description),
-        ))
+// These parts use the underlying Native Shell node directly, so composing
+// them adds no wrappers and keeps the standard Rust style methods available.
+macro_rules! drawer_part {
+    ($( $(#[$meta:meta])* $name:ident($node:ty); )+) => {
+        $(
+            $(#[$meta])*
+            pub struct $name($node);
+
+            impl IntoElement for $name {
+                fn into_element(self) -> AnyElement {
+                    self.0.into_element()
+                }
+            }
+
+            impl Element for $name {
+                fn node(&mut self) -> &mut ElNode {
+                    self.0.node()
+                }
+            }
+        )+
+    };
 }
 
-pub fn footer() -> View {
-    view().flex_shrink_0().p_4().gap_2()
+drawer_part! {
+    /// A button that opens its associated drawer.
+    DrawerTrigger(View);
+    /// A button that closes its associated drawer.
+    DrawerClose(View);
+    /// Layout for the title and optional description.
+    DrawerHeader(View);
+    /// The heading displayed in the drawer.
+    DrawerTitle(Text);
+    /// Supporting text displayed below the title.
+    DrawerDescription(Text);
+    /// Layout for drawer actions.
+    DrawerFooter(View);
+    /// The backdrop normally created by DrawerContent.
+    DrawerOverlay(View);
+    /// The interactive drag target supplied to DrawerContent's handle styling hook.
+    DrawerSwipeHandle(View);
 }
 
+impl DrawerTrigger {
+    pub fn new(drawer: Drawer, label: &'static str) -> Self {
+        Self::render(drawer, button_surface(label, Variant::Outline))
+    }
+
+    /// Uses the supplied control as the trigger, with no extra node.
+    pub fn render(drawer: Drawer, control: View) -> Self {
+        Self(
+            control
+                .role(AccessibilityRole::Button)
+                .accessibility_state(move || AccessibilityState {
+                    expanded: Some(drawer.open.get()),
+                    ..Default::default()
+                })
+                .on_press(move || drawer.open()),
+        )
+    }
+
+    pub fn test_id(self, id: &str) -> Self {
+        Self(self.0.test_id(id))
+    }
+}
+
+impl DrawerClose {
+    pub fn new(drawer: Drawer, label: &'static str) -> Self {
+        Self::render(drawer, button_surface(label, Variant::Primary))
+    }
+
+    /// Uses the supplied control as the close button, with no extra node.
+    pub fn render(drawer: Drawer, control: View) -> Self {
+        Self(
+            control
+                .role(AccessibilityRole::Button)
+                .on_press(move || drawer.close()),
+        )
+    }
+}
+
+impl DrawerHeader {
+    pub fn new() -> Self {
+        Self(view().flex_shrink_0().px_4().pt_4().pb_2().gap_1())
+    }
+}
+
+impl Default for DrawerHeader {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl ParentElement for DrawerHeader {}
+
+impl DrawerTitle {
+    pub fn new(title: impl IntoReactive<SharedString>) -> Self {
+        Self(heading(title))
+    }
+}
+
+impl DrawerDescription {
+    pub fn new(description: impl IntoReactive<SharedString>) -> Self {
+        Self(muted(description))
+    }
+}
+
+impl DrawerFooter {
+    pub fn new() -> Self {
+        Self(view().flex_shrink_0().p_4().gap_2())
+    }
+}
+
+impl Default for DrawerFooter {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl ParentElement for DrawerFooter {}
+
+#[deprecated(note = "Use DrawerTrigger::new")]
 pub fn trigger(drawer: Drawer, label: &'static str) -> View {
-    button(label, Variant::Outline, move || drawer.open())
+    DrawerTrigger::new(drawer, label).0
 }
 
+#[deprecated(note = "Use DrawerClose::new")]
 pub fn close(drawer: Drawer, label: &'static str) -> View {
-    button(label, Variant::Primary, move || drawer.close())
+    DrawerClose::new(drawer, label).0
+}
+
+#[deprecated(note = "Compose DrawerHeader with DrawerTitle and DrawerDescription")]
+pub fn header(title: &'static str, description: &'static str) -> View {
+    DrawerHeader::new()
+        .child(DrawerTitle::new(title))
+        .child((!description.is_empty()).then(|| DrawerDescription::new(description)))
+        .0
+}
+
+#[deprecated(note = "Use DrawerFooter::new")]
+pub fn footer() -> View {
+    DrawerFooter::new().0
 }
 
 fn swipe_handle(vertical: bool, on_press: impl Fn() + 'static) -> View {

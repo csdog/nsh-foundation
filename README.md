@@ -13,6 +13,38 @@ nsh package --target web --out dist
 
 The CLI prints the packaged site's directory under `dist`. Use `nsh package --target web --run` to build and serve it locally, or deploy the generated directory as a static site.
 
+## Compose a Drawer
+
+Share a `Drawer` state across its trigger, content, and close action. Build
+the content using the individual Rust elements.
+
+```rust
+use nsh_core::prelude::*;
+use nsh_foundation::drawer::{
+    Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader,
+    DrawerTitle, DrawerTrigger,
+};
+
+fn example() -> impl IntoElement {
+    let drawer = Drawer::new(signal(false));
+    view()
+        .child(DrawerTrigger::new(drawer, "Open Drawer"))
+        .child(DrawerContent::new(drawer, "Move Goal", move || {
+            view()
+                .child(DrawerHeader::new()
+                    .child(DrawerTitle::new("Move Goal"))
+                    .child(DrawerDescription::new("Set your daily activity goal.")))
+                .child(DrawerFooter::new()
+                    .child(DrawerClose::new(drawer, "Done")))
+        }))
+}
+```
+
+Use `DrawerTrigger::render` or `DrawerClose::render` to use your own
+Native Shell view as the button. `DrawerContent` creates the `DrawerPortal`
+and `DrawerOverlay`, and exposes `swipe_handle` to style its interactive
+`DrawerSwipeHandle`.
+
 ## Drawer examples
 
 | Example | Behavior |
