@@ -12,7 +12,7 @@ use crate::{
     chart_examples, checkbox_examples, code_block_examples, collapsible_examples,
     combobox_examples, command_examples, context_menu_examples, data_table_examples,
     date_picker_examples, dialog_examples, dropdown_menu_examples, empty_examples, examples,
-    field_examples,
+    field_examples, hover_card_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -160,6 +160,7 @@ enum DocsPage {
     DropdownMenu,
     Empty,
     Field,
+    HoverCard,
 }
 
 type ComponentRoute = (
@@ -366,6 +367,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#field",
         "field-docs-scroll",
         field_page,
+    ),
+    (
+        DocsPage::HoverCard,
+        "Hover Card",
+        "#hover-card",
+        "hover-card-docs-scroll",
+        hover_card_page,
     ),
 ];
 
@@ -1690,6 +1698,50 @@ Field::new()
     .child(api_row("FieldContent / FieldDescription", "Group secondary content and provide help text or links."))
     .child(api_row("FieldSeparator", "Separate sections with an optional visible label."))
     .child(api_row("FieldError", "Render a validation alert, or use messages to show a deduplicated list."))
+}
+
+fn hover_card_page() -> View {
+    macro_rules! demo {
+        ($example:ident, $source:literal, $title:literal) => {
+            example(
+                $title,
+                hover_card_examples::$example(),
+                include_str!("hover_card_examples.rs"),
+                include_str!(concat!(
+                    "../references/hover-card-tsx/hover-card-",
+                    $source,
+                    ".tsx"
+                )),
+            )
+        };
+    }
+    component_article(
+        DocsPage::HoverCard,
+        "Preview content from a trigger without leaving the page.",
+        "https://ui.shadcn.com/docs/components/base/hover-card",
+    )
+    .child(demo!(demo, "demo", "Hover Card demo"))
+    .child(heading("Usage"))
+    .child(code_block(r#"HoverCard::new(
+    HoverCardTrigger::new("Hover Here"),
+    HoverCardContent::new().child(text("Preview content")),
+)"#))
+    .child(heading("Composition"))
+    .child(muted("Pass one HoverCardTrigger and one HoverCardContent to HoverCard. Put essential information in the trigger or linked content so keyboard users can reach it."))
+    .child(heading("Trigger Delays"))
+    .child(code_block("HoverCardTrigger::new(\"Hover Here\").delay(100.0).close_delay(200.0)"))
+    .child(heading("Positioning"))
+    .child(code_block("HoverCardContent::new().side(HoverCardSide::Top).align(Align::Start)"))
+    .child(heading("Basic"))
+    .child(demo!(demo, "demo", "Basic"))
+    .child(heading("Sides"))
+    .child(demo!(sides, "sides", "Sides"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("HoverCard", "Use open(signal) to control the card or default_open(true) to start open. Escape and an outside press dismiss it."))
+    .child(api_row("HoverCardTrigger", "Set open and close delays in milliseconds. Desktop uses pointer hover. A tap toggles the preview on touch layouts."))
+    .child(api_row("HoverCardContent", "Choose physical or logical side, alignment, offsets, and width. Native Shell flips placement when available space requires it."))
 }
 
 fn component_page(

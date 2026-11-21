@@ -60,6 +60,8 @@ mod empty_examples;
 mod examples;
 pub mod field;
 mod field_examples;
+pub mod hover_card;
+mod hover_card_examples;
 mod menu_parts;
 mod ui;
 
