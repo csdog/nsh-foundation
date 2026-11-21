@@ -17,7 +17,7 @@ use crate::{
     message_examples, message_scroller_examples, native_select_examples, navigation_menu_examples,
     pagination_examples, popover_examples, progress_examples, questionnaire_examples,
     radio_group_examples, resizable_examples, scroll_area_examples, select_examples,
-    separator_examples, sheet_examples,
+    separator_examples, sheet_examples, sidebar_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -188,6 +188,7 @@ enum DocsPage {
     Select,
     Separator,
     Sheet,
+    Sidebar,
 }
 
 type ComponentRoute = (
@@ -549,6 +550,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#sheet",
         "sheet-docs-scroll",
         sheet_page,
+    ),
+    (
+        DocsPage::Sidebar,
+        "Sidebar",
+        "#sidebar",
+        "sidebar-docs-scroll",
+        sidebar_page,
     ),
 ];
 
@@ -2906,6 +2914,46 @@ view()
     .child(api_row("Sheet / SheetTrigger / SheetClose", "Use a Rust signal for open state and open or close the same panel from separate controls."))
     .child(api_row("SheetContent", "Choose a physical edge, set text direction, and pass None to close_button to hide the corner control."))
     .child(api_row("SheetHeader / SheetTitle / SheetDescription / SheetFooter", "Name and describe the modal, with footer actions visible while the body scrolls."))
+}
+
+fn sidebar_page() -> View {
+    macro_rules! demo {
+        ($function:ident, $file:literal, $label:literal) => {
+            example(
+                $label,
+                sidebar_examples::$function(),
+                include_str!("sidebar_examples.rs"),
+                include_str!(concat!("../references/sidebar-tsx/sidebar-", $file, ".tsx")),
+            )
+        };
+    }
+    component_article(
+        DocsPage::Sidebar,
+        "Build a navigation sidebar that adapts to the available screen width.",
+        "https://ui.shadcn.com/docs/components/base/sidebar",
+    )
+    .child(demo!(demo, "demo", "Sidebar demo"))
+    .child(heading("Usage"))
+    .child(code_block(r#"SidebarProvider::new(|state: SidebarState| {
+    Sidebar::new(state, |parts| {
+        sidebar_header().child(
+            SidebarMenuButton::new(parts, "Home").icon(text("⌂")).surface(),
+        )
+    })
+    .collapsible(SidebarCollapsible::Icon)
+    .layout(sidebar_inset().child(SidebarTrigger::new(state)))
+})"#))
+    .child(heading("Composition"))
+    .child(muted("Add a header and footer around scrollable content. Organize navigation into groups with menu buttons, submenus, actions, and badges."))
+    .child(heading("Controlled Sidebar"))
+    .child(demo!(controlled, "controlled", "Controlled Sidebar"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("SidebarProvider / SidebarState", "Own desktop and mobile state independently. Bind a desktop signal or persist the internal state. Command+B or Ctrl+B toggles the active layout."))
+    .child(api_row("Sidebar / SidebarInset", "Choose a left or right edge, Sidebar/Floating/Inset appearance, and Offcanvas/Icon/None collapse mode. Resizable viewports switch to a modal below 768 points."))
+    .child(api_row("SidebarTrigger / sidebar_rail", "Use the focusable trigger in main content and a pointer-operated rail along the desktop edge."))
+    .child(api_row("SidebarMenuButton / SidebarParts", "Compose compact or expanded menu buttons with icons, detail text, active state, and links. Place secondary content in expanded_only."))
 }
 
 fn component_page(

@@ -42,6 +42,11 @@ impl Sheet {
     pub fn close(self) {
         self.open.set(false);
     }
+
+    pub(crate) fn open_from(self, reference: ElementRef) {
+        self.opener.replace(Some(reference));
+        self.open.set(true);
+    }
 }
 
 pub struct SheetTrigger(View);
@@ -65,10 +70,7 @@ impl SheetTrigger {
                     has_popup: true,
                     ..Default::default()
                 })
-                .on_press(move || {
-                    sheet.opener.replace(Some(reference));
-                    sheet.open.set(true);
-                }),
+                .on_press(move || sheet.open_from(reference)),
         )
     }
 
@@ -196,6 +198,7 @@ pub struct SheetContent {
     direction: LayoutDirection,
     close_label: Option<&'static str>,
     max_height_fraction: f32,
+    flush_width: Option<f32>,
 }
 
 impl SheetContent {
@@ -209,6 +212,7 @@ impl SheetContent {
             direction: LayoutDirection::Inherit,
             close_label: Some("Close"),
             max_height_fraction: 1.0,
+            flush_width: None,
         }
     }
 
@@ -240,6 +244,12 @@ impl SheetContent {
     pub fn body(mut self, body: impl Fn() -> View + 'static) -> Self {
         self.body = Some(Box::new(body));
         self
+    }
+
+    /// Side panels with their own full-height layout keep their intrinsic chrome.
+    pub(crate) fn full_bleed(mut self, width: f32, body: impl Fn() -> View + 'static) -> Self {
+        self.flush_width = Some(width);
+        self.body(body)
     }
 
     pub fn footer(mut self, footer: impl Fn() -> SheetFooter + 'static) -> Self {
@@ -346,13 +356,19 @@ impl SheetContent {
                     .test_id("sheet-corner-close"),
             )
         });
+        let flush_width = self.flush_width;
         let body = self.body.as_ref().map(|body| {
-            scroll()
-                .min_h(px(0.0))
-                .flex_shrink(1.0)
-                .scrollbar(false)
-                .test_id("sheet-body")
-                .child(body().px_4())
+            if flush_width.is_some() {
+                body().into_element()
+            } else {
+                scroll()
+                    .min_h(px(0.0))
+                    .flex_shrink(1.0)
+                    .scrollbar(false)
+                    .test_id("sheet-body")
+                    .child(body().px_4())
+                    .into_element()
+            }
         });
         let fraction = self.max_height_fraction;
         let panel = view()
@@ -370,7 +386,11 @@ impl SheetContent {
             })
             .bind_opacity(&panel_fade)
             .test_id("sheet-panel")
-            .child(self.header.render(rtl, has_corner))
+            .child(
+                flush_width
+                    .is_none()
+                    .then(|| self.header.render(rtl, has_corner)),
+            )
             .child(body)
             .child(self.footer.as_ref().map(|footer| footer()))
             .child(corner);
@@ -385,15 +405,24 @@ impl SheetContent {
                 .h_full()
                 .w(move || {
                     let width = window().width.0;
-                    px(if width >= 640.0 {
-                        (width * 0.75).min(384.0)
-                    } else {
-                        width * 0.75
-                    })
+                    px(flush_width.map_or_else(
+                        || {
+                            if width >= 640.0 {
+                                (width * 0.75).min(384.0)
+                            } else {
+                                width * 0.75
+                            }
+                        },
+                        |requested| requested.min(width),
+                    ))
                 })
                 .bind_translate_x(&offset)
-                .when(side == SheetSide::Left, |panel| panel.border_r(px(1.0)))
-                .when(side == SheetSide::Right, |panel| panel.border_l(px(1.0))),
+                .when(flush_width.is_none() && side == SheetSide::Left, |panel| {
+                    panel.border_r(px(1.0))
+                })
+                .when(flush_width.is_none() && side == SheetSide::Right, |panel| {
+                    panel.border_l(px(1.0))
+                }),
         };
         let position = view()
             .direction(LayoutDirection::Ltr)

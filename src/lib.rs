@@ -107,6 +107,8 @@ pub mod separator;
 mod separator_examples;
 pub mod sheet;
 mod sheet_examples;
+pub mod sidebar;
+mod sidebar_examples;
 mod ui;
 
 use nsh_core::prelude::*;
