@@ -8,7 +8,7 @@ use nsh_core::{
 use crate::{
     accordion_examples, alert_dialog_examples, alert_examples, aspect_ratio_examples,
     attachment_examples, avatar_examples, badge_examples, breadcrumb_examples, bubble_examples,
-    examples,
+    button_examples, examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -137,6 +137,7 @@ enum DocsPage {
     Badge,
     Breadcrumb,
     Bubble,
+    Button,
 }
 
 type ComponentRoute = (
@@ -210,6 +211,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#bubble",
         "bubble-docs-scroll",
         bubble_page,
+    ),
+    (
+        DocsPage::Button,
+        "Button",
+        "#button",
+        "button-docs-scroll",
+        button_page,
     ),
 ];
 
@@ -671,6 +679,60 @@ fn bubble_page() -> View {
     .child(heading("API Reference"))
     .child(api_row("Bubble / BubbleContent", "Set the appearance and alignment. Use text, a button, a link, or a custom surface."))
     .child(api_row("BubbleReactions", "Position reactions at the top or bottom. Give an emoji-only row a descriptive label."))
+}
+
+fn button_page() -> View {
+    macro_rules! demo {
+        ($module:ident, $name:literal, $title:literal) => {
+            example(
+                $title,
+                button_examples::$module::preview(),
+                include_str!(concat!("button_examples/", stringify!($module), ".rs")),
+                include_str!(concat!("../references/button-tsx/button-", $name, ".tsx")),
+            )
+        };
+    }
+    component_article(
+        DocsPage::Button,
+        "A control that runs an action or opens a destination.",
+        "https://ui.shadcn.com/docs/components/base/button",
+    )
+    .child(demo!(demo, "demo", "Button demo"))
+    .child(heading("Usage"))
+    .child(muted("Use Button::new with a label, then attach a callback with on_press or a destination with href."))
+    .child(heading("Cursor"))
+    .child(muted("Buttons use the default cursor. Call pointer_cursor to show a pointer on hover."))
+    .child(heading("Size"))
+    .child(demo!(size, "size", "Size"))
+    .child(heading("Default"))
+    .child(demo!(default, "default", "Default"))
+    .child(heading("Outline"))
+    .child(demo!(outline, "outline", "Outline"))
+    .child(heading("Secondary"))
+    .child(demo!(secondary, "secondary", "Secondary"))
+    .child(heading("Ghost"))
+    .child(demo!(ghost, "ghost", "Ghost"))
+    .child(heading("Destructive"))
+    .child(demo!(destructive, "destructive", "Destructive"))
+    .child(heading("Link"))
+    .child(demo!(link, "link", "Link"))
+    .child(heading("Icon"))
+    .child(demo!(icon, "icon", "Icon"))
+    .child(heading("With Icon"))
+    .child(demo!(with_icon, "with-icon", "With Icon"))
+    .child(heading("Rounded"))
+    .child(demo!(rounded, "rounded", "Rounded"))
+    .child(heading("Spinner"))
+    .child(demo!(spinner, "spinner", "Spinner"))
+    .child(heading("Button Group"))
+    .child(demo!(group_demo, "group-demo", "Button Group"))
+    .child(heading("As Link"))
+    .child(demo!(render, "render", "As Link"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("Button", "Set a variant or size, customize the radius, or supply leading and trailing icons."))
+    .child(api_row("disabled / loading", "Set either state with a bool or bind it to a signal. Loading adds a spinner and blocks activation."))
 }
 
 fn component_page(

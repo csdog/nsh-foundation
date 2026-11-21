@@ -20,6 +20,8 @@ pub mod breadcrumb;
 mod breadcrumb_examples;
 pub mod bubble;
 mod bubble_examples;
+pub mod button;
+mod button_examples;
 mod docs;
 pub mod drawer;
 mod examples;

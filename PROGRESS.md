@@ -33,7 +33,7 @@
 | 7 | Badge | 已发布 |
 | 8 | Breadcrumb | 已发布 |
 | 9 | Bubble | 已发布 |
-| 10 | Button | 待开始 · 下一项 |
+| 10 | Button | 已实现 · 待发布 |
 | 11 | Button Group | 待开始 |
 | 12 | Calendar | 待开始 |
 | 13 | Card | 待开始 |
