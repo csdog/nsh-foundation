@@ -17,7 +17,7 @@ use crate::{
     message_examples, message_scroller_examples, native_select_examples, navigation_menu_examples,
     pagination_examples, popover_examples, progress_examples, questionnaire_examples,
     radio_group_examples, resizable_examples, scroll_area_examples, select_examples,
-    separator_examples, sheet_examples, sidebar_examples,
+    separator_examples, sheet_examples, sidebar_examples, skeleton_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -189,6 +189,7 @@ enum DocsPage {
     Separator,
     Sheet,
     Sidebar,
+    Skeleton,
 }
 
 type ComponentRoute = (
@@ -557,6 +558,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#sidebar",
         "sidebar-docs-scroll",
         sidebar_page,
+    ),
+    (
+        DocsPage::Skeleton,
+        "Skeleton",
+        "#skeleton",
+        "skeleton-docs-scroll",
+        skeleton_page,
     ),
 ];
 
@@ -2954,6 +2962,50 @@ fn sidebar_page() -> View {
     .child(api_row("Sidebar / SidebarInset", "Choose a left or right edge, Sidebar/Floating/Inset appearance, and Offcanvas/Icon/None collapse mode. Resizable viewports switch to a modal below 768 points."))
     .child(api_row("SidebarTrigger / sidebar_rail", "Use the focusable trigger in main content and a pointer-operated rail along the desktop edge."))
     .child(api_row("SidebarMenuButton / SidebarParts", "Compose compact or expanded menu buttons with icons, detail text, active state, and links. Place secondary content in expanded_only."))
+}
+
+fn skeleton_page() -> View {
+    macro_rules! demo {
+        ($function:ident, $file:literal, $label:literal) => {
+            example(
+                $label,
+                skeleton_examples::$function(),
+                include_str!("skeleton_examples.rs"),
+                include_str!(concat!(
+                    "../references/skeleton-tsx/skeleton-",
+                    $file,
+                    ".tsx"
+                )),
+            )
+        };
+    }
+    component_article(
+        DocsPage::Skeleton,
+        "Reserve space for content while it loads.",
+        "https://ui.shadcn.com/docs/components/base/skeleton",
+    )
+    .child(demo!(demo, "demo", "Skeleton demo"))
+    .child(heading("Usage"))
+    .child(code_block(r#"Skeleton::new()
+    .surface()
+    .w(px(100.0))
+    .h(px(20.0))
+    .rounded_full()"#))
+    .child(heading("Avatar"))
+    .child(demo!(avatar, "avatar", "Avatar"))
+    .child(heading("Card"))
+    .child(demo!(card, "card", "Card"))
+    .child(heading("Text"))
+    .child(demo!(text_lines, "text", "Text"))
+    .child(heading("Form"))
+    .child(demo!(form, "form", "Form"))
+    .child(heading("Table"))
+    .child(demo!(table, "table", "Table"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("Skeleton", "Set the size and shape on the surface. Pass animated(false) to disable the pulse. Reduced-motion settings also disable it."))
+    .child(api_row("Accessibility", "The shape is decorative. Set the loading region's busy state while waiting for data, then clear it when the content is ready."))
 }
 
 fn component_page(

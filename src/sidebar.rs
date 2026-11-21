@@ -14,6 +14,7 @@ use crate::{
     input::input,
     separator::Separator,
     sheet::{Sheet, SheetContent, SheetDescription, SheetHeader, SheetSide, SheetTitle},
+    skeleton::Skeleton,
 };
 
 #[derive(Clone, Copy, Default, PartialEq, Eq)]
@@ -622,7 +623,12 @@ pub fn sidebar_menu_badge(label: impl IntoReactive<SharedString>) -> View {
 }
 
 pub fn sidebar_menu_skeleton(parts: SidebarParts, icon: bool) -> View {
-    let placeholder = || theme().sidebar_accent;
+    let placeholder = || {
+        Skeleton::new()
+            .surface()
+            .rounded(px(8.0))
+            .bg(|| theme().sidebar_accent)
+    };
     view()
         .h(px(32.0))
         .px_2()
@@ -630,15 +636,11 @@ pub fn sidebar_menu_skeleton(parts: SidebarParts, icon: bool) -> View {
         .flex_row()
         .items_center()
         .accessibility_elements_hidden(true)
-        .child(icon.then(|| view().size(px(16.0)).rounded(px(8.0)).bg(placeholder)))
+        .child(icon.then(|| placeholder().size(px(16.0))))
         .child(
-            parts.expanded_only(
-                view()
-                    .h(px(16.0))
-                    .w(percentage(0.65))
-                    .rounded(px(8.0))
-                    .bg(placeholder),
-            ),
+            parts
+                .expanded_only(placeholder().h(px(16.0)).w_full())
+                .w(percentage(0.65)),
         )
 }
 

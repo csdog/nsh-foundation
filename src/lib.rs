@@ -109,6 +109,8 @@ pub mod sheet;
 mod sheet_examples;
 pub mod sidebar;
 mod sidebar_examples;
+pub mod skeleton;
+mod skeleton_examples;
 mod ui;
 
 use nsh_core::prelude::*;
