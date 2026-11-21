@@ -22,6 +22,8 @@ pub mod bubble;
 mod bubble_examples;
 pub mod button;
 mod button_examples;
+pub mod button_group;
+mod button_group_examples;
 mod docs;
 pub mod drawer;
 mod examples;

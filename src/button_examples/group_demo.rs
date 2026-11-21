@@ -1,12 +1,13 @@
 use nsh_base::{menu, menu_item, menu_separator, submenu, theme};
 use nsh_core::prelude::*;
 use nsh_foundation::button::{Button, ButtonSize, ButtonVariant};
+use nsh_foundation::button_group::ButtonGroup;
 
 pub fn preview() -> impl IntoElement {
     let status = signal("");
     let label = signal("Personal");
     let outline = |name| Button::new(name).variant(ButtonVariant::Outline);
-    let item = |name: &'static str| {
+    let item = move |name: &'static str| {
         menu_item()
             .accessibility_label(name)
             .px_2()
@@ -23,7 +24,7 @@ pub fn preview() -> impl IntoElement {
                 }
             }))
     };
-    let radio = |name: &'static str| {
+    let radio = move |name: &'static str| {
         menu_item()
             .accessibility_label(name)
             .role(AccessibilityRole::MenuItemRadio)
@@ -39,44 +40,43 @@ pub fn preview() -> impl IntoElement {
             })
             .child(text(name).text_sm())
     };
-    let more = menu()
-        .align(Align::End)
-        .offset(px(5.0))
-        .margin(px(8.0))
-        .popup_class("w-40 p-1 bg-popover text-popover-foreground rounded-xl border shadow-md")
-        .trigger(
-            outline("More Options")
-                .size(ButtonSize::Icon)
-                .icon_start(text("…"))
-                .surface()
-                .rounded_l(px(0.0))
-                .ml(px(-1.0)),
-        )
-        .child(item("Mark as Read"))
-        .child(item("Archive"))
-        .child(separator())
-        .child(item("Snooze"))
-        .child(item("Add to Calendar"))
-        .child(item("Add to List"))
-        .child(
-            submenu()
-                .trigger(view().px_2().py_1().child(text("Label As…").text_sm()))
-                .child(radio("Personal"))
-                .child(radio("Work"))
-                .child(radio("Other")),
-        )
-        .child(separator())
-        .child(item("Trash"));
+    let more = move |join: nsh_foundation::button_group::ButtonGroupJoin| {
+        menu()
+            .align(Align::End)
+            .offset(px(5.0))
+            .margin(px(8.0))
+            .popup_class("w-40 p-1 bg-popover text-popover-foreground rounded-xl border shadow-md")
+            .trigger(
+                join.apply(
+                    outline("More Options")
+                        .size(ButtonSize::Icon)
+                        .icon_start(text("…"))
+                        .surface(),
+                ),
+            )
+            .child(item("Mark as Read"))
+            .child(item("Archive"))
+            .child(separator())
+            .child(item("Snooze"))
+            .child(item("Add to Calendar"))
+            .child(item("Add to List"))
+            .child(
+                submenu()
+                    .trigger(view().px_2().py_1().child(text("Label As…").text_sm()))
+                    .child(radio("Personal"))
+                    .child(radio("Work"))
+                    .child(radio("Other")),
+            )
+            .child(separator())
+            .child(item("Trash"))
+    };
 
     view()
         .items_center()
         .gap_2()
         .child(
             view()
-                .role(AccessibilityRole::Group)
-                .label("Message actions")
                 .flex_row()
-                .flex_wrap()
                 .gap_2()
                 .child(when(
                     || window().width.0 >= 640.0,
@@ -88,29 +88,17 @@ pub fn preview() -> impl IntoElement {
                     },
                 ))
                 .child(
-                    view()
-                        .flex_row()
-                        .child(
-                            outline("Archive")
-                                .on_press(move || status.set("Archive"))
-                                .rounded_r(px(0.0)),
+                    ButtonGroup::new("Message actions")
+                        .separate(
+                            ButtonGroup::new("Archive and report")
+                                .child(outline("Archive").on_press(move || status.set("Archive")))
+                                .child(outline("Report").on_press(move || status.set("Report"))),
                         )
-                        .child(
-                            outline("Report")
-                                .on_press(move || status.set("Report"))
-                                .rounded_l(px(0.0))
-                                .ml(px(-1.0)),
+                        .separate(
+                            ButtonGroup::new("Snooze and more")
+                                .child(outline("Snooze").on_press(move || status.set("Snooze")))
+                                .control(more),
                         ),
-                )
-                .child(
-                    view()
-                        .flex_row()
-                        .child(
-                            outline("Snooze")
-                                .on_press(move || status.set("Snooze"))
-                                .rounded_r(px(0.0)),
-                        )
-                        .child(more),
                 ),
         )
         .child(when(

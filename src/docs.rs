@@ -8,7 +8,7 @@ use nsh_core::{
 use crate::{
     accordion_examples, alert_dialog_examples, alert_examples, aspect_ratio_examples,
     attachment_examples, avatar_examples, badge_examples, breadcrumb_examples, bubble_examples,
-    button_examples, examples,
+    button_examples, button_group_examples, examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -138,6 +138,7 @@ enum DocsPage {
     Breadcrumb,
     Bubble,
     Button,
+    ButtonGroup,
 }
 
 type ComponentRoute = (
@@ -218,6 +219,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#button",
         "button-docs-scroll",
         button_page,
+    ),
+    (
+        DocsPage::ButtonGroup,
+        "Button Group",
+        "#button-group",
+        "button-group-docs-scroll",
+        button_group_page,
     ),
 ];
 
@@ -733,6 +741,65 @@ fn button_page() -> View {
     .child(heading("API Reference"))
     .child(api_row("Button", "Set a variant or size, customize the radius, or supply leading and trailing icons."))
     .child(api_row("disabled / loading", "Set either state with a bool or bind it to a signal. Loading adds a spinner and blocks activation."))
+}
+
+fn button_group_page() -> View {
+    macro_rules! demo {
+        ($module:ident, $name:literal, $title:literal) => {
+            example(
+                $title,
+                button_group_examples::$module::preview(),
+                include_str!(concat!(
+                    "button_group_examples/",
+                    stringify!($module),
+                    ".rs"
+                )),
+                include_str!(concat!(
+                    "../references/button-group-tsx/button-group-",
+                    $name,
+                    ".tsx"
+                )),
+            )
+        };
+    }
+    component_article(
+        DocsPage::ButtonGroup,
+        "Join related buttons, inputs, and menu triggers in one labelled control group.",
+        "https://ui.shadcn.com/docs/components/base/button-group",
+    )
+    .child(example(
+        "Button Group demo",
+        button_examples::group_demo::preview(),
+        include_str!("button_examples/group_demo.rs"),
+        include_str!("../references/button-group-tsx/button-group-demo.tsx"),
+    ))
+    .child(heading("Usage"))
+    .child(muted("Pass an accessible label to ButtonGroup. Add native controls with child and use control to style the visible trigger of a compound control. Tab moves between individually focusable controls."))
+    .child(heading("Orientation"))
+    .child(demo!(orientation, "orientation", "Orientation"))
+    .child(heading("Size"))
+    .child(demo!(size, "size", "Size"))
+    .child(heading("Nested"))
+    .child(demo!(nested, "nested", "Nested"))
+    .child(heading("Separator"))
+    .child(demo!(separator, "separator", "Separator"))
+    .child(heading("Split"))
+    .child(demo!(split, "split", "Split"))
+    .child(heading("Input"))
+    .child(demo!(input, "input", "Input"))
+    .child(heading("Input Group"))
+    .child(demo!(input_group, "input-group", "Input Group"))
+    .child(heading("Dropdown Menu"))
+    .child(demo!(dropdown, "dropdown", "Dropdown Menu"))
+    .child(heading("Select"))
+    .child(demo!(select, "select", "Select"))
+    .child(heading("Popover"))
+    .child(demo!(popover, "popover", "Popover"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("ButtonGroup", "Join controls horizontally or vertically. Use separate to leave space between subgroups."))
+    .child(api_row("ButtonGroupSeparator / ButtonGroupText", "Add a divider or styled label among a group's controls."))
 }
 
 fn component_page(
