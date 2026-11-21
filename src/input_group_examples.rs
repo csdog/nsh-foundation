@@ -1,6 +1,6 @@
-use nsh_base::{popover, theme};
+use nsh_base::popover;
 use nsh_core::{
-    element::{Input, Selection, apple_keys, set_clipboard},
+    element::{Input, Selection, set_clipboard},
     prelude::*,
 };
 
@@ -15,6 +15,7 @@ use crate::{
         input_group_button as action, input_group_input, input_group_text as copy_text,
         input_group_textarea,
     },
+    kbd::search_shortcut,
     ui::muted,
 };
 
@@ -342,20 +343,11 @@ pub fn buttons() -> impl IntoElement {
 pub fn kbd() -> impl IntoElement {
     let target = element_ref();
     on_key("mod+k", move |_| target.focus());
-    let shortcut = if apple_keys() { "⌘K" } else { "Ctrl K" };
     stage(
         InputGroup::new(entry("Shortcut search", "Search..."))
             .control_ref(target)
             .addon(Addon::new(InlineStart).child(icon("⌕")))
-            .addon(
-                Addon::new(InlineEnd).child(
-                    copy_text(shortcut)
-                        .text_xs()
-                        .px_1()
-                        .rounded_full()
-                        .bg(move || theme().muted_foreground.opacity(0.1)),
-                ),
-            ),
+            .addon(Addon::new(InlineEnd).child(search_shortcut())),
     )
 }
 

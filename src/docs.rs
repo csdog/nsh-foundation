@@ -13,7 +13,7 @@ use crate::{
     combobox_examples, command_examples, context_menu_examples, data_table_examples,
     date_picker_examples, dialog_examples, dropdown_menu_examples, empty_examples, examples,
     field_examples, hover_card_examples, input_examples, input_group_examples, input_otp_examples,
-    item_examples,
+    item_examples, kbd_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -166,6 +166,7 @@ enum DocsPage {
     InputGroup,
     InputOtp,
     Item,
+    Kbd,
 }
 
 type ComponentRoute = (
@@ -408,6 +409,7 @@ const COMPONENTS: &[ComponentRoute] = &[
         "item-docs-scroll",
         item_page,
     ),
+    (DocsPage::Kbd, "Kbd", "#kbd", "kbd-docs-scroll", kbd_page),
 ];
 
 impl DocsPage {
@@ -1998,6 +2000,44 @@ fn item_page() -> View {
     .child(api_row("ItemMedia", "Render an avatar, an icon, or an image. The image frame scales with ItemSize."))
     .child(api_row("ItemContent / ItemTitle / ItemDescription", "Compose the main text. Add another content block for trailing metadata."))
     .child(api_row("ItemActions / ItemHeader / ItemFooter", "Place controls in the row, or use a full-width section above or below it."))
+}
+
+fn kbd_page() -> View {
+    macro_rules! demo {
+        ($example:ident, $source:literal, $title:literal) => {
+            example(
+                $title,
+                kbd_examples::$example(),
+                include_str!("kbd_examples.rs"),
+                include_str!(concat!("../references/kbd-tsx/kbd-", $source, ".tsx")),
+            )
+        };
+    }
+    component_article(
+        DocsPage::Kbd,
+        "Display a keyboard key or a combination of keys.",
+        "https://ui.shadcn.com/docs/components/base/kbd",
+    )
+    .child(demo!(demo, "demo", "Kbd demo"))
+    .child(heading("Usage"))
+    .child(code_block(r#"Kbd::new("Ctrl").named("Control")"#))
+    .child(heading("Composition"))
+    .child(code_block(r#"KbdGroup::new()
+    .child(Kbd::new("Ctrl"))
+    .child(Kbd::new("B"))"#))
+    .child(heading("Group"))
+    .child(demo!(group, "group", "Group"))
+    .child(heading("Button"))
+    .child(demo!(button_example, "button", "Button"))
+    .child(heading("Tooltip"))
+    .child(demo!(tooltip_example, "tooltip", "Tooltip"))
+    .child(heading("Input Group"))
+    .child(demo!(input_group, "input-group", "Input Group"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("Kbd", "Display a key label. Use named for a spoken name and tone to match its surrounding tooltip or input group."))
+    .child(api_row("KbdGroup", "Lay out several keys together. Add text separators as needed. The group follows the surrounding layout direction."))
 }
 
 fn component_page(
