@@ -6,7 +6,7 @@ use nsh_core::{
 };
 
 use crate::{
-    accordion_examples, alert_dialog_examples, alert_examples, examples,
+    accordion_examples, alert_dialog_examples, alert_examples, aspect_ratio_examples, examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -129,6 +129,7 @@ enum DocsPage {
     Accordion,
     Alert,
     AlertDialog,
+    AspectRatio,
 }
 
 impl DocsPage {
@@ -138,6 +139,7 @@ impl DocsPage {
             Self::Accordion => "Accordion",
             Self::Alert => "Alert",
             Self::AlertDialog => "Alert Dialog",
+            Self::AspectRatio => "Aspect Ratio",
         }
     }
 
@@ -147,14 +149,20 @@ impl DocsPage {
             Self::Accordion => "#accordion",
             Self::Alert => "#alert",
             Self::AlertDialog => "#alert-dialog",
+            Self::AspectRatio => "#aspect-ratio",
         }
     }
 
     fn from_url(url: &str) -> Self {
-        [Self::Accordion, Self::Alert, Self::AlertDialog]
-            .into_iter()
-            .find(|page| url.ends_with(page.anchor()))
-            .unwrap_or_default()
+        [
+            Self::Accordion,
+            Self::Alert,
+            Self::AlertDialog,
+            Self::AspectRatio,
+        ]
+        .into_iter()
+        .find(|page| url.ends_with(page.anchor()))
+        .unwrap_or_default()
     }
 }
 
@@ -225,6 +233,18 @@ pub(crate) fn page() -> View {
                     navigate,
                     toggle_theme,
                     "alert-dialog-docs-scroll",
+                )
+            },
+        ))
+        .child(when(
+            move || page.get() == DocsPage::AspectRatio,
+            move || {
+                component_page(
+                    DocsPage::AspectRatio,
+                    aspect_ratio_page(),
+                    navigate,
+                    toggle_theme,
+                    "aspect-ratio-docs-scroll",
                 )
             },
         ))
@@ -396,6 +416,39 @@ fn alert_dialog_page() -> View {
     .child(api_row("AlertDialogHeader / AlertDialogFooter", "Compose the title, description, optional media, cancel, and confirm actions."))
 }
 
+fn aspect_ratio_page() -> View {
+    macro_rules! demo {
+        ($name:ident, $title:literal) => {
+            example(
+                $title,
+                aspect_ratio_examples::$name::preview(),
+                include_str!(concat!("aspect_ratio_examples/", stringify!($name), ".rs")),
+                include_str!(concat!(
+                    "../references/aspect-ratio-tsx/aspect-ratio-",
+                    stringify!($name),
+                    ".tsx"
+                )),
+            )
+        };
+    }
+    component_article(
+        DocsPage::AspectRatio,
+        "A frame that keeps its proportions as the available width changes.",
+        "https://ui.shadcn.com/docs/components/base/aspect-ratio",
+    )
+    .child(demo!(demo, "Aspect Ratio demo"))
+    .child(heading("Usage"))
+    .child(muted("Pass the ratio as width divided by height, then place the frame in a container with a defined width. Use object_fit(ResizeMode::Cover) to fill it with an image while preserving the image’s proportions."))
+    .child(heading("Square"))
+    .child(demo!(square, "Square"))
+    .child(heading("Portrait"))
+    .child(demo!(portrait, "Portrait"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("AspectRatio::new(ratio, child)", "Use a positive width-to-height ratio. The ratio can be bound to a signal."))
+}
+
 fn component_page(
     page: DocsPage,
     article: View,
@@ -444,6 +497,7 @@ fn component_links(page: DocsPage, navigate: impl Fn(DocsPage) + Copy + 'static)
         DocsPage::Accordion,
         DocsPage::Alert,
         DocsPage::AlertDialog,
+        DocsPage::AspectRatio,
         DocsPage::Drawer,
     ] {
         if target != page {

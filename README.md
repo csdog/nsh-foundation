@@ -1,6 +1,6 @@
 # nsh-foundation
 
-A Native Shell component library written in Rust. Its Web gallery includes interactive Drawer, Accordion, Alert, and Alert Dialog examples with Rust and TSX tabs. Follow the [component plan](PLAN.md) and [release progress](PROGRESS.md).
+A Native Shell component library written in Rust. Its responsive Web gallery includes component previews with Rust and TSX tabs. Follow the [component plan](PLAN.md) and [release progress](PROGRESS.md).
 
 ## Run
 

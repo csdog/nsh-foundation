@@ -8,6 +8,8 @@ pub mod alert;
 pub mod alert_dialog;
 mod alert_dialog_examples;
 mod alert_examples;
+pub mod aspect_ratio;
+mod aspect_ratio_examples;
 mod docs;
 pub mod drawer;
 mod examples;
@@ -18,6 +20,7 @@ use nsh_core::prelude::*;
 #[native_module("nsh-foundation/native")]
 fn native(registry: &mut Registry) {
     registry.register::<App>();
+    registry.assets(assets!());
 }
 
 #[component]
