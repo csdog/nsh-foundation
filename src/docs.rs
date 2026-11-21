@@ -7,7 +7,7 @@ use nsh_core::{
 
 use crate::{
     accordion_examples, alert_dialog_examples, alert_examples, aspect_ratio_examples,
-    attachment_examples, avatar_examples, examples,
+    attachment_examples, avatar_examples, badge_examples, examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -133,6 +133,7 @@ enum DocsPage {
     AspectRatio,
     Attachment,
     Avatar,
+    Badge,
 }
 
 impl DocsPage {
@@ -145,6 +146,7 @@ impl DocsPage {
             Self::AspectRatio => "Aspect Ratio",
             Self::Attachment => "Attachment",
             Self::Avatar => "Avatar",
+            Self::Badge => "Badge",
         }
     }
 
@@ -157,6 +159,7 @@ impl DocsPage {
             Self::AspectRatio => "#aspect-ratio",
             Self::Attachment => "#attachment",
             Self::Avatar => "#avatar",
+            Self::Badge => "#badge",
         }
     }
 
@@ -168,6 +171,7 @@ impl DocsPage {
             Self::AspectRatio,
             Self::Attachment,
             Self::Avatar,
+            Self::Badge,
         ]
         .into_iter()
         .find(|page| url.ends_with(page.anchor()))
@@ -278,6 +282,18 @@ pub(crate) fn page() -> View {
                     navigate,
                     toggle_theme,
                     "avatar-docs-scroll",
+                )
+            },
+        ))
+        .child(when(
+            move || page.get() == DocsPage::Badge,
+            move || {
+                component_page(
+                    DocsPage::Badge,
+                    badge_page(),
+                    navigate,
+                    toggle_theme,
+                    "badge-docs-scroll",
                 )
             },
         ))
@@ -564,6 +580,41 @@ fn avatar_page() -> View {
     .child(api_row("AvatarGroup", "Overlap avatars and supply an accessible count or icon for additional members."))
 }
 
+fn badge_page() -> View {
+    macro_rules! demo {
+        ($module:ident, $name:literal, $title:literal) => {
+            example(
+                $title,
+                badge_examples::$module::preview(),
+                include_str!(concat!("badge_examples/", stringify!($module), ".rs")),
+                include_str!(concat!("../references/badge-tsx/badge-", $name, ".tsx")),
+            )
+        };
+    }
+    component_article(
+        DocsPage::Badge,
+        "A compact label for a status, category, or link.",
+        "https://ui.shadcn.com/docs/components/base/badge",
+    )
+    .child(demo!(demo, "demo", "Badge demo"))
+    .child(heading("Usage"))
+    .child(muted("Create a badge with a label. Set its variant or add an optional leading or trailing icon."))
+    .child(heading("Variants"))
+    .child(demo!(variants, "variants", "Variants"))
+    .child(heading("With Icon"))
+    .child(demo!(icon, "icon", "With Icon"))
+    .child(heading("With Spinner"))
+    .child(demo!(spinner, "spinner", "With Spinner"))
+    .child(heading("Link"))
+    .child(demo!(link, "link", "Link"))
+    .child(heading("Custom Colors"))
+    .child(demo!(colors, "colors", "Custom Colors"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("Badge", "Set the variant or adaptive colors. Add icon_start or icon_end, or set href to make the badge a link."))
+}
+
 fn component_page(
     page: DocsPage,
     article: View,
@@ -635,6 +686,7 @@ fn component_links(page: DocsPage, navigate: impl Fn(DocsPage) + Copy + 'static)
         DocsPage::AspectRatio,
         DocsPage::Attachment,
         DocsPage::Avatar,
+        DocsPage::Badge,
         DocsPage::Drawer,
     ] {
         if target != page {
