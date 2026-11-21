@@ -16,7 +16,7 @@ use crate::{
     item_examples, kbd_examples, label_examples, marker_examples, menubar_examples,
     message_examples, message_scroller_examples, native_select_examples, navigation_menu_examples,
     pagination_examples, popover_examples, progress_examples, questionnaire_examples,
-    radio_group_examples,
+    radio_group_examples, resizable_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -182,6 +182,7 @@ enum DocsPage {
     Progress,
     Questionnaire,
     RadioGroup,
+    Resizable,
 }
 
 type ComponentRoute = (
@@ -508,6 +509,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#radio-group",
         "radio-group-docs-scroll",
         radio_group_page,
+    ),
+    (
+        DocsPage::Resizable,
+        "Resizable",
+        "#resizable",
+        "resizable-docs-scroll",
+        resizable_page,
     ),
 ];
 
@@ -2668,6 +2676,44 @@ fn radio_group_page() -> View {
     .child(api_row("RadioGroup", "Set a default value or bind a Rust signal. Use on_change to receive user selections, and invalid to expose an invalid group."))
     .child(api_row("RadioGroupItem", "Give each item a unique value and a label. Add a description, disable an option, or use card for a full-width choice."))
     .child(api_row("Keyboard", "Tab enters at the selected item or first enabled item. Arrow keys wrap and skip disabled options, and Space selects the focused one."))
+}
+
+fn resizable_page() -> View {
+    macro_rules! demo {
+        ($function:ident, $file:literal, $name:literal) => {
+            example(
+                $name,
+                resizable_examples::$function(),
+                include_str!("resizable_examples.rs"),
+                include_str!(concat!(
+                    "../references/resizable-tsx/resizable-",
+                    $file,
+                    ".tsx"
+                )),
+            )
+        };
+    }
+    component_article(
+        DocsPage::Resizable,
+        "Divide a layout into panels that resize with a pointer, touch, or the keyboard.",
+        "https://ui.shadcn.com/docs/components/base/resizable",
+    )
+    .child(demo!(demo, "demo", "Resizable demo"))
+    .child(heading("Usage"))
+    .child(code_block(r#"ResizablePanelGroup::new(ResizableOrientation::Horizontal)
+    .panel(ResizablePanel::new(text("One")).default_size(50.0))
+    .handle(ResizableHandle::new().with_handle(true))
+    .panel(ResizablePanel::new(text("Two")).default_size(50.0))"#))
+    .child(heading("Vertical"))
+    .child(demo!(vertical, "vertical", "Vertical"))
+    .child(heading("Handle"))
+    .child(demo!(handle, "handle", "Handle"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("ResizablePanelGroup", "Set an orientation or nest groups on different axes. Bind layout to share percentages with the host, and use on_resize for completed changes."))
+    .child(api_row("ResizablePanel", "Set a default size and optional minimum and maximum percentages. Percentages exclude the space occupied by dividers."))
+    .child(api_row("ResizableHandle", "Set a label, show a grip or disable resizing. Focus a divider and press an arrow key to resize by one percentage point. Home and End move to the limits."))
 }
 
 fn component_page(
