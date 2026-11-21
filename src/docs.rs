@@ -20,7 +20,7 @@ use crate::{
     separator_examples, sheet_examples, sidebar_examples, skeleton_examples, slider_examples,
     spinner_examples, switch_examples, table_examples, tabs_examples, textarea_examples,
     toast::Toaster,
-    toast_examples, toggle_examples, toggle_group_examples, tooltip_examples,
+    toast_examples, toggle_examples, toggle_group_examples, tooltip_examples, trace_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -203,6 +203,7 @@ enum DocsPage {
     Toggle,
     ToggleGroup,
     Tooltip,
+    Trace,
 }
 
 type ComponentRoute = (
@@ -648,6 +649,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#tooltip",
         "tooltip-docs-scroll",
         tooltip_page,
+    ),
+    (
+        DocsPage::Trace,
+        "Trace",
+        "#trace",
+        "trace-docs-scroll",
+        trace_page,
     ),
 ];
 
@@ -3502,6 +3510,70 @@ fn tooltip_page() -> View {
     .child(heading("API Reference"))
     .child(api_row("TooltipContent", "Set the side, alignment, offset, or pointer delay. Use render for custom content."))
     .child(api_row("attach", "Attach the tooltip to a control or a focusable wrapper around a disabled control. Escape dismisses it. Touch alone follows Native Shell’s hint behavior."))
+}
+
+fn trace_page() -> View {
+    macro_rules! demo {
+        ($function:ident, $name:literal, $label:literal, $file:literal) => {
+            example(
+                $label,
+                trace_examples::$function(),
+                include_str!($file),
+                include_str!(concat!("../references/trace-tsx/trace-", $name, ".tsx")),
+            )
+        };
+        ($function:ident, $name:literal, $label:literal) => {
+            demo!($function, $name, $label, "trace_examples.rs")
+        };
+    }
+
+    component_article(
+        DocsPage::Trace,
+        "Show what happened in a process, with expandable output and related resources.",
+        "https://ui.shadcn.com/docs/components/base/trace",
+    )
+    .child(demo!(demo, "demo", "Trace demo", "trace_examples/replay.rs"))
+    .child(heading("Usage"))
+    .child(code_block(r#"Trace::new().child(
+    TraceLine::new(TraceTitle::new("Ran pnpm test"))
+        .description(TraceDescription::new("14s")),
+)"#))
+    .child(heading("Composition"))
+    .child(muted("Compose each row with a title, optional icon, and description. Wrap the row in a disclosure, link, or modal trigger to add an action."))
+    .child(heading("Trace Line"))
+    .child(demo!(static_line, "static", "Trace Line"))
+    .child(heading("Status"))
+    .child(demo!(status, "status", "Status"))
+    .child(heading("Description"))
+    .child(demo!(description, "description", "Description"))
+    .child(heading("Collapsible"))
+    .child(demo!(collapsible, "collapsible", "Collapsible"))
+    .child(heading("Open State"))
+    .child(demo!(open, "open", "Open State"))
+    .child(heading("Link"))
+    .child(demo!(link, "link", "Link"))
+    .child(heading("Dialog"))
+    .child(demo!(dialog, "dialog", "Dialog"))
+    .child(heading("Sheet"))
+    .child(demo!(sheet, "sheet", "Sheet"))
+    .child(heading("Group"))
+    .child(demo!(group, "group", "Group"))
+    .child(heading("Sources"))
+    .child(demo!(sources, "sources", "Sources"))
+    .child(heading("Chain of Thought"))
+    .child(demo!(steps, "steps", "Chain of Thought"))
+    .child(heading("Commit"))
+    .child(demo!(commit, "commit", "Commit"))
+    .child(heading("Whole Turn"))
+    .child(demo!(turn, "turn", "Whole Turn"))
+    .child(heading("Reasoning"))
+    .child(demo!(thinking, "thinking", "Reasoning", "trace_examples/replay.rs"))
+    .child(heading("Tool"))
+    .child(demo!(tool_calls, "tool-calls", "Tool", "trace_examples/replay.rs"))
+    .child(heading("API Reference"))
+    .child(api_row("TraceLine", "Compose a title, icon, indicator, and description. Running titles respect reduced motion."))
+    .child(api_row("TraceCollapsible", "Set a default or bound open state and compose a trigger and detail content."))
+    .child(muted("The Rust chat, reasoning and tool previews play prerecorded examples. The TSX versions use the shadcn docs chat fixture helper."))
 }
 
 fn component_page(

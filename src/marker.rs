@@ -201,7 +201,7 @@ impl IntoElement for MarkerContent {
     }
 }
 
-fn shine(label: Reactive<SharedString>) -> View {
+pub(crate) fn shine(label: Reactive<SharedString>) -> View {
     let step = signal(0_u32);
     let timer = set_interval(Duration::from_millis(40), move || {
         step.update(|step| *step = (*step + 1) % 50);
