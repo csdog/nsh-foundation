@@ -1,0 +1,12 @@
+{
+  "name": "nsh-foundation",
+  "id": "com.example.nshfoundation",
+  "version": "1.0.0",
+  "build": 1,
+  "rust": ".",
+  "root": "App",
+  "window": {
+    "title": "Drawer \u00b7 nsh-foundation"
+  },
+  "appearance": "light"
+}

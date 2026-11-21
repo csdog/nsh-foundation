@@ -1,0 +1,8 @@
+/target/
+/.nsh/
+/dist/
+/references/shadcn-ui/
+.DS_Store
+.env
+.env.*
+!.env.example
