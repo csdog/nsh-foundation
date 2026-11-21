@@ -400,13 +400,13 @@ impl IntoElement for DialogContent {
 }
 
 fn focus_boundary() -> View {
+    // Native Shell removes accessibility-hidden views from the tab order.
     view()
         .absolute()
         .size(px(1.0))
         .opacity(0.0)
         .pointer_events(PointerEvents::None)
         .focusable(true)
-        .accessibility_elements_hidden(true)
 }
 
 #[cfg(test)]
