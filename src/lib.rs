@@ -28,6 +28,8 @@ pub mod calendar;
 mod calendar_examples;
 pub mod card;
 mod card_examples;
+pub mod carousel;
+mod carousel_examples;
 mod docs;
 pub mod drawer;
 mod examples;

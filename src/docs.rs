@@ -8,7 +8,8 @@ use nsh_core::{
 use crate::{
     accordion_examples, alert_dialog_examples, alert_examples, aspect_ratio_examples,
     attachment_examples, avatar_examples, badge_examples, breadcrumb_examples, bubble_examples,
-    button_examples, button_group_examples, calendar_examples, card_examples, examples,
+    button_examples, button_group_examples, calendar_examples, card_examples, carousel_examples,
+    examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -141,6 +142,7 @@ enum DocsPage {
     ButtonGroup,
     Calendar,
     Card,
+    Carousel,
 }
 
 type ComponentRoute = (
@@ -242,6 +244,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#card",
         "card-docs-scroll",
         card_page,
+    ),
+    (
+        DocsPage::Carousel,
+        "Carousel",
+        "#carousel",
+        "carousel-docs-scroll",
+        carousel_page,
     ),
 ];
 
@@ -901,6 +910,51 @@ fn card_page() -> View {
     .child(api_row("CardHeader / CardTitle / CardDescription / CardAction", "Compose the card heading. The optional action sits at the end of the header."))
     .child(api_row("CardContent", "Add a main section. Use edge_to_edge to span the card and flush_footer to remove the gap above the footer."))
     .child(api_row("CardFooter", "Add an action row or a stack of controls."))
+}
+
+fn carousel_page() -> View {
+    macro_rules! demo {
+        ($example:ident, $name:literal, $title:literal) => {
+            example(
+                $title,
+                carousel_examples::$example(),
+                include_str!("carousel_examples.rs"),
+                include_str!(concat!(
+                    "../references/carousel-tsx/carousel-",
+                    $name,
+                    ".tsx"
+                )),
+            )
+        };
+    }
+    component_article(
+        DocsPage::Carousel,
+        "Browse a series of slides using touch, the keyboard, or navigation buttons.",
+        "https://ui.shadcn.com/docs/components/base/carousel",
+    )
+    .child(demo!(demo, "demo", "Carousel demo"))
+    .child(heading("Composition"))
+    .child(muted("Add CarouselItem slides to CarouselContent. Place CarouselPrevious and CarouselNext around the viewport."))
+    .child(heading("Sizes"))
+    .child(demo!(sizes, "size", "Sizes"))
+    .child(heading("Spacing"))
+    .child(demo!(spacing, "spacing", "Spacing"))
+    .child(heading("Orientation"))
+    .child(demo!(orientation, "orientation", "Orientation"))
+    .child(heading("Options"))
+    .child(muted("Use looping(true) to wrap the slides. Slides snap to the start of the viewport."))
+    .child(heading("API"))
+    .child(demo!(api, "api", "API"))
+    .child(heading("Events"))
+    .child(muted("Use on_change for selections made with the carousel. Set or read a bound index signal for programmatic navigation and the current slide."))
+    .child(heading("Plugins"))
+    .child(demo!(autoplay, "plugin", "Autoplay"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("Carousel", "Set orientation, direction, looping, a controlled index, or an autoplay delay."))
+    .child(api_row("CarouselContent / CarouselItem", "Set the track spacing, vertical viewport height, and each slide's share of the viewport."))
+    .child(api_row("CarouselPrevious / CarouselNext", "The controls disable automatically at the ends and accept localized labels."))
 }
 
 fn component_page(
