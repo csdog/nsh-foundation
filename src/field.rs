@@ -180,7 +180,11 @@ impl FieldLabel {
     /// Focuses an associated control when the visible label is pressed.
     /// Give the control its accessible name with Native Shell's label property.
     pub fn for_control(self, control: ElementRef) -> Self {
-        Self(self.0.on_press(move || control.focus()).focusable(false))
+        Self(
+            crate::label::Label::from_surface(self.0)
+                .for_control(control)
+                .surface(),
+        )
     }
 }
 

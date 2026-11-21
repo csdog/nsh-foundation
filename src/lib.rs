@@ -72,6 +72,8 @@ pub mod item;
 mod item_examples;
 pub mod kbd;
 mod kbd_examples;
+pub mod label;
+mod label_examples;
 mod menu_parts;
 mod ui;
 

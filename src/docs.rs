@@ -13,7 +13,7 @@ use crate::{
     combobox_examples, command_examples, context_menu_examples, data_table_examples,
     date_picker_examples, dialog_examples, dropdown_menu_examples, empty_examples, examples,
     field_examples, hover_card_examples, input_examples, input_group_examples, input_otp_examples,
-    item_examples, kbd_examples,
+    item_examples, kbd_examples, label_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -167,6 +167,7 @@ enum DocsPage {
     InputOtp,
     Item,
     Kbd,
+    Label,
 }
 
 type ComponentRoute = (
@@ -410,6 +411,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         item_page,
     ),
     (DocsPage::Kbd, "Kbd", "#kbd", "kbd-docs-scroll", kbd_page),
+    (
+        DocsPage::Label,
+        "Label",
+        "#label",
+        "label-docs-scroll",
+        label_page,
+    ),
 ];
 
 impl DocsPage {
@@ -2038,6 +2046,44 @@ fn kbd_page() -> View {
     .child(heading("API Reference"))
     .child(api_row("Kbd", "Display a key label. Use named for a spoken name and tone to match its surrounding tooltip or input group."))
     .child(api_row("KbdGroup", "Lay out several keys together. Add text separators as needed. The group follows the surrounding layout direction."))
+}
+
+fn label_page() -> View {
+    component_article(
+        DocsPage::Label,
+        "Name a control and let users focus or activate it through its visible label.",
+        "https://ui.shadcn.com/docs/components/base/label",
+    )
+    .child(example(
+        "Label demo",
+        label_examples::demo(),
+        include_str!("label_examples.rs"),
+        include_str!("../references/label-tsx/label-demo.tsx"),
+    ))
+    .child(heading("Usage"))
+    .child(code_block(r#"let target = element_ref();
+view()
+    .child(Label::new("Email").for_control(target))
+    .child(input().label("Email").element_ref(&target))"#))
+    .child(heading("Label in Field"))
+    .child(muted("Use FieldLabel with FieldDescription and FieldError when a form control needs help or validation messages."))
+    .child(example(
+        "Label in Field",
+        field_examples::demo(),
+        include_str!("field_examples.rs"),
+        include_str!("../references/field-tsx/field-demo.tsx"),
+    ))
+    .child(heading("RTL"))
+    .child(example(
+        "RTL",
+        label_examples::rtl(),
+        include_str!("label_examples.rs"),
+        include_str!("../references/label-tsx/label-rtl.tsx"),
+    ))
+    .child(heading("API Reference"))
+    .child(api_row("Label", "Create a text label with new or supply formatted content with render."))
+    .child(api_row("for_control", "Focus the native control when its label is pressed. Supply the same accessible name on the control."))
+    .child(api_row("on_activate / disabled", "Attach a secondary action for controls such as checkboxes. Share the control's disabled state to suppress label activation."))
 }
 
 fn component_page(
