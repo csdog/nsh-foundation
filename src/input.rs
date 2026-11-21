@@ -22,11 +22,15 @@ pub fn input() -> Input {
 
 /// Adds reactive validation styling and the matching accessible invalid state.
 pub fn invalid_input(invalid: impl IntoReactive<bool>) -> Input {
+    styled_input(bare_input(), invalid)
+}
+
+pub(crate) fn styled_input(input: Input, invalid: impl IntoReactive<bool>) -> Input {
     let invalid = computed({
         let invalid = invalid.into_reactive();
         move || invalid.get()
     });
-    bare_input()
+    input
         .rounded(px(16.0))
         .border(px(1.0))
         .border_color(move || {
@@ -72,11 +76,14 @@ pub fn invalid_input(invalid: impl IntoReactive<bool>) -> Input {
 }
 
 pub(crate) fn bare_input() -> Input {
+    text_input_base().h(px(32.0))
+}
+
+pub(crate) fn text_input_base() -> Input {
     let direction = use_direction();
     native_input()
         .w_full()
         .min_w(px(0.0))
-        .h(px(32.0))
         .px(px(10.0))
         .text_color(move || theme().foreground)
         .style_when(

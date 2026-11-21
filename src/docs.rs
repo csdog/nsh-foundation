@@ -18,7 +18,7 @@ use crate::{
     pagination_examples, popover_examples, progress_examples, questionnaire_examples,
     radio_group_examples, resizable_examples, scroll_area_examples, select_examples,
     separator_examples, sheet_examples, sidebar_examples, skeleton_examples, slider_examples,
-    spinner_examples, switch_examples, table_examples, tabs_examples,
+    spinner_examples, switch_examples, table_examples, tabs_examples, textarea_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -196,6 +196,7 @@ enum DocsPage {
     Switch,
     Table,
     Tabs,
+    Textarea,
 }
 
 type ComponentRoute = (
@@ -606,6 +607,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#tabs",
         "tabs-docs-scroll",
         tabs_page,
+    ),
+    (
+        DocsPage::Textarea,
+        "Textarea",
+        "#textarea",
+        "textarea-docs-scroll",
+        textarea_page,
     ),
 ];
 
@@ -3250,6 +3258,45 @@ fn tabs_page() -> View {
     .child(api_row("Tabs", "Set the initial or bound value. Read changes with on_change. Use vertical orientation for a stacked list."))
     .child(api_row("TabsList / TabsTrigger", "Arrow keys, Home, and End move focus. Enter or Space selects the focused tab. Enable activate_on_focus to select as arrow keys move focus."))
     .child(api_row("TabsContent", "The active panel is exposed as a named, focusable Native Shell region."))
+}
+
+fn textarea_page() -> View {
+    macro_rules! demo {
+        ($function:ident, $file:literal, $title:literal) => {
+            example(
+                $title,
+                textarea_examples::$function(),
+                include_str!("textarea_examples.rs"),
+                include_str!(concat!(
+                    "../references/textarea-tsx/textarea-",
+                    $file,
+                    ".tsx"
+                )),
+            )
+        };
+    }
+
+    component_article(
+        DocsPage::Textarea,
+        "Collect and edit multiline text.",
+        "https://ui.shadcn.com/docs/components/base/textarea",
+    )
+    .child(demo!(demo, "demo", "Textarea demo"))
+    .child(heading("Usage"))
+    .child(code_block(r#"textarea().label("Message").placeholder("Type your message here.")"#))
+    .child(heading("Field"))
+    .child(demo!(field, "field", "Field"))
+    .child(heading("Disabled"))
+    .child(demo!(disabled, "disabled", "Disabled"))
+    .child(heading("Invalid"))
+    .child(demo!(invalid, "invalid", "Invalid"))
+    .child(heading("Button"))
+    .child(demo!(button, "button", "Button"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("textarea()", "Use Native Shell's Input methods to set a placeholder, initial or bound text, and change events. Enter inserts a new line and the textarea grows with its content."))
+    .child(api_row("invalid_textarea(invalid)", "Bind a validation condition to both the focus ring and the accessible invalid state. Use FieldDescription to associate instructions or error text."))
 }
 
 fn component_page(
