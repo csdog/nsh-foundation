@@ -13,6 +13,7 @@ use crate::{
     combobox_examples, command_examples, context_menu_examples, data_table_examples,
     date_picker_examples, dialog_examples, dropdown_menu_examples, empty_examples, examples,
     field_examples, hover_card_examples, input_examples, input_group_examples, input_otp_examples,
+    item_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -164,6 +165,7 @@ enum DocsPage {
     Input,
     InputGroup,
     InputOtp,
+    Item,
 }
 
 type ComponentRoute = (
@@ -398,6 +400,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#input-otp",
         "input-otp-docs-scroll",
         input_otp_page,
+    ),
+    (
+        DocsPage::Item,
+        "Item",
+        "#item",
+        "item-docs-scroll",
+        item_page,
     ),
 ];
 
@@ -1933,6 +1942,62 @@ fn input_otp_page() -> View {
     .child(api_row("InputOtp", "Choose the number of slots and bind a Rust signal with value. Use on_change, on_complete, or on_submit to respond to edits."))
     .child(api_row("InputOtpPattern", "Choose Digits, Alphanumeric, or a custom character predicate. The built-in patterns normalize supported localized digits and strip separators from pasted codes."))
     .child(api_row("InputOtpSlot", "Index the character the slot shows. Set invalid on a slot or the complete input to display validation styling."))
+}
+
+fn item_page() -> View {
+    macro_rules! demo {
+        ($example:ident, $source:literal, $title:literal) => {
+            example(
+                $title,
+                item_examples::$example(),
+                include_str!("item_examples.rs"),
+                include_str!(concat!("../references/item-tsx/item-", $source, ".tsx")),
+            )
+        };
+    }
+    component_article(
+        DocsPage::Item,
+        "Compose a row with optional media, details, and actions.",
+        "https://ui.shadcn.com/docs/components/base/item",
+    )
+    .child(demo!(demo, "demo", "Item demo"))
+    .child(heading("Usage"))
+    .child(code_block(r#"Item::new()
+    .variant(ItemVariant::Outline)
+    .content(ItemContent::new()
+        .title(ItemTitle::new("Title"))
+        .description(ItemDescription::new("Details")))
+    .actions(ItemActions::new().child(Button::new("Action")))"#))
+    .child(heading("Composition"))
+    .child(muted("Use ItemMedia, ItemContent, and ItemActions for the row. Add a full-width ItemHeader or ItemFooter, and use ItemGroup with ItemSeparator to organize related rows."))
+    .child(heading("Item and Field"))
+    .child(muted("Use Item to present content and actions. Use Field to connect a form control to its label, description, and validation feedback."))
+    .child(heading("Variant"))
+    .child(demo!(variant, "variant", "Variant"))
+    .child(heading("Size"))
+    .child(demo!(size, "size", "Size"))
+    .child(heading("Icon"))
+    .child(demo!(icon_example, "icon", "Icon"))
+    .child(heading("Avatar"))
+    .child(demo!(avatar, "avatar", "Avatar"))
+    .child(heading("Image"))
+    .child(demo!(image_example, "image", "Image"))
+    .child(heading("Group"))
+    .child(demo!(group, "group", "Group"))
+    .child(heading("Header"))
+    .child(demo!(header, "header", "Header"))
+    .child(heading("Link"))
+    .child(demo!(link_example, "link", "Link"))
+    .child(heading("Dropdown"))
+    .child(demo!(dropdown, "dropdown", "Dropdown"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("Item", "Choose Default, Outline, or Muted and one of three sizes. Use href to make the whole row a native link."))
+    .child(api_row("ItemGroup / ItemSeparator", "Group related rows and add optional divider lines."))
+    .child(api_row("ItemMedia", "Render an avatar, an icon, or an image. The image frame scales with ItemSize."))
+    .child(api_row("ItemContent / ItemTitle / ItemDescription", "Compose the main text. Add another content block for trailing metadata."))
+    .child(api_row("ItemActions / ItemHeader / ItemFooter", "Place controls in the row, or use a full-width section above or below it."))
 }
 
 fn component_page(
