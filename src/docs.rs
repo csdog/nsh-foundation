@@ -14,6 +14,7 @@ use crate::{
     date_picker_examples, dialog_examples, dropdown_menu_examples, empty_examples, examples,
     field_examples, hover_card_examples, input_examples, input_group_examples, input_otp_examples,
     item_examples, kbd_examples, label_examples, marker_examples, menubar_examples,
+    message_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -170,6 +171,7 @@ enum DocsPage {
     Label,
     Marker,
     Menubar,
+    Message,
 }
 
 type ComponentRoute = (
@@ -433,6 +435,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#menubar",
         "menubar-docs-scroll",
         menubar_page,
+    ),
+    (
+        DocsPage::Message,
+        "Message",
+        "#message",
+        "message-docs-scroll",
+        message_page,
     ),
 ];
 
@@ -2184,6 +2193,53 @@ fn menubar_page() -> View {
     .child(api_row("Menubar", "Group application menus in one keyboard stop. Use the arrow keys to move between menus."))
     .child(api_row("MenubarMenu / MenubarTrigger / MenubarContent", "Pair each top-level label with one menu. Its popup anchors to the trigger or uses the native sheet on touch screens."))
     .child(api_row("MenubarItem / MenubarSub", "Use ordinary actions, separators, nested menus, checkboxes, or radio choices. Store checked values in Rust signals and define actual keyboard shortcuts in the application."))
+}
+
+fn message_page() -> View {
+    macro_rules! demo {
+        ($name:ident, $source:literal, $label:literal) => {
+            example(
+                $label,
+                message_examples::$name(),
+                include_str!("message_examples.rs"),
+                include_str!(concat!(
+                    "../references/message-tsx/message-",
+                    $source,
+                    ".tsx"
+                )),
+            )
+        };
+    }
+    component_article(
+        DocsPage::Message,
+        "Lay out a conversation message with its avatar, sender, and actions.",
+        "https://ui.shadcn.com/docs/components/base/message",
+    )
+    .child(demo!(demo, "demo", "Message demo"))
+    .child(heading("Usage"))
+    .child(code_block(r#"Message::new(
+    MessageContent::new()
+        .child(Bubble::new(BubbleContent::text("How can I help you today?")))
+        .footer(MessageFooter::text("Delivered")),
+)
+.avatar(MessageAvatar::new(Avatar::new("Assistant")))
+.align(MessageAlign::End)"#))
+    .child(heading("Avatar"))
+    .child(demo!(avatars, "avatar", "Avatar"))
+    .child(heading("Group"))
+    .child(demo!(group, "group", "Group"))
+    .child(heading("Header and Footer"))
+    .child(demo!(header_footer, "header-footer", "Header and Footer"))
+    .child(heading("Actions"))
+    .child(demo!(actions, "actions", "Actions"))
+    .child(heading("Attachment"))
+    .child(demo!(attachment, "attachment", "Attachment"))
+    .child(heading("Accessibility"))
+    .child(muted("Name icon-only actions and use a status Marker to announce changing progress."))
+    .child(heading("API Reference"))
+    .child(api_row("Message / MessageGroup", "Choose start or end alignment. Group consecutive rows with the same sender."))
+    .child(api_row("MessageAvatar", "Attach an avatar or reserve its gutter with empty. The avatar sits at the bottom of the message surface above its footer."))
+    .child(api_row("MessageContent / MessageHeader / MessageFooter", "Compose one or more surfaces with optional sender metadata and actions. Use flush for a ghost bubble."))
 }
 
 fn component_page(
