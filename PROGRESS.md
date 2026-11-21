@@ -1,12 +1,12 @@
 # nsh-foundation 组件进度
 
-更新于 2026-11-21。已发布 **38 / 66**，待开始 **28 / 66**。下一项是 **Message（#39）**。[实施计划](PLAN.md)
+更新于 2026-11-21。已发布 **39 / 66**，待开始 **27 / 66**。下一项是 **Message Scroller（#40）**。[实施计划](PLAN.md)
 
 ## 已交付基线
 
 - **Drawer** 含 9 个交互示例及 Preview / Rust / TSX 标签。v35 将 16 px 内边距统一应用到 `DrawerContent`，边缘面板默认留 8 px 外边距。开关沿用 Rhea 面板缓动曲线，滑入 450 ms，普通滑出 400 ms。拖拽关闭的跟随动画根据松手速度缩短，遮罩持续变淡，短拖回弹后恢复。打开嵌套抽屉时父层保持挂载并淡出内容。Chromium 在 1280 × 900 和 390 × 844 验证了间距、开关位移、嵌套淡入淡出、触摸回弹、拖拽关闭和减少动态效果设置，v44 回归复测通过。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#drawer) · [组件源码](src/drawer.rs) · [TSX 参考](references/drawer-tsx/)
-- **线上版本**为 46，发布提交为 `8323785`，新增 Menubar。Web 打包和 WASM 内容校验已完成。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#menubar)
-- **基线复测**于 2026-11-21 通过 `cargo fmt --check` 和 `cargo test --offline --locked`，共 80 项 Rust 测试。
+- **线上版本**为 47，发布提交为 `75249fb`，新增 Message。Web 打包和 WASM 内容校验已完成。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#message)
+- **基线复测**于 2026-11-21 通过 `cargo fmt --check` 和 `cargo test --offline --locked`，共 81 项 Rust 测试。
 - **设计参考**已固定 shadcn/ui 源码版本，Obra 预览图已保存。可编辑的 Figma 原文件仍未获取。[参考资料记录](references/README.md)
 - **Accordion** 已发布于 v7（`7abbcb5`），含 7 个官方示例及 Preview / Rust / TSX。支持默认与受控状态、单项与多项展开、禁用、方向键和 RTL。15 项 Rust 测试、Web 打包及 WASM 校验已通过，浏览器视觉核验受预览端口限制。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#accordion) · [组件源码](src/accordion.rs) · [TSX 参考](references/accordion-tsx/)
 - **Alert** 已发布于 v8（`1e44dc4`），含 6 个官方示例及 Preview / Rust / TSX。支持普通和 destructive 样式、自定义主题颜色、操作按钮和 RTL。无头测试覆盖移动端交互、复制代码和历史导航。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#alert) · [组件源码](src/alert.rs) · [TSX 参考](references/alert-tsx/)
@@ -45,6 +45,7 @@
 - **Label** 已发布于 v44（`da71207`），含 3 个官方预览及 Preview / Rust / TSX。通过 `ElementRef` 关联控件，控件自身提供可访问名称，`FieldLabel` 共用关联逻辑。Rust 测试覆盖禁用状态。Chromium 在桌面和触屏尺寸验证了标签激活、Tab 顺序、空格键切换、RTL 状态保留，并复测 Field 和 Input OTP。桌面点击标签可聚焦复选框，触屏点按会切换状态。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#label) · [组件源码](src/label.rs) · [TSX 参考](references/label-tsx/)
 - **Marker** 已发布于 v45（`65b451b`），含 8 个官方示例及 Preview / Rust / TSX。支持行内、底边框、分隔线、饰图、流光和可操作标记。状态变化使用 Native Shell 全局实时区域，示例使用字符图标。Chromium 验证了桌面和触屏布局、动画与减少动态效果设置、键盘操作、链接及撤回按钮的本地反馈。示例链接指向上游 PR 列表。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#marker) · [组件源码](src/marker.rs) · [TSX 参考](references/marker-tsx/)
 - **Menubar** 已发布于 v46（`8323785`），含 6 个官方示例及 Preview / Rust / TSX。支持顶层菜单切换、复选、单选、嵌套菜单、图标、快捷键提示和 RTL。Rust 测试覆盖打开后连续左右切换和键盘选中。Chromium 在 1280 × 900 和 390 × 844 验证了 6 个预览、复选和单选、子菜单、RTL、主题和导航，并通过 Dropdown Menu 与 Context Menu 回归。手机使用 Native Shell 底部菜单，子菜单沿用 Native Shell 展开键，示例命令只更新本地反馈。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#menubar) · [组件源码](src/menubar.rs) · [TSX 参考](references/menubar-tsx/)
+- **Message** 已发布于 v47（`75249fb`），含 6 个官方示例及 Preview / Rust / TSX。支持两侧对齐、头像占位、连续消息、页眉和页脚，并组合现有 Bubble、Avatar、Marker 和 Attachment。Rust 测试确认页脚变高时头像仍与正文底边对齐。Chromium 在 1280 × 900 和 390 × 844 验证了 6 个预览、两侧对齐、头像与页脚、剪贴板内容、反馈切换、重试和附件图片的可访问名称。重试模拟本地发送状态，PDF 操作显示请求反馈。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#message) · [组件源码](src/message.rs) · [TSX 参考](references/message-tsx/)
 
 ## 按官方顺序跟踪
 
@@ -90,8 +91,8 @@
 | 36 | Label | 已发布 |
 | 37 | Marker | 已发布 |
 | 38 | Menubar | 已发布 |
-| 39 | Message | 待开始 · 下一项 |
-| 40 | Message Scroller | 待开始 |
+| 39 | Message | 已发布 |
+| 40 | Message Scroller | 待开始 · 下一项 |
 | 41 | Native Select | 待开始 |
 | 42 | Navigation Menu | 待开始 |
 | 43 | Pagination | 待开始 |
