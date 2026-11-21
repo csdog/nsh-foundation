@@ -8,7 +8,7 @@ use nsh_core::{
 use crate::{
     accordion_examples, alert_dialog_examples, alert_examples, aspect_ratio_examples,
     attachment_examples, avatar_examples, badge_examples, breadcrumb_examples, bubble_examples,
-    button_examples, button_group_examples, examples,
+    button_examples, button_group_examples, calendar_examples, examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -139,6 +139,7 @@ enum DocsPage {
     Bubble,
     Button,
     ButtonGroup,
+    Calendar,
 }
 
 type ComponentRoute = (
@@ -226,6 +227,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#button-group",
         "button-group-docs-scroll",
         button_group_page,
+    ),
+    (
+        DocsPage::Calendar,
+        "Calendar",
+        "#calendar",
+        "calendar-docs-scroll",
+        calendar_page,
     ),
 ];
 
@@ -800,6 +808,56 @@ fn button_group_page() -> View {
     .child(heading("API Reference"))
     .child(api_row("ButtonGroup", "Join controls horizontally or vertically. Use separate to leave space between subgroups."))
     .child(api_row("ButtonGroupSeparator / ButtonGroupText", "Add a divider or styled label among a group's controls."))
+}
+
+fn calendar_page() -> View {
+    macro_rules! demo {
+        ($module:ident, $name:literal, $title:literal) => {
+            example(
+                $title,
+                calendar_examples::$module::preview(),
+                include_str!(concat!("calendar_examples/", stringify!($module), ".rs")),
+                include_str!(concat!(
+                    "../references/calendar-tsx/calendar-",
+                    $name,
+                    ".tsx"
+                )),
+            )
+        };
+    }
+    component_article(
+        DocsPage::Calendar,
+        "An interactive calendar for selecting dates and date ranges.",
+        "https://ui.shadcn.com/docs/components/base/calendar",
+    )
+    .child(demo!(demo, "demo", "Calendar demo"))
+    .child(heading("Usage"))
+    .child(muted("Use Calendar::new for a single date or range(true) for a date range. Bind a signal to value to share the selection."))
+    .child(heading("Persian / Hijri / Jalali Calendar"))
+    .child(demo!(hijri, "hijri", "Persian / Hijri / Jalali Calendar"))
+    .child(heading("Selected Date (With TimeZone)"))
+    .child(demo!(timezone, "timezone", "Selected Date (With TimeZone)"))
+    .child(heading("Basic"))
+    .child(demo!(basic, "basic", "Basic"))
+    .child(heading("Range Calendar"))
+    .child(demo!(range, "range", "Range Calendar"))
+    .child(heading("Month and Year Selector"))
+    .child(demo!(caption, "caption", "Month and Year Selector"))
+    .child(heading("Presets"))
+    .child(demo!(presets, "presets", "Presets"))
+    .child(heading("Date and Time Picker"))
+    .child(demo!(time, "time", "Date and Time Picker"))
+    .child(heading("Booked dates"))
+    .child(demo!(booked_dates, "booked-dates", "Booked dates"))
+    .child(heading("Custom Cell Size"))
+    .child(demo!(custom_days, "custom-days", "Custom Cell Size"))
+    .child(heading("Week Numbers"))
+    .child(demo!(week_numbers, "week-numbers", "Week Numbers"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("Calendar", "Select single dates or ranges. Configure months, cell size, unavailable dates, RTL, Persian display and week numbers."))
+    .child(api_row("local_today / date_at_offset", "Read the device's local calendar date or interpret a timestamp at a fixed offset."))
 }
 
 fn component_page(

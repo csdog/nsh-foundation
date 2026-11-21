@@ -8,6 +8,8 @@ autobins = false
 [dependencies]
 nsh-core = "=0.6.1"
 nsh-base = "=0.6.1"
+icu_calendar = { version = "=2.4.0", default-features = false }
+chrono = { version = "=0.4.45", default-features = false, features = ["std", "clock"] }
 
 [dev-dependencies]
 nsh-engine = { version = "=0.6.1", default-features = false }
