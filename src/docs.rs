@@ -13,7 +13,7 @@ use crate::{
     combobox_examples, command_examples, context_menu_examples, data_table_examples,
     date_picker_examples, dialog_examples, dropdown_menu_examples, empty_examples, examples,
     field_examples, hover_card_examples, input_examples, input_group_examples, input_otp_examples,
-    item_examples, kbd_examples, label_examples,
+    item_examples, kbd_examples, label_examples, marker_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -168,6 +168,7 @@ enum DocsPage {
     Item,
     Kbd,
     Label,
+    Marker,
 }
 
 type ComponentRoute = (
@@ -417,6 +418,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#label",
         "label-docs-scroll",
         label_page,
+    ),
+    (
+        DocsPage::Marker,
+        "Marker",
+        "#marker",
+        "marker-docs-scroll",
+        marker_page,
     ),
 ];
 
@@ -2084,6 +2092,46 @@ view()
     .child(api_row("Label", "Create a text label with new or supply formatted content with render."))
     .child(api_row("for_control", "Focus the native control when its label is pressed. Supply the same accessible name on the control."))
     .child(api_row("on_activate / disabled", "Attach a secondary action for controls such as checkboxes. Share the control's disabled state to suppress label activation."))
+}
+
+fn marker_page() -> View {
+    macro_rules! demo {
+        ($name:ident, $source:literal, $label:literal) => {
+            example(
+                $label,
+                marker_examples::$name(),
+                include_str!("marker_examples.rs"),
+                include_str!(concat!("../references/marker-tsx/marker-", $source, ".tsx")),
+            )
+        };
+    }
+    component_article(
+        DocsPage::Marker,
+        "Display an inline status, bordered row, or labeled separator in a conversation.",
+        "https://ui.shadcn.com/docs/components/base/marker",
+    )
+    .child(demo!(demo, "demo", "Marker demo"))
+    .child(heading("Usage"))
+    .child(code_block(r#"Marker::new(MarkerContent::new("Explored 4 files"))
+    .icon(MarkerIcon::new(text("✓")))"#))
+    .child(heading("Variants"))
+    .child(demo!(variants, "variants", "Variants"))
+    .child(heading("Status"))
+    .child(demo!(status, "status", "Status"))
+    .child(heading("Shimmer"))
+    .child(demo!(shimmer, "shimmer", "Shimmer"))
+    .child(heading("Separator"))
+    .child(demo!(separator, "separator", "Separator"))
+    .child(heading("Border"))
+    .child(demo!(border, "border", "Border"))
+    .child(heading("With Icon"))
+    .child(demo!(with_icon, "icon", "With Icon"))
+    .child(heading("Links and Buttons"))
+    .child(demo!(link_button, "link-button", "Links and Buttons"))
+    .child(heading("API Reference"))
+    .child(api_row("Marker", "Choose a layout variant. Use stacked for a vertical icon and label, href for a link, and on_press for a button."))
+    .child(api_row("MarkerIcon", "Add a decorative icon. Assistive technologies read the adjacent content."))
+    .child(api_row("MarkerContent", "Display static or reactive text. Use shimmer for a moving highlight and status on Marker to announce text changes."))
 }
 
 fn component_page(
