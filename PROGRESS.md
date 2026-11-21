@@ -49,7 +49,7 @@
 | 15 | Chart | 已发布 |
 | 16 | Checkbox | 已发布 |
 | 17 | Code Block | 已发布 |
-| 18 | Collapsible | 待开始 · 下一项 |
+| 18 | Collapsible | 已实现 · 待发布 |
 | 19 | Combobox | 待开始 |
 | 20 | Command | 待开始 |
 | 21 | Context Menu | 待开始 |

@@ -9,7 +9,7 @@ use crate::{
     accordion_examples, alert_dialog_examples, alert_examples, aspect_ratio_examples,
     attachment_examples, avatar_examples, badge_examples, breadcrumb_examples, bubble_examples,
     button_examples, button_group_examples, calendar_examples, card_examples, carousel_examples,
-    chart_examples, checkbox_examples, code_block_examples, examples,
+    chart_examples, checkbox_examples, code_block_examples, collapsible_examples, examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -146,6 +146,7 @@ enum DocsPage {
     Chart,
     Checkbox,
     CodeBlock,
+    Collapsible,
 }
 
 type ComponentRoute = (
@@ -275,6 +276,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#code-block",
         "code-block-docs-scroll",
         code_block_page,
+    ),
+    (
+        DocsPage::Collapsible,
+        "Collapsible",
+        "#collapsible",
+        "collapsible-docs-scroll",
+        collapsible_page,
     ),
 ];
 
@@ -1117,6 +1125,43 @@ fn code_block_page() -> View {
     .child(api_row("CodeBlockContent / CodeBlockLine", "Set wrapping, start line, syntax language, and height. Supply individual lines for diff markers and emphasis."))
     .child(api_row("CodeBlockActions / CodeBlockCopyButton / CodeBlockFooter", "Add actions, copy source text, or place controls under the content."))
     .child(muted("Syntax highlighting uses bundled Syntect grammars. The Terminal Output example understands basic ANSI text colors and removes escape codes when copying."))
+}
+
+fn collapsible_page() -> View {
+    macro_rules! demo {
+        ($example:ident, $name:literal, $title:literal) => {
+            example(
+                $title,
+                collapsible_examples::$example(),
+                include_str!("collapsible_examples.rs"),
+                include_str!(concat!(
+                    "../references/collapsible-tsx/collapsible-",
+                    $name,
+                    ".tsx"
+                )),
+            )
+        };
+    }
+    component_article(
+        DocsPage::Collapsible,
+        "Reveal or hide a section of content.",
+        "https://ui.shadcn.com/docs/components/base/collapsible",
+    )
+    .child(demo!(demo, "demo", "Collapsible demo"))
+    .child(heading("Composition"))
+    .child(muted("Pair a CollapsibleTrigger with CollapsibleContent. Use header to place the trigger beside a title or a persistent summary."))
+    .child(heading("Controlled State"))
+    .child(muted("Set default_open for an initial value. Bind open to a signal and update it in on_open_change to control the panel."))
+    .child(heading("Basic"))
+    .child(demo!(basic, "basic", "Basic"))
+    .child(heading("Settings Panel"))
+    .child(demo!(settings, "settings", "Settings Panel"))
+    .child(heading("File Tree"))
+    .child(demo!(file_tree, "file-tree", "File Tree"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("Collapsible / CollapsibleTrigger / CollapsibleContent", "Compose a disclosure, style the trigger using its open state, and provide the content that expands. Use disabled to block activation or reveal(false) to switch instantly."))
 }
 
 fn component_page(

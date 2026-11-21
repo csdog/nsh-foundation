@@ -36,6 +36,8 @@ pub mod checkbox;
 mod checkbox_examples;
 pub mod code_block;
 mod code_block_examples;
+pub mod collapsible;
+mod collapsible_examples;
 mod docs;
 pub mod drawer;
 mod examples;
