@@ -53,7 +53,7 @@
 | 17 | Code Block | 已发布 |
 | 18 | Collapsible | 已发布 |
 | 19 | Combobox | 已发布 |
-| 20 | Command | 待开始 · 下一项 |
+| 20 | Command | 已实现 · 待发布 |
 | 21 | Context Menu | 待开始 |
 | 22 | Data Table | 待开始 |
 | 23 | Date Picker | 待开始 |

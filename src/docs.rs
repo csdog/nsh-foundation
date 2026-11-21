@@ -10,7 +10,7 @@ use crate::{
     attachment_examples, avatar_examples, badge_examples, breadcrumb_examples, bubble_examples,
     button_examples, button_group_examples, calendar_examples, card_examples, carousel_examples,
     chart_examples, checkbox_examples, code_block_examples, collapsible_examples,
-    combobox_examples, examples,
+    combobox_examples, command_examples, examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -149,6 +149,7 @@ enum DocsPage {
     CodeBlock,
     Collapsible,
     Combobox,
+    Command,
 }
 
 type ComponentRoute = (
@@ -292,6 +293,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#combobox",
         "combobox-docs-scroll",
         combobox_page,
+    ),
+    (
+        DocsPage::Command,
+        "Command",
+        "#command",
+        "command-docs-scroll",
+        command_page,
     ),
 ];
 
@@ -1216,6 +1224,47 @@ fn combobox_page() -> View {
     .child(api_row("Combobox", "Type to filter and highlight the first result. Use the arrow keys to move among results, Enter to select, and Escape to close."))
     .child(api_row("ComboboxItem", "Give each option a unique value and a label. Items can be grouped or disabled."))
     .child(api_row("Popup and input addons", "Use popup() for a searchable list behind a button, or prefix() to add content before the editable input."))
+}
+
+fn command_page() -> View {
+    macro_rules! demo {
+        ($example:ident, $title:literal) => {
+            example(
+                $title,
+                command_examples::$example(),
+                include_str!("command_examples.rs"),
+                include_str!(concat!(
+                    "../references/command-tsx/command-",
+                    stringify!($example),
+                    ".tsx"
+                )),
+            )
+        };
+    }
+    component_article(
+        DocsPage::Command,
+        "Search and run commands from a palette.",
+        "https://ui.shadcn.com/docs/components/base/command",
+    )
+    .child(demo!(demo, "Command demo"))
+    .child(heading("Composition"))
+    .child(muted("Create a Command with a list of CommandItem values. Set group, keywords, disabled, and shortcut on each item. Use on_select to run the action for the selected id."))
+    .child(heading("Dialog"))
+    .child(demo!(dialog, "Dialog"))
+    .child(heading("Basic"))
+    .child(demo!(basic, "Basic"))
+    .child(heading("Shortcuts"))
+    .child(demo!(shortcuts, "Shortcuts"))
+    .child(heading("Groups"))
+    .child(demo!(groups, "Groups"))
+    .child(heading("Scrollable"))
+    .child(demo!(scrollable, "Scrollable"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("Command", "Use the arrows to navigate and Enter to select. Escape clears the search before dismissing an open dialog."))
+    .child(api_row("CommandDialog", "Open the palette from a button or bind a shortcut such as mod+j."))
+    .child(api_row("CommandItem", "Supply labels, grouping, keywords, disabled state and shortcut hints. Bind any item shortcuts in the application that owns the actions."))
 }
 
 fn component_page(

@@ -40,6 +40,8 @@ pub mod collapsible;
 mod collapsible_examples;
 pub mod combobox;
 mod combobox_examples;
+pub mod command;
+mod command_examples;
 mod docs;
 pub mod drawer;
 mod examples;
