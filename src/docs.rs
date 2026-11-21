@@ -16,7 +16,7 @@ use crate::{
     item_examples, kbd_examples, label_examples, marker_examples, menubar_examples,
     message_examples, message_scroller_examples, native_select_examples, navigation_menu_examples,
     pagination_examples, popover_examples, progress_examples, questionnaire_examples,
-    radio_group_examples, resizable_examples, scroll_area_examples,
+    radio_group_examples, resizable_examples, scroll_area_examples, select_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -184,6 +184,7 @@ enum DocsPage {
     RadioGroup,
     Resizable,
     ScrollArea,
+    Select,
 }
 
 type ComponentRoute = (
@@ -524,6 +525,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#scroll-area",
         "scroll-area-docs-scroll",
         scroll_area_page,
+    ),
+    (
+        DocsPage::Select,
+        "Select",
+        "#select",
+        "select-docs-scroll",
+        select_page,
     ),
 ];
 
@@ -2758,6 +2766,51 @@ fn scroll_area_page() -> View {
     .child(api_row("ScrollArea", "Name and size a viewport. Give it an optional reference for programmatic scrolling."))
     .child(api_row("ScrollBar", "Choose the viewport's scrolling axis and when to show the draggable indicator. Each viewport scrolls on one axis."))
     .child(api_row("Keyboard", "Focus the viewport. Use arrow keys along the scrolling axis, Page Up and Page Down for larger steps, or Home and End for the boundaries."))
+}
+
+fn select_page() -> View {
+    macro_rules! demo {
+        ($function:ident, $file:literal, $name:literal) => {
+            example(
+                $name,
+                select_examples::$function(),
+                include_str!("select_examples.rs"),
+                include_str!(concat!("../references/select-tsx/select-", $file, ".tsx")),
+            )
+        };
+    }
+    component_article(
+        DocsPage::Select,
+        "Choose a value from a styled list of options.",
+        "https://ui.shadcn.com/docs/components/base/select",
+    )
+    .child(demo!(demo, "demo", "Select demo"))
+    .child(heading("Usage"))
+    .child(code_block(r#"Select::new(
+    "Theme",
+    SelectTrigger::new(SelectValue::new("Choose a theme")),
+    SelectContent::new()
+        .item(SelectItem::new("light", "Light"))
+        .item(SelectItem::new("dark", "Dark"))
+        .item(SelectItem::new("system", "System")),
+)"#))
+    .child(heading("Align Item With Trigger"))
+    .child(demo!(align_item, "align-item", "Align Item With Trigger"))
+    .child(heading("Groups"))
+    .child(demo!(groups, "groups", "Groups"))
+    .child(heading("Scrollable"))
+    .child(demo!(scrollable, "scrollable", "Scrollable"))
+    .child(heading("Disabled"))
+    .child(demo!(disabled, "disabled", "Disabled"))
+    .child(heading("Invalid"))
+    .child(demo!(invalid, "invalid", "Invalid"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("Select", "Use default_value for the initial selection or bind a Rust signal with value. Bind open to share the popup state with the host."))
+    .child(api_row("SelectTrigger / SelectValue", "Set the trigger size and the placeholder shown before a choice is made."))
+    .child(api_row("SelectContent / SelectGroup / SelectItem", "Add labeled groups and options. Set the maximum list height or choose whether a selected item overlaps the desktop trigger."))
+    .child(muted("On touch devices, Native Shell displays the list in a bottom sheet. Longer lists use the Native Shell scrollbar and keyboard navigation."))
 }
 
 fn component_page(

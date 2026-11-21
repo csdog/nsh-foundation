@@ -101,6 +101,8 @@ pub mod resizable;
 mod resizable_examples;
 pub mod scroll_area;
 mod scroll_area_examples;
+pub mod select;
+mod select_examples;
 mod ui;
 
 use nsh_core::prelude::*;
