@@ -18,7 +18,7 @@ use crate::{
     pagination_examples, popover_examples, progress_examples, questionnaire_examples,
     radio_group_examples, resizable_examples, scroll_area_examples, select_examples,
     separator_examples, sheet_examples, sidebar_examples, skeleton_examples, slider_examples,
-    spinner_examples, switch_examples,
+    spinner_examples, switch_examples, table_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -194,6 +194,7 @@ enum DocsPage {
     Slider,
     Spinner,
     Switch,
+    Table,
 }
 
 type ComponentRoute = (
@@ -590,6 +591,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#switch",
         "switch-docs-scroll",
         switch_page,
+    ),
+    (
+        DocsPage::Table,
+        "Table",
+        "#table",
+        "table-docs-scroll",
+        table_page,
     ),
 ];
 
@@ -3151,6 +3159,47 @@ Switch::new("Share across devices")
     .child(heading("API Reference"))
     .child(api_row("Switch", "Set the accessible name and optional description, initial or controlled value, size, disabled state, and validation state."))
     .child(api_row("Control reference", "Use control_ref to connect a visible label to the switch and apply label activation to the shared value."))
+}
+
+fn table_page() -> View {
+    macro_rules! demo {
+        ($function:ident, $file:literal, $label:literal) => {
+            example(
+                $label,
+                table_examples::$function(),
+                include_str!("table_examples.rs"),
+                include_str!(concat!("../references/table-tsx/table-", $file, ".tsx")),
+            )
+        };
+    }
+    component_article(
+        DocsPage::Table,
+        "Display structured data in aligned rows and columns.",
+        "https://ui.shadcn.com/docs/components/base/table",
+    )
+    .child(demo!(demo, "demo", "Table demo"))
+    .child(heading("Usage"))
+    .child(code_block(r#"Table::new("Invoices", [TableColumn::fixed(100.0), TableColumn::flexible(100.0)])
+    .header(TableHeader::new().row(
+        TableRow::new().head(TableHead::new("Invoice")).head(TableHead::new("Amount").align_end()),
+    ))
+    .body(TableBody::new().row(
+        TableRow::new().cell(TableCell::text("INV001")).cell(TableCell::text("$250.00").align_end()),
+    ))
+    .caption(TableCaption::new("Recent invoices"))"#))
+    .child(heading("Composition"))
+    .child(muted("Give header, body, and footer rows the same column layout. Use span to merge cells across adjacent columns."))
+    .child(heading("Footer"))
+    .child(demo!(footer, "footer", "Footer"))
+    .child(heading("Actions"))
+    .child(demo!(actions, "actions", "Actions"))
+    .child(heading("Data Table"))
+    .child(muted("Open Data Table from the component index for examples with sorting, filtering, and pagination."))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("Table / TableColumn", "Set fixed and minimum widths. When the viewport is wider, flexible columns share the extra space. When it is narrower, the table scrolls horizontally."))
+    .child(api_row("TableRow / TableHead / TableCell", "Use native table semantics, logical alignment, and optional selection styles. Cells can hold text or interactive elements."))
 }
 
 fn component_page(

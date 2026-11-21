@@ -117,6 +117,8 @@ pub mod spinner;
 mod spinner_examples;
 pub mod switch;
 mod switch_examples;
+pub mod table;
+mod table_examples;
 mod ui;
 
 use nsh_core::prelude::*;
