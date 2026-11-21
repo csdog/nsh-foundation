@@ -19,6 +19,8 @@ use crate::{
     radio_group_examples, resizable_examples, scroll_area_examples, select_examples,
     separator_examples, sheet_examples, sidebar_examples, skeleton_examples, slider_examples,
     spinner_examples, switch_examples, table_examples, tabs_examples, textarea_examples,
+    toast::Toaster,
+    toast_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -197,6 +199,7 @@ enum DocsPage {
     Table,
     Tabs,
     Textarea,
+    Toast,
 }
 
 type ComponentRoute = (
@@ -614,6 +617,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#textarea",
         "textarea-docs-scroll",
         textarea_page,
+    ),
+    (
+        DocsPage::Toast,
+        "Toast",
+        "#toast",
+        "toast-docs-scroll",
+        toast_page,
     ),
 ];
 
@@ -3297,6 +3307,46 @@ fn textarea_page() -> View {
     .child(heading("API Reference"))
     .child(api_row("textarea()", "Use Native Shell's Input methods to set a placeholder, initial or bound text, and change events. Enter inserts a new line and the textarea grows with its content."))
     .child(api_row("invalid_textarea(invalid)", "Bind a validation condition to both the focus ring and the accessible invalid state. Use FieldDescription to associate instructions or error text."))
+}
+
+fn toast_page() -> View {
+    let toaster = Toaster::new();
+    macro_rules! demo {
+        ($function:ident, $file:literal, $label:literal) => {
+            example(
+                $label,
+                toast_examples::$function(toaster),
+                include_str!("toast_examples.rs"),
+                include_str!(concat!("../references/toast-tsx/toast-", $file, ".tsx")),
+            )
+        };
+    }
+
+    component_article(
+        DocsPage::Toast,
+        "Show a temporary notification without interrupting the page.",
+        "https://ui.shadcn.com/docs/components/base/toast",
+    )
+    .child(demo!(demo, "demo", "Toast demo"))
+    .child(heading("Usage"))
+    .child(muted("Create a Toaster in your screen, mount its viewport once, and pass the handle to controls that show notifications."))
+    .child(code_block(r#"let toaster = Toaster::new();
+view()
+    .child(Button::new("Show Toast").on_press(move || {
+        toaster.show(Toast::new("Event created").description("Sunday, December 3 at 9:00 AM"));
+    }))
+    .child(toaster.viewport())"#))
+    .child(heading("Types"))
+    .child(demo!(types, "types", "Types"))
+    .child(heading("Action"))
+    .child(muted("Attach an action with a label and callback. The Undo action in the main example closes its notification."))
+    .child(code_block(r#"Toast::new("Event created").action("Undo", move || undo_event())"#))
+    .child(heading("Promise"))
+    .child(demo!(promise, "promise", "Promise"))
+    .child(heading("API Reference"))
+    .child(api_row("Toast", "Set a title, description, type, timeout, or action. Use timeout(None) for a notification that stays open until closed."))
+    .child(api_row("Toaster", "Show or close a toast by its ID. Use promise to update a pending toast from a Rust future."))
+    .child(toaster.viewport())
 }
 
 fn component_page(

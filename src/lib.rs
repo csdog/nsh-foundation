@@ -123,6 +123,8 @@ pub mod tabs;
 mod tabs_examples;
 pub mod textarea;
 mod textarea_examples;
+pub mod toast;
+mod toast_examples;
 mod ui;
 
 use nsh_core::prelude::*;
