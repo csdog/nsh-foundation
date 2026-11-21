@@ -1,11 +1,11 @@
 # nsh-foundation 组件进度
 
-更新于 2026-11-21。已发布 **33 / 66**，待开始 **33 / 66**。下一项是 **Item（#34）**。[实施计划](PLAN.md)
+更新于 2026-11-21。已发布 **34 / 66**，待开始 **32 / 66**。下一项是 **Kbd（#35）**。[实施计划](PLAN.md)
 
 ## 已交付基线
 
 - **Drawer** 含 9 个交互示例及 Preview / Rust / TSX 标签。v35 将 16 px 内边距统一应用到 `DrawerContent`，边缘面板默认留 8 px 外边距。开关沿用 Rhea 面板缓动曲线，滑入 450 ms，普通滑出 400 ms。拖拽关闭的跟随动画根据松手速度缩短，遮罩持续变淡，短拖回弹后恢复。打开嵌套抽屉时父层保持挂载并淡出内容。Chromium 在 1280 × 900 和 390 × 844 验证了间距、开关位移、嵌套淡入淡出、触摸回弹、拖拽关闭和减少动态效果设置。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#drawer) · [组件源码](src/drawer.rs) · [TSX 参考](references/drawer-tsx/)
-- **线上版本**为 41，发布提交为 `ea92533`，新增 Input OTP。Web 打包和 WASM 内容校验已完成。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#input-otp)
+- **线上版本**为 42，发布提交为 `9affb99`，新增 Item。Web 打包和 WASM 内容校验已完成。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#item)
 - **基线复测**于 2026-11-21 通过 `cargo fmt --check` 和 `cargo test --offline --locked`，共 78 项 Rust 测试。
 - **设计参考**已固定 shadcn/ui 源码版本，Obra 预览图已保存。可编辑的 Figma 原文件仍未获取。[参考资料记录](references/README.md)
 - **Accordion** 已发布于 v7（`7abbcb5`），含 7 个官方示例及 Preview / Rust / TSX。支持默认与受控状态、单项与多项展开、禁用、方向键和 RTL。15 项 Rust 测试、Web 打包及 WASM 校验已通过，浏览器视觉核验受预览端口限制。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#accordion) · [组件源码](src/accordion.rs) · [TSX 参考](references/accordion-tsx/)
@@ -40,6 +40,7 @@
 - **Input** 已发布于 v39（`990dd8b`），含 15 个官方示例及 Preview / Rust / TSX。提供 Rhea 样式的原生输入、密码遮蔽、禁用、响应式错误状态和系统文件选择，复用 Field、Badge、Button Group。Chromium 在 1280 × 900 和 390 × 844 验证了聚焦、提交与重置、文件选择与取消、网格、RTL 对齐与值保留、主题及导航。文件示例只保留文件名，搜索和表单只在本地显示反馈。Website URL 预览从 v40 起使用正式的 Input Group。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#input) · [组件源码](src/input.rs) · [TSX 参考](references/input-tsx/)
 - **Input Group** 已发布于 v40（`69f312d`），含 14 个官方示例及 Preview / Rust / TSX。组合原生单行输入、多行输入、四向附加区、文本、按钮、菜单和加载指示。Chromium 在 1280 × 900 和 390 × 844 验证了附加区定位与聚焦、剪贴板、弹层、菜单、光标行列号、文本域自动增高、RTL 对齐和值保留。原 Input 页通过回归复测。运行、搜索、评论和提交使用本地演示反馈。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#input-group) · [组件源码](src/input_group.rs) · [TSX 参考](references/input-group-tsx/)
 - **Input OTP** 已发布于 v41（`ea92533`），含 10 个官方示例及 Preview / Rust / TSX。使用一个原生输入框和组合式 Group、Slot、Separator，支持自定义字符规则、受控值、格式化粘贴、错误状态和验证码自动填充提示。Chromium 在 1280 × 900 和 390 × 844 验证了键盘编辑、数字归一化、完整粘贴替换、禁用、错误说明关联、RTL 视觉顺序和值保留。验证与重发使用本地示例数据。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#input-otp) · [组件源码](src/input_otp.rs) · [TSX 参考](references/input-otp-tsx/)
+- **Item** 已发布于 v42（`9affb99`），含 11 个官方示例及 Preview / Rust / TSX。提供三种样式、三种尺寸、媒体、正文、操作区、整行链接和通栏头尾。Chromium 在 1280 × 900 和 390 × 844 验证了本地图片、链接和独立操作、菜单选项、RTL、明暗主题和导航。Header 示例在窄屏使用单列。歌曲链接指向组件文档，邀请和选择只更新本地预览。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#item) · [组件源码](src/item.rs) · [TSX 参考](references/item-tsx/)
 
 ## 按官方顺序跟踪
 
@@ -80,8 +81,8 @@
 | 31 | Input | 已发布 |
 | 32 | Input Group | 已发布 |
 | 33 | Input OTP | 已发布 |
-| 34 | Item | 待开始 · 下一项 |
-| 35 | Kbd | 待开始 |
+| 34 | Item | 已发布 |
+| 35 | Kbd | 待开始 · 下一项 |
 | 36 | Label | 待开始 |
 | 37 | Marker | 待开始 |
 | 38 | Menubar | 待开始 |
