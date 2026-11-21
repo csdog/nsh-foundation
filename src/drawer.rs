@@ -1,14 +1,12 @@
 //! Composable Native Shell Drawer parts sharing one controlled Rust state.
 
-use std::time::Duration;
-
 use nsh_base::{dialog, theme};
-use nsh_core::{element::ElNode, prelude::*};
+use nsh_core::{TransformOrigin, element::ElNode, prelude::*};
 
 use crate::ui::{Variant, button_surface, heading, muted};
 
-const OPEN_MS: u64 = 450;
-const CLOSE_MS: u64 = 400;
+const OPEN_MS: f32 = 450.0;
+const CLOSE_MS: f32 = 400.0;
 const PANEL_EASING: Easing = Easing::Bezier(0.22, 1.0, 0.36, 1.0);
 const OVERLAY_EASING: Easing = Easing::Bezier(0.32, 0.72, 0.0, 1.0);
 
@@ -191,20 +189,9 @@ impl IntoElement for DrawerContent {
     fn into_element(self) -> AnyElement {
         let drawer = self.drawer;
         let mounted = signal(false);
-        let exit = stored(None::<Spawned<()>>);
         effect(move || {
-            if let Some(task) = exit.replace(None) {
-                task.cancel();
-            }
             if drawer.open.get() {
                 mounted.set(true);
-            } else if !mounted.get_untracked() || reduce_motion() {
-                mounted.set(false);
-            } else {
-                exit.replace(Some(set_timeout(
-                    Duration::from_millis(CLOSE_MS + 16),
-                    move || mounted.set(false),
-                )));
             }
         });
         if let Some(parent) = drawer.parent_stack {
@@ -212,14 +199,19 @@ impl IntoElement for DrawerContent {
         }
         when(mounted, move || {
             let options = (self.options)();
+            let ready = signal(options.centered);
+            let close_ms = stored(CLOSE_MS);
             let surface = drawer.surface(
                 options,
                 self.label,
                 (self.body)(),
                 self.handle_style.as_deref(),
+                ready,
+                close_ms,
+                move || mounted.set(false),
             );
             DrawerPortal::new(drawer, self.label, options.modality)
-                .child(DrawerOverlay::new(drawer, options))
+                .child(DrawerOverlay::with_motion(drawer, options, ready, close_ms))
                 .child(surface)
         })
         .into_element()
@@ -278,22 +270,41 @@ impl IntoElement for DrawerPortal {
 
 impl DrawerOverlay {
     pub fn new(drawer: Drawer, options: DrawerOptions) -> Self {
+        Self::with_motion(drawer, options, signal(true), stored(CLOSE_MS))
+    }
+
+    fn with_motion(
+        drawer: Drawer,
+        options: DrawerOptions,
+        ready: Signal<bool>,
+        close_ms: Stored<f32>,
+    ) -> Self {
         let modal = options.modality == Modality::Modal;
         let fade = animated_value(0.0);
         effect(move || {
+            if !ready.get() {
+                return;
+            }
             let open = drawer.open.get();
             let target = if modal && open { 1.0 } else { 0.0 };
             if reduce_motion() {
                 fade.set(target);
             } else {
-                let duration = if open { OPEN_MS } else { CLOSE_MS };
-                let _ = fade.timing(target, duration as f32, OVERLAY_EASING);
+                let duration = if open { OPEN_MS } else { close_ms.get() };
+                let _ = fade.timing(target, duration, OVERLAY_EASING);
             }
         });
         let layer = view()
             .absolute()
             .inset_0()
             .focusable(false)
+            .pointer_events(move || {
+                if drawer.open.get() && (modal || !options.disable_outside_dismissal) {
+                    PointerEvents::Auto
+                } else {
+                    PointerEvents::None
+                }
+            })
             .when(modal, |layer| {
                 // shadcn/ui's Rhea drawer overlay uses bg-black/30 and backdrop-blur-sm.
                 layer.bg(hsla(0.0, 0.0, 0.0, 0.30)).backdrop_blur(px(8.0))
@@ -302,10 +313,8 @@ impl DrawerOverlay {
             .test_id("drawer-backdrop");
         let layer = if !options.disable_outside_dismissal {
             layer.on_press(move || drawer.close())
-        } else if modal {
-            layer
         } else {
-            layer.pointer_events(PointerEvents::None)
+            layer
         };
         Self(layer)
     }
@@ -318,6 +327,9 @@ impl Drawer {
         title: &'static str,
         children: View,
         handle_style: Option<&dyn Fn(DrawerSwipeHandle) -> DrawerSwipeHandle>,
+        ready: Signal<bool>,
+        close_ms: Stored<f32>,
+        on_exit: impl Fn() + Copy + 'static,
     ) -> View {
         let direction = options.direction;
         let vertical = direction.vertical();
@@ -328,10 +340,10 @@ impl Drawer {
             viewport.width.0
         };
         let offset = animated_value(viewport_extent * direction.sign());
-        let measured_extent = stored(0.0_f32);
-        let measured = signal(false);
+        let measured_extent = signal(None::<f32>);
         let started = stored(false);
         let moving = stored(false);
+        let exit = stored(None::<Spawned<()>>);
         let snapped = vertical && !options.snap_points.is_empty() && !options.centered;
         let extent = move || {
             let available = (window().height.0 - 2.0 * options.inset).max(0.0);
@@ -355,40 +367,65 @@ impl Drawer {
         let fade = animated_value(0.0);
         let scale = animated_value(1.0);
         effect(move || {
+            if let Some(task) = exit.replace(None) {
+                task.cancel();
+            }
             let open = self.open.get();
-            let behind = self.showing_child.get();
-            let reduced = reduce_motion();
-            let duration = if open { OPEN_MS } else { CLOSE_MS };
-            if options.centered {
-                let target = if open { 1.0 } else { 0.0 };
-                if reduced {
-                    fade.set(target);
-                } else {
-                    let _ = fade.timing(target, duration as f32, OVERLAY_EASING);
-                }
+            if open {
+                close_ms.replace(CLOSE_MS);
+            }
+            if !open && (reduce_motion() || !ready.get_untracked()) {
+                on_exit();
                 return;
             }
-            let measured = measured.get();
-            let scale_target = if behind { 0.98 } else { 1.0 };
-            let target = if open {
-                position(self.snap_index.get()) - if behind { 22.0 * direction.sign() } else { 0.0 }
-            } else {
-                (measured_extent.get() + options.inset + 2.0) * direction.sign()
-            };
-            if reduced {
-                started.replace(true);
-                scale.set(scale_target);
-                offset.set(target);
-            } else if measured && (!moving.get() || !open) {
-                if !started.replace(true) {
-                    offset.set((measured_extent.get() + options.inset + 2.0) * direction.sign());
+            let duration = if open { OPEN_MS } else { close_ms.get() };
+            let animation = if options.centered {
+                let target = if open { 1.0 } else { 0.0 };
+                if reduce_motion() {
+                    fade.set(target);
+                    return;
                 }
-                let _ = scale.timing(scale_target, duration as f32, PANEL_EASING);
-                let _ = offset.timing(target, duration as f32, PANEL_EASING);
+                fade.timing(target, duration, OVERLAY_EASING)
+            } else {
+                let closed_position =
+                    |length: f32| (length + options.inset + 2.0) * direction.sign();
+                if !started.get() {
+                    let Some(length) = measured_extent.get() else {
+                        return;
+                    };
+                    started.replace(true);
+                    offset.set(closed_position(length));
+                    ready.set(true);
+                }
+                if open && moving.get() {
+                    return;
+                }
+                let behind = self.showing_child.get();
+                let scale_target = if behind { 0.95 } else { 1.0 };
+                let target = if open {
+                    position(self.snap_index.get())
+                        - if behind { 16.0 * direction.sign() } else { 0.0 }
+                } else {
+                    closed_position(measured_extent.get_untracked().unwrap_or(viewport_extent))
+                };
+                if reduce_motion() {
+                    scale.set(scale_target);
+                    offset.set(target);
+                    return;
+                }
+                let _ = scale.timing(scale_target, duration, PANEL_EASING);
+                offset.timing(target, duration, PANEL_EASING)
+            };
+            if !open {
+                exit.replace(Some(spawn(async move {
+                    if animation.await && !self.open.get_untracked() {
+                        on_exit();
+                    }
+                })));
             }
         });
 
-        let radius = px(16.0);
+        let radius = px(24.0);
         let inset = px(options.inset);
         let mut panel = view()
             .absolute()
@@ -397,7 +434,7 @@ impl Drawer {
             .text_color(move || theme().popover_foreground)
             .border(px(1.0))
             .border_color(move || theme().border)
-            .shadow_lg()
+            .shadow_xl()
             .overflow_hidden()
             .bind_scale(&scale)
             .test_id("drawer-panel");
@@ -417,6 +454,13 @@ impl Drawer {
             );
         }
 
+        let origin = match direction {
+            Direction::Up => "center top",
+            Direction::Down => "center bottom",
+            Direction::Left => "left center",
+            Direction::Right => "right center",
+        };
+        panel = panel.transform_origin(TransformOrigin::parse(origin).unwrap());
         panel = panel.on_layout(move |bounds: &Bounds<Points>| {
             let length = if vertical {
                 bounds.size.height.0
@@ -424,29 +468,18 @@ impl Drawer {
                 bounds.size.width.0
             };
             if length > 0.0 {
-                measured_extent.replace(length);
-                measured.set(true);
+                measured_extent.set(Some(length));
             }
         });
 
         panel = match direction {
-            Direction::Up => panel.top(inset).left(inset).right(inset).rounded_b(radius),
-            Direction::Down => panel
-                .bottom(inset)
-                .left(inset)
-                .right(inset)
-                .rounded_t(radius),
-            Direction::Left => panel.left(inset).top(inset).bottom(inset).rounded_r(radius),
-            Direction::Right => panel
-                .right(inset)
-                .top(inset)
-                .bottom(inset)
-                .rounded_l(radius),
+            Direction::Up => panel.top(inset).left(inset).right(inset),
+            Direction::Down => panel.bottom(inset).left(inset).right(inset),
+            Direction::Left => panel.left(inset).top(inset).bottom(inset),
+            Direction::Right => panel.right(inset).top(inset).bottom(inset),
         };
 
-        if options.inset > 0.0 {
-            panel = panel.rounded(radius);
-        }
+        panel = panel.rounded(radius);
 
         if vertical {
             panel = panel.max_h(move || {
@@ -464,7 +497,11 @@ impl Drawer {
             panel = panel
                 .w(move || {
                     let viewport = window().width.0;
-                    let default_width = 384.0_f32.min(viewport * 0.75);
+                    let default_width = if viewport >= 640.0 {
+                        384.0
+                    } else {
+                        viewport * 0.75
+                    };
                     px(options
                         .width
                         .unwrap_or(default_width)
@@ -475,6 +512,7 @@ impl Drawer {
 
         let drag = |surface: View| {
             surface
+                .pan_enabled(move || self.open.get())
                 .pan_values(
                     if vertical { None } else { Some(&offset) },
                     if vertical { Some(&offset) } else { None },
@@ -506,11 +544,21 @@ impl Drawer {
                             if reduce_motion() {
                                 offset.set(target);
                             } else {
-                                let _ = offset.timing(target, OPEN_MS as f32, PANEL_EASING);
+                                let _ = offset.timing(target, OPEN_MS, PANEL_EASING);
                             }
                         }
                         Some(index) => self.snap_index.set(index),
-                        None => self.close(),
+                        None => {
+                            let length = measured_extent.get_untracked().unwrap_or(viewport_extent);
+                            let remaining = (length + options.inset + 2.0
+                                - position(current).abs()
+                                - distance.max(0.0))
+                            .max(0.0);
+                            close_ms.replace(
+                                (remaining / velocity.max(1.0) * 1000.0).clamp(160.0, CLOSE_MS),
+                            );
+                            self.close();
+                        }
                     }
                 })
         };
@@ -667,7 +715,13 @@ impl DrawerClose {
 
 impl DrawerHeader {
     pub fn new() -> Self {
-        Self(view().flex_shrink_0().px_4().pt_4().pb_2().gap_1())
+        Self(
+            view()
+                .flex_shrink_0()
+                .px_4()
+                .pt_4()
+                .gap(move || px(if window().width.0 >= 768.0 { 6.0 } else { 2.0 })),
+        )
     }
 }
 
@@ -693,7 +747,7 @@ impl DrawerDescription {
 
 impl DrawerFooter {
     pub fn new() -> Self {
-        Self(view().flex_shrink_0().p_4().gap_2())
+        Self(view().flex_shrink_0().px_4().pb_4().gap_2())
     }
 }
 

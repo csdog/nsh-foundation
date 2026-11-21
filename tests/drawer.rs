@@ -29,11 +29,15 @@ fn assert_count(app: &Headless, count: usize) {
 }
 
 fn panel(app: &Headless) -> Bounds<Points> {
+    bounds(app, "drawer-panel")
+}
+
+fn bounds(app: &Headless, test_id: &str) -> Bounds<Points> {
     app.screen()
         .layout_nodes()
         .into_iter()
-        .find(|node| node.test_id.as_deref() == Some("drawer-panel"))
-        .expect("drawer panel")
+        .find(|node| node.test_id.as_deref() == Some(test_id))
+        .unwrap_or_else(|| panic!("missing {test_id}"))
         .bounds
 }
 
@@ -213,6 +217,7 @@ fn PartsExample() -> impl IntoElement {
     };
 
     let drawer = Drawer::new(signal(false));
+    let builds = stored(0);
     view()
         .child(
             DrawerTrigger::render(
@@ -222,18 +227,41 @@ fn PartsExample() -> impl IntoElement {
             .test_id("parts-trigger"),
         )
         .child(DrawerContent::new(drawer, "Compound Drawer", move || {
+            builds.replace(builds.get() + 1);
             view()
                 .child(
                     DrawerHeader::new()
-                        .child(DrawerTitle::new("Compound Drawer"))
+                        .child(
+                            view()
+                                .test_id("parts-title")
+                                .child(DrawerTitle::new("Compound Drawer")),
+                        )
                         .child(DrawerDescription::new(
                             "Only mounted while the drawer is visible.",
                         )),
                 )
-                .child(DrawerFooter::new().child(DrawerClose::render(
-                    drawer,
-                    view().p_4().label("Custom closer").child(text("Done")),
-                )))
+                .child(
+                    view().p_4().child(
+                        view()
+                            .test_id("parts-body")
+                            .label("Reopen during exit")
+                            .on_press(move || {
+                                drawer.close();
+                                set_timeout(Duration::from_millis(100), move || drawer.open());
+                            })
+                            .child(text(format!("Body build {}", builds.get()))),
+                    ),
+                )
+                .child(
+                    DrawerFooter::new().child(DrawerClose::render(
+                        drawer,
+                        view()
+                            .p_4()
+                            .label("Custom closer")
+                            .test_id("parts-close")
+                            .child(text("Done")),
+                    )),
+                )
         }))
 }
 
@@ -250,6 +278,18 @@ fn independently_styled_trigger_and_close_compose_with_lazy_content() {
     interact(&mut app, "id:parts-trigger");
     assert_count(&app, 1);
     assert!(app.shows(description));
+    let panel = panel(&app);
+    let title = bounds(&app, "parts-title");
+    let button = bounds(&app, "parts-close");
+    for id in ["parts-title", "parts-body", "parts-close"] {
+        let part = bounds(&app, id);
+        assert!((part.origin.x.0 - panel.origin.x.0 - 17.0).abs() < 1.0);
+    }
+    assert!((title.origin.y.0 - panel.origin.y.0 - 17.0).abs() < 1.0);
+    assert!((panel.bottom().0 - button.bottom().0 - 17.0).abs() < 1.0);
+    interact(&mut app, "Reopen during exit");
+    assert_count(&app, 1);
+    assert!(app.shows("Body build 1"));
     interact(&mut app, "Custom closer");
     assert_count(&app, 0);
     assert!(!app.shows(description));

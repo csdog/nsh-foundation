@@ -127,7 +127,7 @@ pub(crate) fn delivery(
                         "We'll prepare your order as soon as possible.",
                     )),
             )
-            .child(scroll().flex_shrink(1.0).px_4().py_2().child(choices))
+            .child(scroll().flex_shrink(1.0).p_4().child(choices))
             .child(
                 DrawerFooter::new()
                     .child(button(
@@ -284,8 +284,7 @@ pub(crate) fn custom_size() -> (impl IntoElement, impl IntoElement) {
                 scroll()
                     .flex_1()
                     .min_h(px(0.0))
-                    .px_4()
-                    .py_2()
+                    .p_4()
                     .test_id("drawer-notifications")
                     .child(items),
             )

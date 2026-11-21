@@ -1022,7 +1022,7 @@ fn drawer_page(
             .child(example("Custom Sizes", custom_size, SIZED, TSX_SIZED))
             .child(custom_size_panel))
         .child(section("Styling", 4, locations)
-            .child(muted("Drawers use the popover, foreground, border, and muted theme tokens. Edge drawers sit 8 points from the viewport by default. Set inset to override the gap."))
+            .child(muted("Edge drawers sit 8 points from the viewport by default. Set inset to override the gap. The header and footer provide 16 points of side padding. Use p_4() on a custom body to align it with them."))
             .child(example("Styling", floating, FLOATING, TSX_FLOATING))
             .child(floating_panel))
         .child(section("Examples", 5, locations))
