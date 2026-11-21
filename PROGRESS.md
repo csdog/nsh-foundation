@@ -4,9 +4,9 @@
 
 ## 已交付基线
 
-- **Drawer** 已拆成纯 Rust 组合组件，包括 `DrawerTrigger`、`DrawerContent`、`DrawerHeader`、`DrawerTitle`、`DrawerDescription`、`DrawerFooter` 和 `DrawerClose`。文档已有 9 个交互示例及 Preview / Rust / TSX 标签。面板默认留 8 点外边距，示例正文内边距为 16 点，并与标题和底部操作对齐。普通滑入和滑出分别用时 450 ms 和 400 ms。甩动关闭按剩余距离和松手速度调整时长，退出动画播完再卸载内容。测试覆盖退出途中重新打开及内容间距。[组件源码](src/drawer.rs) · [TSX 参考](references/drawer-tsx/)
-- **线上版本**为 27，发布提交为 `910ed43`，新增 Command。Web 打包和 WASM 内容校验已完成。云端预览端口启动受限，浏览器视觉核验仍待复核。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#command)
-- **基线复测**于 2026-11-21 通过 `cargo fmt --check` 和 `cargo test --offline --locked`，共 59 项 Rust 测试。
+- **Drawer** 含 9 个交互示例及 Preview / Rust / TSX 标签。面板默认预留 8 px 外边距，示例正文、标题和底部操作对齐在 16 px 内边距。手柄按抽屉方向放在可拖动的内侧边缘。滑入用时 450 ms，普通滑出用时 400 ms，退出时先缓慢起步再滑出。遮罩随拖动位移渐淡，短拖松手后面板和遮罩恢复。甩动关闭按剩余距离和松手速度调整时长，退出后卸载。Chromium 已验证 1280 × 900 和 390 × 844 的间距、进出场位移和模拟触摸回弹。[组件源码](src/drawer.rs) · [TSX 参考](references/drawer-tsx/)
+- **线上版本**为 28，发布提交为 `77a8b00`，更新 Drawer 退出和拖拽动画。Web 打包和 WASM 内容校验已完成。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#drawer)
+- **基线复测**于 2026-11-21 通过 `cargo fmt --check` 和 `cargo test --offline --locked`，共 60 项 Rust 测试。
 - **设计参考**已固定 shadcn/ui 源码版本，Obra 预览图已保存。可编辑的 Figma 原文件仍未获取。[参考资料记录](references/README.md)
 - **Accordion** 已发布于 v7（`7abbcb5`），含 7 个官方示例及 Preview / Rust / TSX。支持默认与受控状态、单项与多项展开、禁用、方向键和 RTL。15 项 Rust 测试、Web 打包及 WASM 校验已通过，浏览器视觉核验受预览端口限制。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#accordion) · [组件源码](src/accordion.rs) · [TSX 参考](references/accordion-tsx/)
 - **Alert** 已发布于 v8（`1e44dc4`），含 6 个官方示例及 Preview / Rust / TSX。支持普通和 destructive 样式、自定义主题颜色、操作按钮和 RTL。无头测试覆盖移动端交互、复制代码和历史导航。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#alert) · [组件源码](src/alert.rs) · [TSX 参考](references/alert-tsx/)
