@@ -1,7 +1,7 @@
 //! Composable Rhea dialog parts backed by Native Shell's modal.
 
 use nsh_base::{dialog, theme};
-use nsh_core::{element::LayoutDirection, prelude::*};
+use nsh_core::{element::LayoutDirection, keymap::When, prelude::*};
 
 use crate::{
     button::{Button, ButtonSize, ButtonVariant},
@@ -288,6 +288,25 @@ impl IntoElement for DialogContent {
         when(state.open, move || {
             let width = self.width;
             let long_body = self.long_body;
+            let panel_ref = element_ref();
+            let close_ref = element_ref();
+            let end_ref = element_ref();
+            let placed = stored(false);
+            let wrapping_back = stored(false);
+            let corner_close = self.close_button.is_some();
+            let has_content = self.body.is_some() || self.footer.is_some();
+            if self.escape {
+                // Native text fields handle Escape before a modal's back action.
+                on_key_with(
+                    "escape",
+                    KeyOptions {
+                        when: When::Always,
+                        for_focus: true,
+                        ..Default::default()
+                    },
+                    move |_| state.close(),
+                );
+            }
             let body = self.body.as_ref().map(|body| {
                 scroll()
                     .min_h(px(0.0))
@@ -307,6 +326,7 @@ impl IntoElement for DialogContent {
                     .top_4()
                     .when(rtl, |button| button.left_4())
                     .when(!rtl, |button| button.right_4())
+                    .element_ref(&close_ref)
                     .test_id("dialog-corner-close");
                 DialogClose::render(state, control)
             });
@@ -322,18 +342,40 @@ impl IntoElement for DialogContent {
                 .bg(move || theme().popover)
                 .text_color(move || theme().popover_foreground)
                 .shadow_xl()
+                .focusable(true)
+                .element_ref(&panel_ref)
+                .on_layout(move |_: &Bounds<Points>| {
+                    if !placed.replace(true) && state.open.get_untracked() {
+                        panel_ref.focus();
+                    }
+                })
                 .test_id("dialog-panel")
-                .child(self.header.render(rtl, self.close_button.is_some()))
+                .child(self.header.render(rtl, corner_close))
                 .child(body)
                 .child(self.footer.as_ref().map(|footer| footer()))
                 .child(corner);
+            let before = focus_boundary().on_focus(move || {
+                if corner_close {
+                    close_ref.focus();
+                } else if has_content {
+                    wrapping_back.replace(true);
+                    end_ref.focus();
+                } else {
+                    panel_ref.focus();
+                }
+            });
+            let after = focus_boundary().element_ref(&end_ref).on_focus(move || {
+                if !wrapping_back.replace(false) {
+                    panel_ref.focus();
+                }
+            });
             let modal = dialog()
                 .label(self.header.title.0)
                 .animation(ModalAnimation::Fade)
                 .close_on_escape(self.escape)
                 .close_on_swipe(false)
                 .close_on_backdrop_press(false)
-                .on_cancel(move || state.close());
+                .when(self.escape, |modal| modal.on_cancel(move || state.close()));
             let modal = if let Some(description) = self.header.description.as_ref() {
                 modal.accessibility_description(description.0)
             } else {
@@ -341,6 +383,7 @@ impl IntoElement for DialogContent {
             };
             modal
                 .child(DialogOverlay::new(state, self.outside_press))
+                .child(before)
                 .child(
                     view()
                         .absolute()
@@ -350,9 +393,20 @@ impl IntoElement for DialogContent {
                         .pointer_events(PointerEvents::BoxNone)
                         .child(panel),
                 )
+                .child(after)
         })
         .into_element()
     }
+}
+
+fn focus_boundary() -> View {
+    view()
+        .absolute()
+        .size(px(1.0))
+        .opacity(0.0)
+        .pointer_events(PointerEvents::None)
+        .focusable(true)
+        .accessibility_elements_hidden(true)
 }
 
 #[cfg(test)]
