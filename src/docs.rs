@@ -9,7 +9,7 @@ use crate::{
     accordion_examples, alert_dialog_examples, alert_examples, aspect_ratio_examples,
     attachment_examples, avatar_examples, badge_examples, breadcrumb_examples, bubble_examples,
     button_examples, button_group_examples, calendar_examples, card_examples, carousel_examples,
-    chart_examples, checkbox_examples, examples,
+    chart_examples, checkbox_examples, code_block_examples, examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -145,6 +145,7 @@ enum DocsPage {
     Carousel,
     Chart,
     Checkbox,
+    CodeBlock,
 }
 
 type ComponentRoute = (
@@ -267,6 +268,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#checkbox",
         "checkbox-docs-scroll",
         checkbox_page,
+    ),
+    (
+        DocsPage::CodeBlock,
+        "Code Block",
+        "#code-block",
+        "code-block-docs-scroll",
+        code_block_page,
     ),
 ];
 
@@ -1052,6 +1060,63 @@ fn checkbox_page() -> View {
     .child(demo!(rtl, "rtl", "RTL"))
     .child(heading("API Reference"))
     .child(api_row("Checkbox", "An accessible toggle with a label, optional description, and a checked, unchecked, or mixed value. Use icon_only for a labeled box inside a table or another compact layout."))
+}
+
+fn code_block_page() -> View {
+    macro_rules! demos {
+        ($page:expr; $(($function:ident, $name:literal, $title:literal)),+ $(,)?) => {
+            $page$(.child(heading($title)).child(example(
+                $title,
+                code_block_examples::$function(),
+                include_str!("code_block_examples/mod.rs"),
+                include_str!(concat!("../references/code-block-tsx/code-block-", $name, ".tsx")),
+            )))+
+        };
+    }
+    let page = component_article(
+        DocsPage::CodeBlock,
+        "Display source code, terminal output, and diffs.",
+        "https://ui.shadcn.com/docs/components/base/code-block",
+    )
+    .child(example(
+        "Code Block demo",
+        code_block_examples::demo(),
+        include_str!("code_block_examples/mod.rs"),
+        include_str!("../references/code-block-tsx/code-block-demo.tsx"),
+    ))
+    .child(heading("Composition"))
+    .child(muted("Put the source in CodeBlockContent. Add a CodeBlockHeader with a title and actions, place the actions directly on the block to float them, or add a CodeBlockFooter for an expansion button."));
+    demos!(page;
+        (basic, "basic", "Basic"),
+        (header, "header", "Header"),
+        (actions, "actions", "Actions"),
+        (floating, "floating-actions", "Floating Actions"),
+        (line_numbers, "line-numbers", "Line Numbers"),
+        (start_line, "start-line", "Start Line"),
+        (wrap, "wrap", "Wrap"),
+        (highlighted, "highlighted-lines", "Highlighted Lines"),
+        (diff, "diff", "Diff"),
+        (height, "height", "Height"),
+        (show_more, "show-more", "Show More"),
+        (show_more_scroll, "show-more-scroll", "Max Height"),
+        (size, "size", "Size"),
+        (destructive, "destructive", "Destructive"),
+        (trace, "trace", "Trace"),
+        (tabs, "tabs", "Tabs"),
+        (chat, "chat", "Message"),
+        (typeset, "typeset", "Typeset"),
+        (rtl, "rtl", "RTL"),
+        (highlighting, "highlighting", "Syntax Highlighting"),
+        (languages, "languages", "Languages"),
+        (ansi, "ansi", "Terminal Output"),
+        (streaming, "streaming", "Streaming"),
+        (markdown, "markdown", "Markdown"),
+    )
+    .child(heading("API Reference"))
+    .child(api_row("CodeBlock / CodeBlockHeader / CodeBlockTitle", "Compose the surface and header. Choose a default or compact size and a default or destructive appearance."))
+    .child(api_row("CodeBlockContent / CodeBlockLine", "Set wrapping, start line, syntax language, and height. Supply individual lines for diff markers and emphasis."))
+    .child(api_row("CodeBlockActions / CodeBlockCopyButton / CodeBlockFooter", "Add actions, copy source text, or place controls under the content."))
+    .child(muted("Syntax highlighting uses bundled Syntect grammars. The Terminal Output example understands basic ANSI text colors and removes escape codes when copying."))
 }
 
 fn component_page(

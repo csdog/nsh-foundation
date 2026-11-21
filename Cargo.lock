@@ -1549,6 +1549,8 @@ dependencies = [
  "nsh-core",
  "nsh-engine",
  "nsh-testing",
+ "syntect",
+ "two-face",
 ]
 
 [[package]]
