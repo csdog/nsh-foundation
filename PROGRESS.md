@@ -1,12 +1,12 @@
 # nsh-foundation 组件进度
 
-更新于 2026-11-21。已发布 **23 / 66**，待开始 **43 / 66**。下一项是 **Date Picker（#23）**。[实施计划](PLAN.md)
+更新于 2026-11-21。已发布 **24 / 66**，待开始 **42 / 66**。下一项是 **Dialog（#24）**。[实施计划](PLAN.md)
 
 ## 已交付基线
 
 - **Drawer** 含 9 个交互示例及 Preview / Rust / TSX 标签。面板默认预留 8 px 外边距，示例正文、标题和底部操作对齐在 16 px 内边距。手柄按抽屉方向放在可拖动的内侧边缘。滑入用时 450 ms，普通滑出用时 400 ms，退出时先缓慢起步再滑出。遮罩随拖动位移渐淡，短拖松手后面板和遮罩恢复。甩动关闭按剩余距离和松手速度调整时长，退出后卸载。Chromium 已验证 1280 × 900 和 390 × 844 的间距、进出场位移和模拟触摸回弹。[组件源码](src/drawer.rs) · [TSX 参考](references/drawer-tsx/)
-- **线上版本**为 30，发布提交为 `e81bfca`，新增 Data Table。Web 打包和 WASM 内容校验已完成。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#data-table)
-- **基线复测**于 2026-11-21 通过 `cargo fmt --check` 和 `cargo test --offline --locked`，共 64 项 Rust 测试。
+- **线上版本**为 31，发布提交为 `b1ca5ab`，新增 Date Picker。Web 打包和 WASM 内容校验已完成。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#date-picker)
+- **基线复测**于 2026-11-21 通过 `cargo fmt --check` 和 `cargo test --offline --locked`，共 66 项 Rust 测试。
 - **设计参考**已固定 shadcn/ui 源码版本，Obra 预览图已保存。可编辑的 Figma 原文件仍未获取。[参考资料记录](references/README.md)
 - **Accordion** 已发布于 v7（`7abbcb5`），含 7 个官方示例及 Preview / Rust / TSX。支持默认与受控状态、单项与多项展开、禁用、方向键和 RTL。15 项 Rust 测试、Web 打包及 WASM 校验已通过，浏览器视觉核验受预览端口限制。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#accordion) · [组件源码](src/accordion.rs) · [TSX 参考](references/accordion-tsx/)
 - **Alert** 已发布于 v8（`1e44dc4`），含 6 个官方示例及 Preview / Rust / TSX。支持普通和 destructive 样式、自定义主题颜色、操作按钮和 RTL。无头测试覆盖移动端交互、复制代码和历史导航。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#alert) · [组件源码](src/alert.rs) · [TSX 参考](references/alert-tsx/)
@@ -30,6 +30,7 @@
 - **Command** 已发布于 v27（`910ed43`），含 7 个预览及 Preview / Rust / TSX。支持内嵌和对话框、关键词搜索、自动高亮、分组、快捷键提示、长列表和 RTL。无头测试覆盖禁用项、双阶段 Escape、快捷键打开和关闭、滚动与选择。项目命令仅更新本地反馈。各命令的快捷键标记用于显示，应用可为实际操作绑定按键。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#command) · [组件源码](src/command.rs) · [TSX 参考](references/command-tsx/)
 - **Context Menu** 已发布于 v29（`7bb6db6`），含 11 个官方示例及 Preview / Rust / TSX。支持右键、触屏长按、键盘打开、子菜单、分组、禁用项、复选、单选和四向定位。Chromium 在桌面和手机尺寸验证了焦点恢复、状态保留、四向定位和模拟触摸长按。示例用字符图标与本地操作反馈。RTL 示例支持阿拉伯语和希伯来语，子菜单沿用 Native Shell 的 → 展开和 ← 返回规则。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#context-menu) · [组件源码](src/context_menu.rs) · [TSX 参考](references/context-menu-tsx/)
 - **Data Table** 已发布于 v30（`e81bfca`）。含官方付款和 RTL 示例，以及每页两行的分页预览，均可切换 Preview / Rust / TSX。支持自定义单元格、排序、筛选、列显隐、分页、行选择和行操作。付款与客户详情使用本地示例数据。Chromium 验证了桌面列头对齐、排序、列显隐、复制付款 ID、RTL，以及手机横向滑动、分页、跨页选择和行操作。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#data-table) · [组件源码](src/data_table.rs) · [TSX 参考](references/data-table-tsx/)
+- **Date Picker** 已发布于 v31（`b1ca5ab`），含 8 个官方示例及 Preview / Rust / TSX。复用 Calendar，支持单日、范围、年份导航、手动日期、时分秒和阿拉伯语、希伯来语 RTL。自然语言解析覆盖常用英文短语，使用设备本地日期。日期范围在桌面并排显示两个月，在窄屏按月切换。Chromium 验证了键盘打开、闰日验证、范围端点高亮、时间编辑、RTL 切换和手机跨月选择。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#date-picker) · [组件源码](src/date_picker.rs) · [TSX 参考](references/date-picker-tsx/)
 
 ## 按官方顺序跟踪
 
@@ -59,8 +60,8 @@
 | 20 | Command | 已发布 |
 | 21 | Context Menu | 已发布 |
 | 22 | Data Table | 已发布 |
-| 23 | Date Picker | 已实现 · 待发布 |
-| 24 | Dialog | 待开始 |
+| 23 | Date Picker | 已发布 |
+| 24 | Dialog | 待开始 · 下一项 |
 | 25 | Direction | 待开始 |
 | 26 | Drawer | 已发布 |
 | 27 | Dropdown Menu | 待开始 |
