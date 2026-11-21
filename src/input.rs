@@ -26,12 +26,7 @@ pub fn invalid_input(invalid: impl IntoReactive<bool>) -> Input {
         let invalid = invalid.into_reactive();
         move || invalid.get()
     });
-    let direction = use_direction();
-    native_input()
-        .w_full()
-        .min_w(px(0.0))
-        .h(px(32.0))
-        .px(px(10.0))
+    bare_input()
         .rounded(px(16.0))
         .border(px(1.0))
         .border_color(move || {
@@ -42,12 +37,6 @@ pub fn invalid_input(invalid: impl IntoReactive<bool>) -> Input {
             }
         })
         .bg(move || theme().input.opacity(0.5))
-        .text_color(move || theme().foreground)
-        .style_when(
-            move || direction.get() == Direction::Rtl,
-            |style| style.text_right(),
-        )
-        .text_size(move || px(if window().width.0 < 768.0 { 16.0 } else { 14.0 }))
         .transition()
         .duration(200.0)
         .disabled_style(|style| style.opacity(0.5))
@@ -80,6 +69,21 @@ pub fn invalid_input(invalid: impl IntoReactive<bool>) -> Input {
             invalid: invalid.get(),
             ..Default::default()
         })
+}
+
+pub(crate) fn bare_input() -> Input {
+    let direction = use_direction();
+    native_input()
+        .w_full()
+        .min_w(px(0.0))
+        .h(px(32.0))
+        .px(px(10.0))
+        .text_color(move || theme().foreground)
+        .style_when(
+            move || direction.get() == Direction::Rtl,
+            |style| style.text_right(),
+        )
+        .text_size(move || px(if window().width.0 < 768.0 { 16.0 } else { 14.0 }))
 }
 
 /// Opens the system picker and forwards a nonempty result. Cancelling keeps the current value.

@@ -9,6 +9,9 @@ use crate::{
     field::{Field, FieldDescription, FieldError, FieldGroup, FieldLabel, FieldTitle},
     field_examples::selection,
     input::{file_input, input, invalid_input},
+    input_group::{
+        InputGroup, InputGroupAddon, InputGroupAlign, input_group_input, input_group_text,
+    },
     ui::muted,
 };
 
@@ -248,26 +251,21 @@ pub fn input_group() -> impl IntoElement {
         Field::new()
             .child(FieldLabel::new("Website URL").for_control(control))
             .child(
-                view()
-                    .flex_row()
-                    .items_center()
-                    .px_3()
-                    .rounded(px(16.0))
-                    .gap_1()
-                    .bg(move || theme().input.opacity(0.5))
-                    .focus_within(|style| style.ring(px(3.0)).ring_color(theme().ring.opacity(0.3)))
-                    .child(muted("https://").flex_shrink_0())
-                    .child(
-                        entry("Website URL", "example.com")
-                            .element_ref(&control)
-                            .keyboard_type(KeyboardType::Url)
-                            .flex_1()
-                            .px_0()
-                            .border(px(0.0))
-                            .bg(AdaptiveColor::TRANSPARENT)
-                            .focus_visible(|s| s.ring(px(0.0))),
-                    )
-                    .child(muted("ⓘ").accessibility_elements_hidden(true)),
+                InputGroup::new(
+                    input_group_input()
+                        .label("Website URL")
+                        .placeholder("example.com")
+                        .keyboard_type(KeyboardType::Url),
+                )
+                .control_ref(control)
+                .addon(
+                    InputGroupAddon::new(InputGroupAlign::InlineStart)
+                        .child(input_group_text("https://")),
+                )
+                .addon(
+                    InputGroupAddon::new(InputGroupAlign::InlineEnd)
+                        .child(input_group_text("ⓘ").accessibility_elements_hidden(true)),
+                ),
             ),
     )
 }

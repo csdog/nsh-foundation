@@ -234,7 +234,7 @@ fn colors(variant: ButtonVariant) -> (AdaptiveColor, AdaptiveColor) {
     }
 }
 
-fn spinner(variant: ButtonVariant) -> View {
+pub(crate) fn spinner(variant: ButtonVariant) -> View {
     let rotation = animated_value(0.0);
     let motion =
         Animation::timing(&rotation, 360.0, Timing::new(800.0, Easing::Linear)).looped(None);

@@ -12,7 +12,7 @@ use crate::{
     chart_examples, checkbox_examples, code_block_examples, collapsible_examples,
     combobox_examples, command_examples, context_menu_examples, data_table_examples,
     date_picker_examples, dialog_examples, dropdown_menu_examples, empty_examples, examples,
-    field_examples, hover_card_examples, input_examples,
+    field_examples, hover_card_examples, input_examples, input_group_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -162,6 +162,7 @@ enum DocsPage {
     Field,
     HoverCard,
     Input,
+    InputGroup,
 }
 
 type ComponentRoute = (
@@ -382,6 +383,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#input",
         "input-docs-scroll",
         input_page,
+    ),
+    (
+        DocsPage::InputGroup,
+        "Input Group",
+        "#input-group",
+        "input-group-docs-scroll",
+        input_group_page,
     ),
 ];
 
@@ -1808,6 +1816,63 @@ input()
     .child(api_row("input", "Configure the native control with label, placeholder, value, masked, disabled, keyboard_type and input events."))
     .child(api_row("invalid_input", "Pass a reactive boolean to bind error styling and the accessible invalid state. Use Field to place labels, descriptions and errors."))
     .child(api_row("file_input", "Open the system picker with a FilePickRequest. Receive selected files in a callback. The preview displays the selected filename."))
+}
+
+fn input_group_page() -> View {
+    macro_rules! demo {
+        ($example:ident, $source:literal, $title:literal) => {
+            example(
+                $title,
+                input_group_examples::$example(),
+                include_str!("input_group_examples.rs"),
+                include_str!(concat!(
+                    "../references/input-group-tsx/input-group-",
+                    $source,
+                    ".tsx"
+                )),
+            )
+        };
+    }
+    component_article(
+        DocsPage::InputGroup,
+        "Add labels, actions, and status to inputs and textareas.",
+        "https://ui.shadcn.com/docs/components/base/input-group",
+    )
+    .child(demo!(demo, "demo", "Input Group demo"))
+    .child(heading("Usage"))
+    .child(code_block(r#"InputGroup::new(input_group_input().label("Website").placeholder("example.com"))
+    .addon(InputGroupAddon::new(InputGroupAlign::InlineStart)
+        .child(input_group_text("https://")))"#))
+    .child(heading("Composition"))
+    .child(muted("Pass a native input or textarea to InputGroup, then add text, icons, or buttons with InputGroupAddon. Use action for a child that should receive focus itself."))
+    .child(heading("Align"))
+    .child(demo!(inline_start, "inline-start", "Inline Start"))
+    .child(demo!(inline_end, "inline-end", "Inline End"))
+    .child(demo!(block_start, "block-start", "Block Start"))
+    .child(demo!(block_end, "block-end", "Block End"))
+    .child(heading("Icon"))
+    .child(demo!(icons, "icon", "Icon"))
+    .child(heading("Text"))
+    .child(demo!(text_addons, "text", "Text"))
+    .child(heading("Button"))
+    .child(demo!(buttons, "button", "Button"))
+    .child(heading("Kbd"))
+    .child(demo!(kbd, "kbd", "Kbd"))
+    .child(heading("Dropdown"))
+    .child(demo!(dropdown, "dropdown", "Dropdown"))
+    .child(heading("Spinner"))
+    .child(demo!(spinners, "spinner", "Spinner"))
+    .child(heading("Textarea"))
+    .child(demo!(textarea, "textarea", "Textarea"))
+    .child(heading("Custom Input"))
+    .child(demo!(custom, "custom", "Custom Input"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("InputGroup", "Group a native Input with addons, set disabled or invalid state, and share its focus handle with a FieldLabel."))
+    .child(api_row("InputGroupAddon", "Choose InlineStart, InlineEnd, BlockStart, or BlockEnd. The inline sides follow the layout direction. Press a text addon to focus the field."))
+    .child(api_row("input_group_input / input_group_textarea", "Create a native control styled for the group. Configure labels, values, keyboard and events on the returned control."))
+    .child(api_row("input_group_text / input_group_button", "Use the supplied text and button styles for adornments and interactive actions."))
 }
 
 fn component_page(
