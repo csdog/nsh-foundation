@@ -17,7 +17,7 @@ use crate::{
     message_examples, message_scroller_examples, native_select_examples, navigation_menu_examples,
     pagination_examples, popover_examples, progress_examples, questionnaire_examples,
     radio_group_examples, resizable_examples, scroll_area_examples, select_examples,
-    separator_examples, sheet_examples, sidebar_examples, skeleton_examples,
+    separator_examples, sheet_examples, sidebar_examples, skeleton_examples, slider_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -190,6 +190,7 @@ enum DocsPage {
     Sheet,
     Sidebar,
     Skeleton,
+    Slider,
 }
 
 type ComponentRoute = (
@@ -565,6 +566,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#skeleton",
         "skeleton-docs-scroll",
         skeleton_page,
+    ),
+    (
+        DocsPage::Slider,
+        "Slider",
+        "#slider",
+        "slider-docs-scroll",
+        slider_page,
     ),
 ];
 
@@ -3006,6 +3014,45 @@ fn skeleton_page() -> View {
     .child(heading("API Reference"))
     .child(api_row("Skeleton", "Set the size and shape on the surface. Pass animated(false) to disable the pulse. Reduced-motion settings also disable it."))
     .child(api_row("Accessibility", "The shape is decorative. Set the loading region's busy state while waiting for data, then clear it when the content is ready."))
+}
+
+fn slider_page() -> View {
+    macro_rules! demo {
+        ($function:ident, $file:literal, $label:literal) => {
+            example(
+                $label,
+                slider_examples::$function(),
+                include_str!("slider_examples.rs"),
+                include_str!(concat!("../references/slider-tsx/slider-", $file, ".tsx")),
+            )
+        };
+    }
+    component_article(
+        DocsPage::Slider,
+        "Select one or more values along a track.",
+        "https://ui.shadcn.com/docs/components/base/slider",
+    )
+    .child(demo!(demo, "demo", "Slider demo"))
+    .child(heading("Usage"))
+    .child(code_block(r#"Slider::new([33.0]).range(0.0, 100.0).step(1.0)
+
+Slider::new([25.0, 50.0]).step(5.0).labels(["Minimum", "Maximum"])"#))
+    .child(heading("Range"))
+    .child(demo!(range, "range", "Range"))
+    .child(heading("Multiple Thumbs"))
+    .child(demo!(multiple, "multiple", "Multiple Thumbs"))
+    .child(heading("Vertical"))
+    .child(demo!(vertical, "vertical", "Vertical"))
+    .child(heading("Controlled"))
+    .child(demo!(controlled, "controlled", "Controlled"))
+    .child(heading("Disabled"))
+    .child(demo!(disabled, "disabled", "Disabled"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("Slider", "Provide one value per thumb in a fixed-size array. Choose bounds, step, accessible labels, orientation, and disabled state. Dragging a thumb can push adjacent thumbs."))
+    .child(api_row("Value and commit", "Bind a caller-owned signal with value. Listen for updates using on_value_change and for completed changes using on_value_commit."))
+    .child(api_row("Keyboard", "Arrow keys move one step. Use Page Up, Page Down, or Shift with an arrow for the larger increment. Home and End move to the available endpoints."))
 }
 
 fn component_page(

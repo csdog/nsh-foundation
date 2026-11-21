@@ -111,6 +111,8 @@ pub mod sidebar;
 mod sidebar_examples;
 pub mod skeleton;
 mod skeleton_examples;
+pub mod slider;
+mod slider_examples;
 mod ui;
 
 use nsh_core::prelude::*;
