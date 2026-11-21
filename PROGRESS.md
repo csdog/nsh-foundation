@@ -1,12 +1,12 @@
 # nsh-foundation 组件进度
 
-更新于 2026-11-21。已发布 **58 / 66**，本地完成待发布 **1 / 66**，待开始 **7 / 66**。下一项是 **Textarea（#60）**。[实施计划](PLAN.md)
+更新于 2026-11-21。已发布 **58 / 66**，本地完成待发布 **2 / 66**，待开始 **6 / 66**。下一项是 **Toast（#61）**。[实施计划](PLAN.md)
 
 ## 已交付基线
 
 - **Drawer** 含 9 个交互示例及 Preview / Rust / TSX 标签。v51（`1857e44`）按 Rhea 将 16 px 留白放回 Header、Footer 和各示例正文，正文可独立设置内边距。边缘面板默认留 8 px 外边距，浮动示例为 16 px。滑入 450 ms，普通滑出 320 ms，面板和遮罩在普通关闭时使用同一条缓动曲线。拖拽关闭继续按松手速度调整时长。Chromium 在 1280 × 900 和 390 × 844 验证了间距、逐帧位移、遮罩淡出、触摸拖拽、嵌套层、浮动间距、自定义尺寸和紧凑吸附点；减少动态效果模式也已复测。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#drawer) · [组件源码](src/drawer.rs) · [TSX 参考](references/drawer-tsx/)
 - **线上版本**为 67，发布提交为 `ffd9488`，新增 Table。Web 打包和 WASM 内容校验已完成。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#table)
-- **基线复测**于 2026-11-21 通过 `cargo fmt --check` 和 `cargo test --offline --locked`，共 108 项 Rust 测试（全量复测使用去除调试符号的构建）。
+- **基线复测**于 2026-11-21 通过 `cargo fmt --check` 和 `cargo test --offline --locked`，共 109 项 Rust 测试（全量复测使用去除调试符号的构建）。
 - **设计参考**已固定 shadcn/ui 源码版本，Obra 预览图已保存。可编辑的 Figma 原文件仍未获取。[参考资料记录](references/README.md)
 - **Accordion** 已发布于 v7（`7abbcb5`），含 7 个官方示例及 Preview / Rust / TSX。支持默认与受控状态、单项与多项展开、禁用、方向键和 RTL。15 项 Rust 测试、Web 打包及 WASM 校验已通过，浏览器视觉核验受预览端口限制。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#accordion) · [组件源码](src/accordion.rs) · [TSX 参考](references/accordion-tsx/)
 - **Alert** 已发布于 v8（`1e44dc4`），含 6 个官方示例及 Preview / Rust / TSX。支持普通和 destructive 样式、自定义主题颜色、操作按钮和 RTL。无头测试覆盖移动端交互、复制代码和历史导航。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#alert) · [组件源码](src/alert.rs) · [TSX 参考](references/alert-tsx/)
@@ -68,6 +68,8 @@
 - **Table** 已发布于 v67（`ffd9488`），含 4 个官方示例及 Preview / Rust / TSX。组合部件使用 Native Shell 表格语义，支持固定和弹性列、合计行视觉跨列、表注、行菜单和 RTL。跨列由布局表达，Native Shell 当前无跨列无障碍元数据。Rust 示例按可见发票计算总计，行菜单只显示本地反馈。Chromium 验证了列宽对齐、排序目录、菜单与焦点、RTL 起始位置、触摸和键盘横滑、主题及代码标签。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#table) · [组件源码](src/table.rs) · [TSX 参考](references/table-tsx/)
 
 - **Tabs** 已在本地完成（`a4a01c0`），含 6 个官方示例及 Preview / Rust / TSX。默认方向键只移动焦点，Enter 或空格选中，可开启随焦点激活。支持受控值、禁用、垂直布局、线型指示器和 RTL。Native Shell 将当前面板暴露为有名称的可聚焦区域。Chromium 在 1280 × 900、390 × 844 和 320 × 844 验证了六个预览、键盘和触摸、RTL 切换语言保留选中项、主题和代码标签。Web 已打包并通过 WASM 校验，Sites 源码推送授权待确认。[组件源码](src/tabs.rs) · [TSX 参考](references/tabs-tsx/)
+
+- **Textarea** 已在本地完成（`51e3771`），含 6 个官方示例及 Preview / Rust / TSX。复用 Native Shell 多行输入，支持随内容增减高度、主题、禁用、说明、动态校验和本地提交反馈。Chromium 在 1280 × 900、390 × 844 和 320 × 844 验证了换行、自动换行撑高、清空收缩、标签焦点、禁用、校验、提交、主题及代码标签。阿拉伯语和希伯来语右对齐，切换语言保留输入。Native Shell 0.6.1 的 Web 文本编辑器在 LTR 页面内仍沿用页面的基准书写方向。Rust 测试覆盖换行和实时校验，Web 已打包并通过 WASM 校验，Sites 源码推送授权待确认。[组件源码](src/textarea.rs) · [TSX 参考](references/textarea-tsx/)
 
 ## 按官方顺序跟踪
 
@@ -134,8 +136,8 @@
 | 57 | Switch | 已发布 |
 | 58 | Table | 已发布 |
 | 59 | Tabs | 本地完成 · 待发布 |
-| 60 | Textarea | 待开始 · 下一项 |
-| 61 | Toast | 待开始 |
+| 60 | Textarea | 本地完成 · 待发布 |
+| 61 | Toast | 待开始 · 下一项 |
 | 62 | Toggle | 待开始 |
 | 63 | Toggle Group | 待开始 |
 | 64 | Tooltip | 待开始 |
