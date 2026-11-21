@@ -15,7 +15,7 @@ use crate::{
     field_examples, hover_card_examples, input_examples, input_group_examples, input_otp_examples,
     item_examples, kbd_examples, label_examples, marker_examples, menubar_examples,
     message_examples, message_scroller_examples, native_select_examples, navigation_menu_examples,
-    pagination_examples, popover_examples, progress_examples,
+    pagination_examples, popover_examples, progress_examples, questionnaire_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -179,6 +179,7 @@ enum DocsPage {
     Pagination,
     Popover,
     Progress,
+    Questionnaire,
 }
 
 type ComponentRoute = (
@@ -491,6 +492,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#progress",
         "progress-docs-scroll",
         progress_page,
+    ),
+    (
+        DocsPage::Questionnaire,
+        "Questionnaire",
+        "#questionnaire",
+        "questionnaire-docs-scroll",
+        questionnaire_page,
     ),
 ];
 
@@ -2550,6 +2558,62 @@ fn progress_page() -> View {
     .child(api_row("Progress", "Pass a number or Rust signal. The default range is 0–100. Indeterminate progress leaves the current value unset and the track empty."))
     .child(api_row("ProgressLabel / ProgressValue", "Add a visible label or percentage. A formatter can provide localized text for the display and assistive technology."))
     .child(api_row("ProgressTrack / ProgressIndicator", "Customize the track height and indicator color."))
+}
+
+fn questionnaire_page() -> View {
+    macro_rules! demo {
+        ($function:ident, $file:literal, $name:literal) => {
+            example(
+                $name,
+                questionnaire_examples::$function(),
+                include_str!("questionnaire_examples.rs"),
+                include_str!(concat!(
+                    "../references/questionnaire-tsx/questionnaire-",
+                    $file,
+                    ".tsx"
+                )),
+            )
+        };
+        ($function:ident, $file:literal, $name:literal, section) => {
+            view()
+                .gap_3()
+                .child(heading($name))
+                .child(demo!($function, $file, $name))
+        };
+    }
+    component_article(
+        DocsPage::Questionnaire,
+        "Guide users through a sequence of questions with choices or custom answers.",
+        "https://ui.shadcn.com/docs/components/base/questionnaire",
+    )
+    .child(demo!(demo, "demo", "Questionnaire demo"))
+    .child(heading("Usage"))
+    .child(code_block(r#"const ITEMS: &[QuestionnaireItem] = &[
+    QuestionnaireItem::new("direction", "What should we build?")
+        .choices(&[QuestionnaireChoice::new("plan", "A plan")])
+        .input(QuestionnaireInput::new("Another idea", "Describe your idea…")),
+];
+Questionnaire::new(ITEMS).on_submit(move |answers| {
+    let direction = answers.first("direction");
+    // Use the answer in the host application.
+})"#))
+    .child(demo!(multiple, "multiple", "Multiple Selection", section))
+    .child(demo!(freeform, "freeform", "Freeform Answer", section))
+    .child(demo!(skip, "skip", "Explicit Skip", section))
+    .child(demo!(shortcuts, "shortcuts", "Shortcuts", section))
+    .child(demo!(validation, "validation", "Custom Validation", section))
+    .child(demo!(controlled, "controlled", "Controlled", section))
+    .child(demo!(resume, "resume", "Resume", section))
+    .child(demo!(conditional, "conditional", "Conditional Items", section))
+    .child(demo!(navigation_state, "navigation-state", "Navigation State", section))
+    .child(demo!(progress, "progress", "Custom Progress", section))
+    .child(demo!(animated, "animated", "Animated Items", section))
+    .child(demo!(card, "card", "Card", section))
+    .child(demo!(dialog, "dialog", "Dialog", section))
+    .child(heading("API Reference"))
+    .child(api_row("QuestionnaireItem / QuestionnaireChoice / QuestionnaireInput", "Declare named items and fixed answers, and optionally add a named text field. Items can be required, accept multiple answers, or depend on earlier answers."))
+    .child(api_row("Questionnaire / QuestionnaireAnswers", "Provide defaults, share the active item with a Rust signal, and receive the answers from enabled items in the submission handler."))
+    .child(api_row("QuestionnaireProgress / QuestionnaireError", "Render the current step and total, or report a validation error on a specific item."))
 }
 
 fn component_page(
