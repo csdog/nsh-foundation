@@ -59,7 +59,7 @@
 | 20 | Command | 已发布 |
 | 21 | Context Menu | 已发布 |
 | 22 | Data Table | 已发布 |
-| 23 | Date Picker | 待开始 · 下一项 |
+| 23 | Date Picker | 已实现 · 待发布 |
 | 24 | Dialog | 待开始 |
 | 25 | Direction | 待开始 |
 | 26 | Drawer | 已发布 |

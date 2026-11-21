@@ -46,6 +46,8 @@ pub mod context_menu;
 mod context_menu_examples;
 pub mod data_table;
 mod data_table_examples;
+pub mod date_picker;
+mod date_picker_examples;
 mod docs;
 pub mod drawer;
 mod examples;

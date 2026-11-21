@@ -10,7 +10,8 @@ use crate::{
     attachment_examples, avatar_examples, badge_examples, breadcrumb_examples, bubble_examples,
     button_examples, button_group_examples, calendar_examples, card_examples, carousel_examples,
     chart_examples, checkbox_examples, code_block_examples, collapsible_examples,
-    combobox_examples, command_examples, context_menu_examples, data_table_examples, examples,
+    combobox_examples, command_examples, context_menu_examples, data_table_examples,
+    date_picker_examples, examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -152,6 +153,7 @@ enum DocsPage {
     Command,
     ContextMenu,
     DataTable,
+    DatePicker,
 }
 
 type ComponentRoute = (
@@ -316,6 +318,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#data-table",
         "data-table-docs-scroll",
         data_table_page,
+    ),
+    (
+        DocsPage::DatePicker,
+        "Date Picker",
+        "#date-picker",
+        "date-picker-docs-scroll",
+        date_picker_page,
     ),
 ];
 
@@ -1380,6 +1389,49 @@ fn data_table_page() -> View {
         RUST,
         include_str!("../references/data-table-tsx/data-table-rtl.tsx"),
     ))
+}
+
+fn date_picker_page() -> View {
+    macro_rules! demo {
+        ($example:ident, $source:literal, $title:literal) => {
+            example(
+                $title,
+                date_picker_examples::$example(),
+                include_str!("date_picker_examples.rs"),
+                include_str!(concat!(
+                    "../references/date-picker-tsx/date-picker-",
+                    $source,
+                    ".tsx"
+                )),
+            )
+        };
+    }
+    component_article(
+        DocsPage::DatePicker,
+        "Select a date or a range with a calendar popover.",
+        "https://ui.shadcn.com/docs/components/base/date-picker",
+    )
+    .child(demo!(demo, "demo", "Date Picker demo"))
+    .child(heading("Usage"))
+    .child(code_block("let date = signal(Date::default());\nlet picker = DatePicker::new(\"Pick a date\").value(date);"))
+    .child(heading("Composition"))
+    .child(muted("DatePicker combines a trigger, Native Shell Popover, and Calendar. Supply a Rust signal to use the selection elsewhere."))
+    .child(heading("Basic"))
+    .child(demo!(basic, "basic", "Basic"))
+    .child(heading("Range Picker"))
+    .child(demo!(range, "range", "Range Picker"))
+    .child(heading("Date of Birth"))
+    .child(demo!(dob, "dob", "Date of Birth"))
+    .child(heading("Input"))
+    .child(muted("Enter an ISO date, a US numeric date, or an English month name. Press Down Arrow to open the calendar."))
+    .child(demo!(input, "input", "Input"))
+    .child(heading("Time Picker"))
+    .child(demo!(time, "time", "Time Picker"))
+    .child(heading("Natural Language Picker"))
+    .child(muted("Try tomorrow, next week, next Friday, or in 2 days. Relative phrases use today's date on your device."))
+    .child(demo!(natural_language, "natural-language", "Natural Language Picker"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
 }
 
 fn component_page(

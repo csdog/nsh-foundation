@@ -3,11 +3,33 @@
 mod grid;
 
 use chrono::{Datelike, FixedOffset, NaiveDate};
-use nsh_base::{CalendarEntry, CalendarItemKind, calendar, theme};
+use nsh_base::{CalendarEntry, CalendarItemKind, YearRange, calendar, theme};
 use nsh_core::{element::LayoutDirection, prelude::*};
 use std::rc::Rc;
 
 pub use nsh_base::{Date, Matcher};
+
+#[derive(Clone, Copy, Default, PartialEq, Eq)]
+pub enum CalendarLanguage {
+    #[default]
+    English,
+    Arabic,
+    Hebrew,
+}
+
+impl CalendarLanguage {
+    pub(crate) fn rtl(self) -> bool {
+        self != Self::English
+    }
+
+    pub(crate) fn month_name(self, month: usize) -> &'static str {
+        match self {
+            Self::English => MONTHS[month],
+            Self::Arabic => ARABIC_MONTHS[month],
+            Self::Hebrew => HEBREW_MONTHS[month],
+        }
+    }
+}
 
 pub struct Calendar {
     initial: Date,
@@ -17,8 +39,10 @@ pub struct Calendar {
     months: u32,
     cell_size: Reactive<f32>,
     disabled: Option<Matcher>,
+    year_range: Option<YearRange>,
     first_day: u32,
     rtl: bool,
+    language: CalendarLanguage,
     persian: bool,
     week_numbers: bool,
 }
@@ -69,8 +93,22 @@ impl Calendar {
         self
     }
 
-    pub fn rtl(mut self, rtl: bool) -> Self {
-        self.rtl = rtl;
+    pub fn rtl(self, rtl: bool) -> Self {
+        self.language(if rtl {
+            CalendarLanguage::Arabic
+        } else {
+            CalendarLanguage::English
+        })
+    }
+
+    pub fn language(mut self, language: CalendarLanguage) -> Self {
+        self.language = language;
+        self.rtl = language.rtl();
+        self
+    }
+
+    pub fn year_range(mut self, years: YearRange) -> Self {
+        self.year_range = Some(years);
         self
     }
 
@@ -97,8 +135,10 @@ impl Default for Calendar {
             months: 1,
             cell_size: Reactive::Static(32.0),
             disabled: None,
+            year_range: None,
             first_day: 0,
             rtl: false,
+            language: CalendarLanguage::English,
             persian: false,
             week_numbers: false,
         }
@@ -138,7 +178,7 @@ impl IntoElement for Calendar {
         if self.persian || self.week_numbers {
             return frame.child(self.grid(value)).into_element();
         }
-        let rtl = self.rtl;
+        let language = self.language;
         let cell = self.cell_size;
         let change = self.change;
         frame.child(calendar().range(self.range)
@@ -146,16 +186,25 @@ impl IntoElement for Calendar {
             .number_of_months(months)
             .first_day_of_week(self.first_day)
             .disabled_matcher(self.disabled)
+            .year_range(self.year_range)
             .header_class("mb-2")
             .body_class(move || Some(SharedString::from(if window().width.0 < 720.0 { "flex-col gap-4" } else { "flex-row gap-4" })))
             .item_class(move || {
                 let max_cell = ((window().width.0 - 104.0) / 7.0).max(24.0);
                 let size = cell.get().min(max_cell).floor();
-                Some(SharedString::from(format!("min-w-[{size}px] h-[{size}px] rounded-2xl px-1 text-sm hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring selected:bg-primary selected:text-primary-foreground disabled:opacity-40 data-outside:text-muted-foreground data-today:border data-today:border-border data-range-middle:bg-secondary data-range-middle:text-secondary-foreground")))
+                Some(SharedString::from(format!("min-w-[{size}px] h-[{size}px] rounded-2xl px-1 text-sm hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring aria-selected:bg-primary aria-selected:text-primary-foreground disabled:opacity-40 data-outside:text-muted-foreground data-today:border data-today:border-border data-range-middle:rounded-none data-range-middle:bg-secondary data-range-middle:text-secondary-foreground data-range-start:bg-primary data-range-start:text-primary-foreground data-range-end:bg-primary data-range-end:text-primary-foreground")))
             })
-            .previous_accessibility_label(if rtl { "الشهر السابق" } else { "Previous month" })
-            .next_accessibility_label(if rtl { "الشهر التالي" } else { "Next month" })
-            .render_item(move |entry: &CalendarEntry| text(native_label(entry, rtl)).text_sm())
+            .previous_accessibility_label(match language {
+                CalendarLanguage::English => "Previous month",
+                CalendarLanguage::Arabic => "الشهر السابق",
+                CalendarLanguage::Hebrew => "החודש הקודם",
+            })
+            .next_accessibility_label(match language {
+                CalendarLanguage::English => "Next month",
+                CalendarLanguage::Arabic => "الشهر التالي",
+                CalendarLanguage::Hebrew => "החודש הבא",
+            })
+            .render_item(move |entry: &CalendarEntry| text(native_label(entry, language)).text_sm())
             .on_change(move |date: &Date| {
                 value.set(*date);
                 if let Some(change) = &change { change(*date); }
@@ -194,20 +243,39 @@ const ARABIC_MONTHS: [&str; 12] = [
 ];
 const WEEKDAYS: [&str; 7] = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 const ARABIC_WEEKDAYS: [&str; 7] = ["أح", "اث", "ثل", "أر", "خم", "جم", "سب"];
+const HEBREW_WEEKDAYS: [&str; 7] = ["א׳", "ב׳", "ג׳", "ד׳", "ה׳", "ו׳", "ש׳"];
+const HEBREW_MONTHS: [&str; 12] = [
+    "ינואר",
+    "פברואר",
+    "מרץ",
+    "אפריל",
+    "מאי",
+    "יוני",
+    "יולי",
+    "אוגוסט",
+    "ספטמבר",
+    "אוקטובר",
+    "נובמבר",
+    "דצמבר",
+];
 
-fn native_label(entry: &CalendarEntry, rtl: bool) -> String {
+fn native_label(entry: &CalendarEntry, language: CalendarLanguage) -> String {
+    let rtl = language.rtl();
     match entry.kind {
         CalendarItemKind::Previous => if rtl { "›" } else { "‹" }.to_owned(),
         CalendarItemKind::Next => if rtl { "‹" } else { "›" }.to_owned(),
-        CalendarItemKind::MonthToggle | CalendarItemKind::Month => {
-            let months = if rtl { ARABIC_MONTHS } else { MONTHS };
-            months[(entry.value.saturating_sub(1) as usize).min(11)].to_owned()
-        }
+        CalendarItemKind::MonthToggle | CalendarItemKind::Month => language
+            .month_name((entry.value.saturating_sub(1) as usize).min(11))
+            .to_owned(),
         CalendarItemKind::Weekday => {
-            let weekdays = if rtl { ARABIC_WEEKDAYS } else { WEEKDAYS };
+            let weekdays = match language {
+                CalendarLanguage::English => WEEKDAYS,
+                CalendarLanguage::Arabic => ARABIC_WEEKDAYS,
+                CalendarLanguage::Hebrew => HEBREW_WEEKDAYS,
+            };
             weekdays[(entry.value as usize).min(6)].to_owned()
         }
-        _ if rtl => digits(entry.value.to_string(), "٠١٢٣٤٥٦٧٨٩"),
+        _ if language == CalendarLanguage::Arabic => digits(entry.value.to_string(), "٠١٢٣٤٥٦٧٨٩"),
         _ => entry.value.to_string(),
     }
 }
