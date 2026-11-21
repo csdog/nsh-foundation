@@ -1,12 +1,12 @@
 # nsh-foundation 组件进度
 
-更新于 2026-11-21。已发布 **44 / 66**，待开始 **22 / 66**。下一项是 **Progress（#45）**。[实施计划](PLAN.md)
+更新于 2026-11-21。已发布 **45 / 66**，待开始 **21 / 66**。下一项是 **Questionnaire（#46）**。[实施计划](PLAN.md)
 
 ## 已交付基线
 
 - **Drawer** 含 9 个交互示例及 Preview / Rust / TSX 标签。v51（`1857e44`）按 Rhea 将 16 px 留白放回 Header、Footer 和各示例正文，正文可独立设置内边距。边缘面板默认留 8 px 外边距，浮动示例为 16 px。滑入 450 ms，普通滑出 320 ms，面板和遮罩在普通关闭时使用同一条缓动曲线。拖拽关闭继续按松手速度调整时长。Chromium 在 1280 × 900 和 390 × 844 验证了间距、逐帧位移、遮罩淡出、触摸拖拽、嵌套层、浮动间距、自定义尺寸和紧凑吸附点；减少动态效果模式也已复测。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#drawer) · [组件源码](src/drawer.rs) · [TSX 参考](references/drawer-tsx/)
-- **线上版本**为 53，发布提交为 `b8ad101`，新增 Popover。Web 打包和 WASM 内容校验已完成。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#popover)
-- **基线复测**于 2026-11-21 通过 `cargo fmt --check` 和 `cargo test --offline --locked`，共 88 项 Rust 测试（全量复测使用去除调试符号的构建）。
+- **线上版本**为 54，发布提交为 `0968031`，新增 Progress。Web 打包和 WASM 内容校验已完成。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#progress)
+- **基线复测**于 2026-11-21 通过 `cargo fmt --check` 和 `cargo test --offline --locked`，共 89 项 Rust 测试（全量复测使用去除调试符号的构建）。
 - **设计参考**已固定 shadcn/ui 源码版本，Obra 预览图已保存。可编辑的 Figma 原文件仍未获取。[参考资料记录](references/README.md)
 - **Accordion** 已发布于 v7（`7abbcb5`），含 7 个官方示例及 Preview / Rust / TSX。支持默认与受控状态、单项与多项展开、禁用、方向键和 RTL。15 项 Rust 测试、Web 打包及 WASM 校验已通过，浏览器视觉核验受预览端口限制。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#accordion) · [组件源码](src/accordion.rs) · [TSX 参考](references/accordion-tsx/)
 - **Alert** 已发布于 v8（`1e44dc4`），含 6 个官方示例及 Preview / Rust / TSX。支持普通和 destructive 样式、自定义主题颜色、操作按钮和 RTL。无头测试覆盖移动端交互、复制代码和历史导航。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#alert) · [组件源码](src/alert.rs) · [TSX 参考](references/alert-tsx/)
@@ -51,6 +51,7 @@
 - **Navigation Menu** 已发布于 v50（`94a9e7a`），含 2 个官方示例及 Preview / Rust / TSX。支持顶层直达链接、单列及多列面板、悬停切换、点击关闭、键盘焦点、可选指示标记和 RTL。文档链接指向 shadcn，状态图标链接保留演示占位。Chromium 在 1280 × 900 和 390 × 844 验证了双列面板、悬停、触控关闭、方向键、Escape 焦点恢复、链接和 RTL，并复测 Menubar。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#navigation-menu) · [组件源码](src/navigation_menu.rs) · [TSX 参考](references/navigation-menu-tsx/)
 - **Pagination** 已发布于 v52（`cf27889`），含 4 个官方示例及 Preview / Rust / TSX。支持普通链接、原地翻页、当前页语义、首尾禁用、图标模式和 RTL。行数切换示例使用 150 条的本地计数并回到第 1 页。88 项 Rust 测试通过。Chromium 在 1280 × 900 和 390 × 844 验证了各示例、首尾边界、行数切换、阿拉伯数字、阿拉伯语和希伯来语 RTL、主题及代码标签。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#pagination) · [组件源码](src/pagination.rs) · [TSX 参考](references/pagination-tsx/)
 - **Popover** 已发布于 v53（`b8ad101`），含 5 个官方示例及 Preview / Rust / TSX。支持可组合部件、受控状态、三种对齐、物理和逻辑方向、空间不足时自动翻转、点击外部及 Escape 关闭。表单只编辑弹层内的值，重开时恢复示例默认值。桌面自动聚焦首个指定输入框，触屏等用户点输入框。88 项 Rust 测试通过。Chromium 在 1280 × 900 和 390 × 844 验证了弹层位置、边缘翻转、表单、关闭、桌面焦点恢复、RTL 和代码标签。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#popover) · [组件源码](src/popover.rs) · [TSX 参考](references/popover-tsx/)
+- **Progress** 已发布于 v54（`0968031`），含 4 个官方示例及 Preview / Rust / TSX。支持受控进度、自定义范围及标签、当前值的无障碍语义、RTL 和减少动态效果。未知进度显示空轨道并省略当前值。89 项 Rust 测试通过。Chromium 在 1280 × 900 和 390 × 844 验证了定时更新、逐帧填充、减少动态效果、滑块键盘和触控操作、RTL 对齐和本地化百分比。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#progress) · [组件源码](src/progress.rs) · [TSX 参考](references/progress-tsx/)
 
 ## 按官方顺序跟踪
 
@@ -102,8 +103,8 @@
 | 42 | Navigation Menu | 已发布 |
 | 43 | Pagination | 已发布 |
 | 44 | Popover | 已发布 |
-| 45 | Progress | 待开始 · 下一项 |
-| 46 | Questionnaire | 待开始 |
+| 45 | Progress | 已发布 |
+| 46 | Questionnaire | 待开始 · 下一项 |
 | 47 | Radio Group | 待开始 |
 | 48 | Resizable | 待开始 |
 | 49 | Scroll Area | 待开始 |
