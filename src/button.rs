@@ -235,27 +235,5 @@ fn colors(variant: ButtonVariant) -> (AdaptiveColor, AdaptiveColor) {
 }
 
 pub(crate) fn spinner(variant: ButtonVariant) -> View {
-    let rotation = animated_value(0.0);
-    let motion =
-        Animation::timing(&rotation, 360.0, Timing::new(800.0, Easing::Linear)).looped(None);
-    effect({
-        let motion = motion.clone();
-        move || {
-            if reduce_motion() {
-                motion.stop();
-            } else {
-                let _ = motion.start();
-            }
-        }
-    });
-    cleanup(move || motion.stop());
-    view()
-        .w(px(12.0))
-        .h(px(12.0))
-        .rounded_full()
-        .border(px(1.0))
-        .border_color(move || colors(variant).1.opacity(0.30))
-        .border_t_color(move || colors(variant).1)
-        .accessibility_elements_hidden(true)
-        .bind_rotate(&rotation)
+    crate::spinner::ring(12.0, move || colors(variant).1)
 }

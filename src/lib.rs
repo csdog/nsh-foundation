@@ -113,6 +113,8 @@ pub mod skeleton;
 mod skeleton_examples;
 pub mod slider;
 mod slider_examples;
+pub mod spinner;
+mod spinner_examples;
 mod ui;
 
 use nsh_core::prelude::*;

@@ -18,6 +18,7 @@ use crate::{
     pagination_examples, popover_examples, progress_examples, questionnaire_examples,
     radio_group_examples, resizable_examples, scroll_area_examples, select_examples,
     separator_examples, sheet_examples, sidebar_examples, skeleton_examples, slider_examples,
+    spinner_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -191,6 +192,7 @@ enum DocsPage {
     Sidebar,
     Skeleton,
     Slider,
+    Spinner,
 }
 
 type ComponentRoute = (
@@ -573,6 +575,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#slider",
         "slider-docs-scroll",
         slider_page,
+    ),
+    (
+        DocsPage::Spinner,
+        "Spinner",
+        "#spinner",
+        "spinner-docs-scroll",
+        spinner_page,
     ),
 ];
 
@@ -3053,6 +3062,46 @@ Slider::new([25.0, 50.0]).step(5.0).labels(["Minimum", "Maximum"])"#))
     .child(api_row("Slider", "Provide one value per thumb in a fixed-size array. Choose bounds, step, accessible labels, orientation, and disabled state. Dragging a thumb can push adjacent thumbs."))
     .child(api_row("Value and commit", "Bind a caller-owned signal with value. Listen for updates using on_value_change and for completed changes using on_value_commit."))
     .child(api_row("Keyboard", "Arrow keys move one step. Use Page Up, Page Down, or Shift with an arrow for the larger increment. Home and End move to the available endpoints."))
+}
+
+fn spinner_page() -> View {
+    macro_rules! demo {
+        ($function:ident, $file:literal, $label:literal) => {
+            example(
+                $label,
+                spinner_examples::$function(),
+                include_str!("spinner_examples.rs"),
+                include_str!(concat!("../references/spinner-tsx/spinner-", $file, ".tsx")),
+            )
+        };
+    }
+    component_article(
+        DocsPage::Spinner,
+        "Indicate that a task is still running.",
+        "https://ui.shadcn.com/docs/components/base/spinner",
+    )
+    .child(demo!(demo, "demo", "Spinner demo"))
+    .child(heading("Usage"))
+    .child(code_block(r#"Spinner::new()
+
+Spinner::new().size(24.0).label("Loading messages")"#))
+    .child(heading("Customization"))
+    .child(demo!(custom, "custom", "Customization"))
+    .child(heading("Size"))
+    .child(demo!(size, "size", "Size"))
+    .child(heading("Button"))
+    .child(demo!(button, "button", "Button"))
+    .child(heading("Badge"))
+    .child(demo!(badge, "badge", "Badge"))
+    .child(heading("Input Group"))
+    .child(demo!(input_group, "input-group", "Input Group"))
+    .child(heading("Empty"))
+    .child(demo!(empty, "empty", "Empty"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("Spinner", "Choose a size, an inherited or custom color, and an optional replacement icon. Rotation follows the reduced-motion setting."))
+    .child(api_row("Accessibility", "A named spinner exposes an indeterminate progress indicator. Use decorative inside a control or message with its own loading description."))
 }
 
 fn component_page(
