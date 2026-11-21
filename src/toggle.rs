@@ -1,7 +1,7 @@
 //! Rhea-styled toggle buttons built on Native Shell's Toggle.
 
 use nsh_base::{ToggleElement, theme, toggle as native_toggle};
-use nsh_core::prelude::*;
+use nsh_core::{AccessibilityState, Checked, prelude::*};
 
 use crate::direction::use_direction;
 
@@ -30,10 +30,25 @@ impl ToggleSize {
     }
 }
 
+macro_rules! interaction_styles {
+    ($control:expr) => {
+        $control
+            .hover(|style| style.bg(theme().muted))
+            .focus_visible(|style| {
+                style
+                    .border_color(theme().ring)
+                    .ring(px(3.0))
+                    .ring_color(theme().ring.opacity(0.3))
+            })
+            .disabled_style(|style| style.opacity(0.5))
+    };
+}
+
 type Icon = Box<dyn FnOnce(Memo<bool>) -> AnyElement>;
 
 pub struct Toggle {
     text: Reactive<SharedString>,
+    content: Option<AnyElement>,
     label: Option<Reactive<SharedString>>,
     icon: Option<Icon>,
     variant: ToggleVariant,
@@ -48,6 +63,7 @@ impl Toggle {
     pub fn new(text: impl IntoReactive<SharedString>) -> Self {
         Self {
             text: text.into_reactive(),
+            content: None,
             label: None,
             icon: None,
             variant: ToggleVariant::Default,
@@ -61,6 +77,12 @@ impl Toggle {
 
     pub fn label(mut self, label: impl IntoReactive<SharedString>) -> Self {
         self.label = Some(label.into_reactive());
+        self
+    }
+
+    /// Replace the visible text with custom content, retaining the accessible label.
+    pub fn content(mut self, content: impl IntoElement) -> Self {
+        self.content = Some(content.into_element());
         self
     }
 
@@ -101,8 +123,8 @@ impl Toggle {
         self
     }
 
-    pub fn surface(self) -> ToggleElement {
-        let (pressed, local) = match self.controlled {
+    pub fn surface(mut self) -> ToggleElement {
+        let (pressed, local) = match self.controlled.take() {
             Some(pressed) => (pressed, None),
             None => {
                 let local = signal(self.initial);
@@ -110,22 +132,61 @@ impl Toggle {
             }
         };
         let pressed = computed(move || pressed.get());
-        let label = self.label.unwrap_or_else(|| self.text.clone());
-        let height = self.size.height();
-        let outline = self.variant == ToggleVariant::Outline;
-        let direction = use_direction();
-        native_toggle()
+        let label = self.label.clone().unwrap_or_else(|| self.text.clone());
+        let change = self.change.take();
+        let control = native_toggle()
             .pressed(pressed)
-            .disabled(self.disabled)
+            .disabled(self.disabled.clone())
             .accessibility_label(label.map(Some))
             .on_change(move |next: &bool| {
                 if let Some(local) = local {
                     local.set(*next);
                 }
-                if let Some(change) = &self.change {
+                if let Some(change) = &change {
                     change(*next);
                 }
             })
+            .test_id("toggle-control");
+        self.styled(interaction_styles!(control), pressed)
+    }
+
+    pub(crate) fn group_surface(
+        self,
+        pressed: Memo<bool>,
+        disabled: Memo<bool>,
+        change: impl Fn(bool) + 'static,
+    ) -> View {
+        let control = view()
+            .role(AccessibilityRole::Button)
+            .label(self.label.clone().unwrap_or_else(|| self.text.clone()))
+            .accessibility_state(move || AccessibilityState {
+                pressed: Some(if pressed.get() {
+                    Checked::True
+                } else {
+                    Checked::False
+                }),
+                disabled: disabled.get(),
+                ..Default::default()
+            })
+            .disabled(disabled)
+            .on_press(move || {
+                if !disabled.get_untracked() {
+                    change(!pressed.get_untracked());
+                }
+            })
+            .test_id("toggle-control");
+        self.styled(interaction_styles!(control), pressed)
+    }
+
+    fn styled<E: Styled + FluentBuilder + ParentElement>(
+        self,
+        control: E,
+        pressed: Memo<bool>,
+    ) -> E {
+        let height = self.size.height();
+        let outline = self.variant == ToggleVariant::Outline;
+        let direction = use_direction();
+        control
             .direction(direction.map(LayoutDirection::from))
             .self_start()
             .flex_row()
@@ -146,20 +207,11 @@ impl Toggle {
             })
             .bg(AdaptiveColor::TRANSPARENT)
             .text_color(|| theme().foreground)
-            .hover(|style| style.bg(theme().muted))
             .style_when(pressed, |style| style.bg(theme().muted))
-            .focus_visible(|style| {
-                style
-                    .border_color(theme().ring)
-                    .ring(px(3.0))
-                    .ring_color(theme().ring.opacity(0.3))
-            })
-            .disabled_style(|style| style.opacity(0.5))
             .style_when(
                 || !reduce_motion(),
                 |style| style.transition_colors().duration(150.0),
             )
-            .test_id("toggle-control")
             .child(self.icon.map(|icon| {
                 view()
                     .size(px(16.0))
@@ -169,12 +221,13 @@ impl Toggle {
                     .test_id("toggle-icon")
                     .child(icon(pressed))
             }))
-            .child(
+            .child(self.content.unwrap_or_else(|| {
                 text(self.text)
                     .text_sm()
                     .font_weight(FontWeight::MEDIUM)
-                    .number_of_lines(1),
-            )
+                    .number_of_lines(1)
+                    .into_element()
+            }))
     }
 }
 

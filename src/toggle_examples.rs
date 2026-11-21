@@ -11,10 +11,10 @@ use crate::{
 };
 
 const BOOKMARK: &str = "M3.5 13.5V3.3C3.5 2.6 4 2.1 4.7 2.1h6.6c.7 0 1.2.5 1.2 1.2v10.2L8 10.2z";
-const ITALIC: &str = "M7 3.2h6M3 12.8h6m1-9.6L6 12.8";
-const BOLD: &str = "M4.4 8h5.1a2.4 2.4 0 0 1 0 4.8H4.4V3.2h4.5a2.4 2.4 0 0 1 0 4.8";
+pub(crate) const ITALIC: &str = "M7 3.2h6M3 12.8h6m1-9.6L6 12.8";
+pub(crate) const BOLD: &str = "M4.4 8h5.1a2.4 2.4 0 0 1 0 4.8H4.4V3.2h4.5a2.4 2.4 0 0 1 0 4.8";
 
-fn icon(path: &'static str, filled: bool) -> CanvasView {
+pub(crate) fn icon(path: &'static str, filled: bool) -> CanvasView {
     let painter = Painter::new()
         .stroke_style_from_view(SvgPaint::CurrentColor)
         .fill_style_from_view(SvgPaint::CurrentColor)

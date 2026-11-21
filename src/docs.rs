@@ -20,7 +20,7 @@ use crate::{
     separator_examples, sheet_examples, sidebar_examples, skeleton_examples, slider_examples,
     spinner_examples, switch_examples, table_examples, tabs_examples, textarea_examples,
     toast::Toaster,
-    toast_examples, toggle_examples,
+    toast_examples, toggle_examples, toggle_group_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -201,6 +201,7 @@ enum DocsPage {
     Textarea,
     Toast,
     Toggle,
+    ToggleGroup,
 }
 
 type ComponentRoute = (
@@ -632,6 +633,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#toggle",
         "toggle-docs-scroll",
         toggle_page,
+    ),
+    (
+        DocsPage::ToggleGroup,
+        "Toggle Group",
+        "#toggle-group",
+        "toggle-group-docs-scroll",
+        toggle_group_page,
     ),
 ];
 
@@ -3394,6 +3402,58 @@ fn toggle_page() -> View {
     .child(api_row("Toggle", "Use default_pressed for local state, or bind pressed and apply changes in on_change. Enter and Space toggle the focused button."))
     .child(api_row("ToggleVariant / ToggleSize", "Choose a transparent or outlined surface and a small, default, or large size."))
     .child(api_row("icon", "Render a decorative icon with access to the current pressed state."))
+}
+
+fn toggle_group_page() -> View {
+    macro_rules! demo {
+        ($function:ident, $file:literal, $label:literal) => {
+            example(
+                $label,
+                toggle_group_examples::$function(),
+                include_str!("toggle_group_examples.rs"),
+                include_str!(concat!(
+                    "../references/toggle-group-tsx/toggle-group-",
+                    $file,
+                    ".tsx"
+                )),
+            )
+        };
+    }
+
+    component_article(
+        DocsPage::ToggleGroup,
+        "Group related toggle buttons with single or multiple selection.",
+        "https://ui.shadcn.com/docs/components/base/toggle-group",
+    )
+    .child(demo!(demo, "demo", "Toggle Group demo"))
+    .child(heading("Usage"))
+    .child(code_block(r#"ToggleGroup::new("Call filter")
+    .default_value(["all"])
+    .variant(ToggleVariant::Outline)
+    .spacing(0.0)
+    .items([
+        ToggleGroupItem::new("all", "All"),
+        ToggleGroupItem::new("missed", "Missed"),
+    ])"#))
+    .child(heading("Composition"))
+    .child(muted("Give each item a distinct value and an accessible label. Use item content to render an icon or a custom layout."))
+    .child(heading("Outline"))
+    .child(demo!(outline, "outline", "Outline"))
+    .child(heading("Size"))
+    .child(demo!(sizes, "sizes", "Size"))
+    .child(heading("Spacing"))
+    .child(demo!(spacing, "spacing", "Spacing"))
+    .child(heading("Vertical"))
+    .child(demo!(vertical, "vertical", "Vertical"))
+    .child(heading("Disabled"))
+    .child(demo!(disabled, "disabled", "Disabled"))
+    .child(heading("Custom"))
+    .child(demo!(custom, "font-weight-selector", "Custom"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("ToggleGroup", "Set the default or bound values, optional multiple selection, size, spacing, and orientation. Arrow keys move focus along the group and Enter or Space changes selection."))
+    .child(api_row("ToggleGroupItem", "Set a stable value and label. Optionally disable the item or replace its text with custom content."))
 }
 
 fn component_page(
