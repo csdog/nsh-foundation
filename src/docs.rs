@@ -15,7 +15,7 @@ use crate::{
     field_examples, hover_card_examples, input_examples, input_group_examples, input_otp_examples,
     item_examples, kbd_examples, label_examples, marker_examples, menubar_examples,
     message_examples, message_scroller_examples, native_select_examples, navigation_menu_examples,
-    pagination_examples, popover_examples,
+    pagination_examples, popover_examples, progress_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -178,6 +178,7 @@ enum DocsPage {
     NavigationMenu,
     Pagination,
     Popover,
+    Progress,
 }
 
 type ComponentRoute = (
@@ -483,6 +484,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#popover",
         "popover-docs-scroll",
         popover_page,
+    ),
+    (
+        DocsPage::Progress,
+        "Progress",
+        "#progress",
+        "progress-docs-scroll",
+        progress_page,
     ),
 ];
 
@@ -2505,6 +2513,43 @@ fn popover_page() -> View {
     .child(api_row("Popover / PopoverTrigger", "Pair an overlay with a trigger. Use open to share state, or set default_open for the initial state."))
     .child(api_row("PopoverContent", "Set a side, alignment, offsets and preferred width. Native Shell keeps the overlay within the viewport and flips sides when space is limited."))
     .child(api_row("PopoverHeader / PopoverTitle / PopoverDescription", "Compose the popup text. Give the content an accessible label and set initial_focus for a desktop form."))
+}
+
+fn progress_page() -> View {
+    macro_rules! demo {
+        ($function:ident, $reference:literal, $name:literal) => {
+            example(
+                $name,
+                progress_examples::$function(),
+                include_str!("progress_examples.rs"),
+                include_str!(concat!(
+                    "../references/progress-tsx/progress-",
+                    $reference,
+                    ".tsx"
+                )),
+            )
+        };
+    }
+    component_article(
+        DocsPage::Progress,
+        "Show how much of a task is complete.",
+        "https://ui.shadcn.com/docs/components/base/progress",
+    )
+    .child(demo!(demo, "demo", "Progress demo"))
+    .child(heading("Usage"))
+    .child(code_block(r#"Progress::new(56.0)
+    .label(ProgressLabel::new("Upload progress"))
+    .display(ProgressValue::new())"#))
+    .child(heading("Label"))
+    .child(demo!(label, "label", "Label"))
+    .child(heading("Controlled"))
+    .child(demo!(controlled, "controlled", "Controlled"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("Progress", "Pass a number or Rust signal. The default range is 0–100. Indeterminate progress leaves the current value unset and the track empty."))
+    .child(api_row("ProgressLabel / ProgressValue", "Add a visible label or percentage. A formatter can provide localized text for the display and assistive technology."))
+    .child(api_row("ProgressTrack / ProgressIndicator", "Customize the track height and indicator color."))
 }
 
 fn component_page(

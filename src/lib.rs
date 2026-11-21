@@ -91,6 +91,8 @@ pub mod pagination;
 mod pagination_examples;
 pub mod popover;
 mod popover_examples;
+pub mod progress;
+mod progress_examples;
 mod ui;
 
 use nsh_core::prelude::*;
