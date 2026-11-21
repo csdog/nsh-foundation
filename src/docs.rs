@@ -20,7 +20,7 @@ use crate::{
     separator_examples, sheet_examples, sidebar_examples, skeleton_examples, slider_examples,
     spinner_examples, switch_examples, table_examples, tabs_examples, textarea_examples,
     toast::Toaster,
-    toast_examples,
+    toast_examples, toggle_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -200,6 +200,7 @@ enum DocsPage {
     Tabs,
     Textarea,
     Toast,
+    Toggle,
 }
 
 type ComponentRoute = (
@@ -624,6 +625,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#toast",
         "toast-docs-scroll",
         toast_page,
+    ),
+    (
+        DocsPage::Toggle,
+        "Toggle",
+        "#toggle",
+        "toggle-docs-scroll",
+        toggle_page,
     ),
 ];
 
@@ -3347,6 +3355,45 @@ view()
     .child(api_row("Toast", "Set a title, description, type, timeout, or action. Use timeout(None) for a notification that stays open until closed."))
     .child(api_row("Toaster", "Show or close a toast by its ID. Use promise to update a pending toast from a Rust future."))
     .child(toaster.viewport())
+}
+
+fn toggle_page() -> View {
+    macro_rules! demo {
+        ($function:ident, $file:literal, $label:literal) => {
+            example(
+                $label,
+                toggle_examples::$function(),
+                include_str!("toggle_examples.rs"),
+                include_str!(concat!("../references/toggle-tsx/toggle-", $file, ".tsx")),
+            )
+        };
+    }
+
+    component_article(
+        DocsPage::Toggle,
+        "Turn a setting or formatting option on and off.",
+        "https://ui.shadcn.com/docs/components/base/toggle",
+    )
+    .child(demo!(demo, "demo", "Toggle demo"))
+    .child(heading("Usage"))
+    .child(code_block(r#"Toggle::new("Bookmark")
+    .label("Toggle bookmark")
+    .variant(ToggleVariant::Outline)
+    .size(ToggleSize::Small)"#))
+    .child(heading("Outline"))
+    .child(demo!(outline, "outline", "Outline"))
+    .child(heading("With Text"))
+    .child(demo!(with_text, "text", "With Text"))
+    .child(heading("Size"))
+    .child(demo!(sizes, "sizes", "Size"))
+    .child(heading("Disabled"))
+    .child(demo!(disabled, "disabled", "Disabled"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("Toggle", "Use default_pressed for local state, or bind pressed and apply changes in on_change. Enter and Space toggle the focused button."))
+    .child(api_row("ToggleVariant / ToggleSize", "Choose a transparent or outlined surface and a small, default, or large size."))
+    .child(api_row("icon", "Render a decorative icon with access to the current pressed state."))
 }
 
 fn component_page(

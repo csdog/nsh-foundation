@@ -125,6 +125,8 @@ pub mod textarea;
 mod textarea_examples;
 pub mod toast;
 mod toast_examples;
+pub mod toggle;
+mod toggle_examples;
 mod ui;
 
 use nsh_core::prelude::*;
