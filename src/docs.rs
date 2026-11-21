@@ -7,7 +7,7 @@ use nsh_core::{
 
 use crate::{
     accordion_examples, alert_dialog_examples, alert_examples, aspect_ratio_examples,
-    attachment_examples, avatar_examples, badge_examples, examples,
+    attachment_examples, avatar_examples, badge_examples, breadcrumb_examples, examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -134,48 +134,96 @@ enum DocsPage {
     Attachment,
     Avatar,
     Badge,
+    Breadcrumb,
 }
+
+type ComponentRoute = (
+    DocsPage,
+    &'static str,
+    &'static str,
+    &'static str,
+    fn() -> View,
+);
+
+const COMPONENTS: &[ComponentRoute] = &[
+    (
+        DocsPage::Accordion,
+        "Accordion",
+        "#accordion",
+        "accordion-docs-scroll",
+        accordion_page,
+    ),
+    (
+        DocsPage::Alert,
+        "Alert",
+        "#alert",
+        "alert-docs-scroll",
+        alert_page,
+    ),
+    (
+        DocsPage::AlertDialog,
+        "Alert Dialog",
+        "#alert-dialog",
+        "alert-dialog-docs-scroll",
+        alert_dialog_page,
+    ),
+    (
+        DocsPage::AspectRatio,
+        "Aspect Ratio",
+        "#aspect-ratio",
+        "aspect-ratio-docs-scroll",
+        aspect_ratio_page,
+    ),
+    (
+        DocsPage::Attachment,
+        "Attachment",
+        "#attachment",
+        "attachment-docs-scroll",
+        attachment_page,
+    ),
+    (
+        DocsPage::Avatar,
+        "Avatar",
+        "#avatar",
+        "avatar-docs-scroll",
+        avatar_page,
+    ),
+    (
+        DocsPage::Badge,
+        "Badge",
+        "#badge",
+        "badge-docs-scroll",
+        badge_page,
+    ),
+    (
+        DocsPage::Breadcrumb,
+        "Breadcrumb",
+        "#breadcrumb",
+        "breadcrumb-docs-scroll",
+        breadcrumb_page,
+    ),
+];
 
 impl DocsPage {
     fn label(self) -> &'static str {
-        match self {
-            Self::Drawer => "Drawer",
-            Self::Accordion => "Accordion",
-            Self::Alert => "Alert",
-            Self::AlertDialog => "Alert Dialog",
-            Self::AspectRatio => "Aspect Ratio",
-            Self::Attachment => "Attachment",
-            Self::Avatar => "Avatar",
-            Self::Badge => "Badge",
-        }
+        COMPONENTS
+            .iter()
+            .find(|route| route.0 == self)
+            .map_or("Drawer", |route| route.1)
     }
 
     fn anchor(self) -> &'static str {
-        match self {
-            Self::Drawer => "#drawer",
-            Self::Accordion => "#accordion",
-            Self::Alert => "#alert",
-            Self::AlertDialog => "#alert-dialog",
-            Self::AspectRatio => "#aspect-ratio",
-            Self::Attachment => "#attachment",
-            Self::Avatar => "#avatar",
-            Self::Badge => "#badge",
-        }
+        COMPONENTS
+            .iter()
+            .find(|route| route.0 == self)
+            .map_or("#drawer", |route| route.2)
     }
 
     fn from_url(url: &str) -> Self {
-        [
-            Self::Accordion,
-            Self::Alert,
-            Self::AlertDialog,
-            Self::AspectRatio,
-            Self::Attachment,
-            Self::Avatar,
-            Self::Badge,
-        ]
-        .into_iter()
-        .find(|page| url.ends_with(page.anchor()))
-        .unwrap_or_default()
+        COMPONENTS
+            .iter()
+            .find(|route| url.ends_with(route.2))
+            .map_or(Self::Drawer, |route| route.0)
     }
 }
 
@@ -207,96 +255,17 @@ pub(crate) fn page() -> View {
         });
     };
 
-    view()
-        .flex_1()
-        .child(when(
-            move || page.get() == DocsPage::Drawer,
-            move || drawer_page(navigate, toggle_theme),
-        ))
-        .child(when(
-            move || page.get() == DocsPage::Accordion,
-            move || {
-                component_page(
-                    DocsPage::Accordion,
-                    accordion_page(),
-                    navigate,
-                    toggle_theme,
-                    "accordion-docs-scroll",
-                )
-            },
-        ))
-        .child(when(
-            move || page.get() == DocsPage::Alert,
-            move || {
-                component_page(
-                    DocsPage::Alert,
-                    alert_page(),
-                    navigate,
-                    toggle_theme,
-                    "alert-docs-scroll",
-                )
-            },
-        ))
-        .child(when(
-            move || page.get() == DocsPage::AlertDialog,
-            move || {
-                component_page(
-                    DocsPage::AlertDialog,
-                    alert_dialog_page(),
-                    navigate,
-                    toggle_theme,
-                    "alert-dialog-docs-scroll",
-                )
-            },
-        ))
-        .child(when(
-            move || page.get() == DocsPage::AspectRatio,
-            move || {
-                component_page(
-                    DocsPage::AspectRatio,
-                    aspect_ratio_page(),
-                    navigate,
-                    toggle_theme,
-                    "aspect-ratio-docs-scroll",
-                )
-            },
-        ))
-        .child(when(
-            move || page.get() == DocsPage::Attachment,
-            move || {
-                component_page(
-                    DocsPage::Attachment,
-                    attachment_page(),
-                    navigate,
-                    toggle_theme,
-                    "attachment-docs-scroll",
-                )
-            },
-        ))
-        .child(when(
-            move || page.get() == DocsPage::Avatar,
-            move || {
-                component_page(
-                    DocsPage::Avatar,
-                    avatar_page(),
-                    navigate,
-                    toggle_theme,
-                    "avatar-docs-scroll",
-                )
-            },
-        ))
-        .child(when(
-            move || page.get() == DocsPage::Badge,
-            move || {
-                component_page(
-                    DocsPage::Badge,
-                    badge_page(),
-                    navigate,
-                    toggle_theme,
-                    "badge-docs-scroll",
-                )
-            },
-        ))
+    let mut root = view().flex_1().child(when(
+        move || page.get() == DocsPage::Drawer,
+        move || drawer_page(navigate, toggle_theme),
+    ));
+    for &(target, _, _, scroll_id, article) in COMPONENTS {
+        root = root.child(when(
+            move || page.get() == target,
+            move || component_page(target, article(), navigate, toggle_theme, scroll_id),
+        ));
+    }
+    root
 }
 
 fn component_article(page: DocsPage, description: &'static str, reference: &'static str) -> View {
@@ -615,6 +584,46 @@ fn badge_page() -> View {
     .child(api_row("Badge", "Set the variant or adaptive colors. Add icon_start or icon_end, or set href to make the badge a link."))
 }
 
+fn breadcrumb_page() -> View {
+    macro_rules! demo {
+        ($module:ident, $name:literal, $title:literal) => {
+            example(
+                $title,
+                breadcrumb_examples::$module::preview(),
+                include_str!(concat!("breadcrumb_examples/", stringify!($module), ".rs")),
+                include_str!(concat!(
+                    "../references/breadcrumb-tsx/breadcrumb-",
+                    $name,
+                    ".tsx"
+                )),
+            )
+        };
+    }
+    component_article(
+        DocsPage::Breadcrumb,
+        "A navigation trail that shows the current page and its parent pages.",
+        "https://ui.shadcn.com/docs/components/base/breadcrumb",
+    )
+    .child(demo!(demo, "demo", "Breadcrumb demo"))
+    .child(heading("Usage"))
+    .child(muted("Build a BreadcrumbList from BreadcrumbItem entries and mark the current location with BreadcrumbPage. Add separators between entries."))
+    .child(heading("Basic"))
+    .child(demo!(basic, "basic", "Basic"))
+    .child(heading("Custom separator"))
+    .child(demo!(separator, "separator", "Custom separator"))
+    .child(heading("Dropdown"))
+    .child(demo!(dropdown, "dropdown", "Dropdown"))
+    .child(heading("Collapsed"))
+    .child(demo!(ellipsis, "ellipsis", "Collapsed"))
+    .child(heading("Link component"))
+    .child(demo!(link, "link", "Link component"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("BreadcrumbLink", "Open a URL or supply a custom surface and navigation callback."))
+    .child(api_row("BreadcrumbSeparator / BreadcrumbEllipsis", "Customize the separator or represent hidden levels."))
+}
+
 fn component_page(
     page: DocsPage,
     article: View,
@@ -679,16 +688,11 @@ fn component_links(page: DocsPage, navigate: impl Fn(DocsPage) + Copy + 'static)
     let mut links = view()
         .role(AccessibilityRole::Navigation)
         .label("Components");
-    for target in [
-        DocsPage::Accordion,
-        DocsPage::Alert,
-        DocsPage::AlertDialog,
-        DocsPage::AspectRatio,
-        DocsPage::Attachment,
-        DocsPage::Avatar,
-        DocsPage::Badge,
-        DocsPage::Drawer,
-    ] {
+    for target in COMPONENTS
+        .iter()
+        .map(|route| route.0)
+        .chain([DocsPage::Drawer])
+    {
         if target != page {
             links = links.child(button(target.label(), Variant::Ghost, move || {
                 navigate(target)

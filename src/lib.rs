@@ -16,6 +16,8 @@ pub mod avatar;
 mod avatar_examples;
 pub mod badge;
 mod badge_examples;
+pub mod breadcrumb;
+mod breadcrumb_examples;
 mod docs;
 pub mod drawer;
 mod examples;
