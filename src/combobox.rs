@@ -137,7 +137,13 @@ impl Combobox {
                     text("✓")
                         .text_sm()
                         .accessibility_elements_hidden(true)
-                        .opacity(move || if value.get().contains(&key) { 1.0 } else { 0.0 }),
+                        .opacity(move || {
+                            if value.get().contains(&key) {
+                                1.0_f32
+                            } else {
+                                0.0
+                            }
+                        }),
                 )
         };
         let wrapper = view()
