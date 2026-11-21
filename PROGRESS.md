@@ -1,12 +1,12 @@
 # nsh-foundation 组件进度
 
-更新于 2026-11-21。已发布 **12 / 66**，待开始 **54 / 66**。下一项是 **Calendar（#12）**。[实施计划](PLAN.md)
+更新于 2026-11-21。已发布 **13 / 66**，待开始 **53 / 66**。下一项是 **Card（#13）**。[实施计划](PLAN.md)
 
 ## 已交付基线
 
 - **Drawer** 已拆成纯 Rust 组合组件，包括 `DrawerTrigger`、`DrawerContent`、`DrawerHeader`、`DrawerTitle`、`DrawerDescription`、`DrawerFooter` 和 `DrawerClose`。文档已有 9 个交互示例及 Preview / Rust / TSX 标签。贴边面板默认留 8 点外边距，按实际尺寸滑入和滑出，分别用时 450 ms 和 400 ms。[组件源码](src/drawer.rs) · [TSX 参考](references/drawer-tsx/)
-- **线上版本**为 17，发布提交为 `b55977a`。Web 打包和 WASM 校验已完成。云端预览端口启动受限，浏览器视觉核验仍待复核。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site)
-- **基线复测**于 2026-11-21 通过 `cargo fmt --check` 和 `cargo test --offline`，共 33 项 Rust 测试。
+- **线上版本**为 18，发布提交为 `312d026`。Web 打包和 WASM 校验已完成。云端预览端口启动受限，浏览器视觉核验仍待复核。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site)
+- **基线复测**于 2026-11-21 通过 `cargo fmt --check` 和 `cargo test --offline --locked`，共 38 项 Rust 测试。
 - **设计参考**已固定 shadcn/ui 源码版本，Obra 预览图已保存。可编辑的 Figma 原文件仍未获取。[参考资料记录](references/README.md)
 - **Accordion** 已发布于 v7（`7abbcb5`），含 7 个官方示例及 Preview / Rust / TSX。支持默认与受控状态、单项与多项展开、禁用、方向键和 RTL。15 项 Rust 测试、Web 打包及 WASM 校验已通过，浏览器视觉核验受预览端口限制。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#accordion) · [组件源码](src/accordion.rs) · [TSX 参考](references/accordion-tsx/)
 - **Alert** 已发布于 v8（`1e44dc4`），含 6 个官方示例及 Preview / Rust / TSX。支持普通和 destructive 样式、自定义主题颜色、操作按钮和 RTL。无头测试覆盖移动端交互、复制代码和历史导航。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#alert) · [组件源码](src/alert.rs) · [TSX 参考](references/alert-tsx/)
@@ -19,6 +19,7 @@
 - **Bubble** 已发布于 v15（`4cb00ec`），含 9 个预览及 Preview / Rust / TSX。支持七种样式、两侧对齐、Markdown、反应按钮、展开、Tooltip 和 Popover。无头测试覆盖展开、点击已读提示及关闭详情。命令示例仅更新本地反馈。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#bubble) · [组件源码](src/bubble.rs)
 - **Button** 已发布于 v16（`d4ea8a2`），含 15 个预览及 Preview / Rust / TSX。支持 6 种变体、8 种尺寸、响应式加载与禁用、图标、链接和 RTL。无头测试覆盖键盘激活、禁用、链接与组合菜单。组合布局是此页的演示，Button Group 组件排在下一项。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#button) · [组件源码](src/button.rs)
 - **Button Group** 已发布于 v17（`b55977a`），含 12 个预览及 Preview / Rust / TSX。支持横竖排列、连接圆角、嵌套、分隔符、文字和 RTL。无头测试覆盖 Tab 激活、输入查询、币种选择及弹层关闭。金额和任务提交仅更新预览反馈。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#button-group) · [组件源码](src/button_group.rs)
+- **Calendar** 已发布于 v18（`312d026`），含 12 个预览及 Preview / Rust / TSX。支持日期与范围、单月或双月、禁用日期、周数、波斯历、RTL 和本地日期。月份和年份由标题按钮进入选择网格。时区辅助 API 支持设备本地时区与固定偏移。测试覆盖波斯历转换、键盘导航、预约禁用、范围选择和跨日边界。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#calendar) · [组件源码](src/calendar.rs)
 
 ## 按官方顺序跟踪
 
@@ -37,8 +38,8 @@
 | 9 | Bubble | 已发布 |
 | 10 | Button | 已发布 |
 | 11 | Button Group | 已发布 |
-| 12 | Calendar | 已实现 · 待发布 |
-| 13 | Card | 待开始 |
+| 12 | Calendar | 已发布 |
+| 13 | Card | 待开始 · 下一项 |
 | 14 | Carousel | 待开始 |
 | 15 | Chart | 待开始 |
 | 16 | Checkbox | 待开始 |
