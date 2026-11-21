@@ -1,12 +1,12 @@
 # nsh-foundation 组件进度
 
-更新于 2026-11-21。已发布 **20 / 66**，待开始 **46 / 66**。下一项是 **Command（#20）**。[实施计划](PLAN.md)
+更新于 2026-11-21。已发布 **21 / 66**，待开始 **45 / 66**。下一项是 **Context Menu（#21）**。[实施计划](PLAN.md)
 
 ## 已交付基线
 
 - **Drawer** 已拆成纯 Rust 组合组件，包括 `DrawerTrigger`、`DrawerContent`、`DrawerHeader`、`DrawerTitle`、`DrawerDescription`、`DrawerFooter` 和 `DrawerClose`。文档已有 9 个交互示例及 Preview / Rust / TSX 标签。面板默认留 8 点外边距，示例正文内边距为 16 点，并与标题和底部操作对齐。普通滑入和滑出分别用时 450 ms 和 400 ms。甩动关闭按剩余距离和松手速度调整时长，退出动画播完再卸载内容。测试覆盖退出途中重新打开及内容间距。[组件源码](src/drawer.rs) · [TSX 参考](references/drawer-tsx/)
-- **线上版本**为 26，发布提交为 `b46c33b`，新增 Combobox。Web 打包和 WASM 内容校验已完成。云端预览端口启动受限，浏览器视觉核验仍待复核。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#combobox)
-- **基线复测**于 2026-11-21 通过 `cargo fmt --check` 和 `cargo test --offline --locked`，共 56 项 Rust 测试。
+- **线上版本**为 27，发布提交为 `910ed43`，新增 Command。Web 打包和 WASM 内容校验已完成。云端预览端口启动受限，浏览器视觉核验仍待复核。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#command)
+- **基线复测**于 2026-11-21 通过 `cargo fmt --check` 和 `cargo test --offline --locked`，共 59 项 Rust 测试。
 - **设计参考**已固定 shadcn/ui 源码版本，Obra 预览图已保存。可编辑的 Figma 原文件仍未获取。[参考资料记录](references/README.md)
 - **Accordion** 已发布于 v7（`7abbcb5`），含 7 个官方示例及 Preview / Rust / TSX。支持默认与受控状态、单项与多项展开、禁用、方向键和 RTL。15 项 Rust 测试、Web 打包及 WASM 校验已通过，浏览器视觉核验受预览端口限制。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#accordion) · [组件源码](src/accordion.rs) · [TSX 参考](references/accordion-tsx/)
 - **Alert** 已发布于 v8（`1e44dc4`），含 6 个官方示例及 Preview / Rust / TSX。支持普通和 destructive 样式、自定义主题颜色、操作按钮和 RTL。无头测试覆盖移动端交互、复制代码和历史导航。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#alert) · [组件源码](src/alert.rs) · [TSX 参考](references/alert-tsx/)
@@ -27,6 +27,7 @@
 - **Code Block** 已发布于 v24（`3791d21`），含 25 个预览及 Preview / Rust / TSX。支持组合式标题和操作、行号及起始行、折行、差异标记、复制、展开、RTL、基于 Syntect 的着色、基础 ANSI 颜色和本地流式回放。Rust 演示仍缺文件下载，流式着色会重新处理当前文本。无头测试校验复制内容、ANSI 控制码去除、折行、展开、文件切换和回放。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#code-block) · [组件源码](src/code_block/mod.rs) · [TSX 参考](references/code-block-tsx/)
 - **Collapsible** 已发布于 v25（`0a51eef`），含 5 个预览及 Preview / Rust / TSX。支持 Trigger 和 Content 组合、受控与非受控状态、禁用、原生展开动画和 RTL。无头测试覆盖订单详情、设置面板、嵌套折叠保留状态、无障碍控件关联和键盘操作。文件选择与 Learn More 使用本地演示反馈。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#collapsible) · [组件源码](src/collapsible.rs) · [TSX 参考](references/collapsible-tsx/)
 - **Combobox** 已发布于 v26（`b46c33b`），含 12 个预览及 Preview / Rust / TSX。支持过滤、自动高亮、分组、可移除的多选标签、自定义选项、搜索弹层和 RTL。无头测试覆盖键盘选择、禁用项、清空、多选及 RTL 切换保留选中。Native Shell 在触屏平台使用底部弹层。无效状态的无障碍标记在字段容器上。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#combobox) · [组件源码](src/combobox.rs) · [TSX 参考](references/combobox-tsx/)
+- **Command** 已发布于 v27（`910ed43`），含 7 个预览及 Preview / Rust / TSX。支持内嵌和对话框、关键词搜索、自动高亮、分组、快捷键提示、长列表和 RTL。无头测试覆盖禁用项、双阶段 Escape、快捷键打开和关闭、滚动与选择。项目命令仅更新本地反馈。各命令的快捷键标记用于显示，应用可为实际操作绑定按键。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#command) · [组件源码](src/command.rs) · [TSX 参考](references/command-tsx/)
 
 ## 按官方顺序跟踪
 
@@ -53,8 +54,8 @@
 | 17 | Code Block | 已发布 |
 | 18 | Collapsible | 已发布 |
 | 19 | Combobox | 已发布 |
-| 20 | Command | 已实现 · 待发布 |
-| 21 | Context Menu | 待开始 |
+| 20 | Command | 已发布 |
+| 21 | Context Menu | 待开始 · 下一项 |
 | 22 | Data Table | 待开始 |
 | 23 | Date Picker | 待开始 |
 | 24 | Dialog | 待开始 |
