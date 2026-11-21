@@ -12,6 +12,7 @@ use crate::{
     chart_examples, checkbox_examples, code_block_examples, collapsible_examples,
     combobox_examples, command_examples, context_menu_examples, data_table_examples,
     date_picker_examples, dialog_examples, dropdown_menu_examples, empty_examples, examples,
+    field_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -158,6 +159,7 @@ enum DocsPage {
     Direction,
     DropdownMenu,
     Empty,
+    Field,
 }
 
 type ComponentRoute = (
@@ -357,6 +359,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#empty",
         "empty-docs-scroll",
         empty_page,
+    ),
+    (
+        DocsPage::Field,
+        "Field",
+        "#field",
+        "field-docs-scroll",
+        field_page,
     ),
 ];
 
@@ -1620,6 +1629,67 @@ fn empty_page() -> View {
     .child(api_row("EmptyTitle", "Displays a centered title from static or reactive text."))
     .child(api_row("EmptyDescription", "Displays centered muted text. Use render to compose links or richer content."))
     .child(api_row("EmptyContent", "Holds actions and fields. Apply flex_row and flex_wrap for a responsive row."))
+}
+
+fn field_page() -> View {
+    macro_rules! demo {
+        ($example:ident, $source:literal, $title:literal) => {
+            example(
+                $title,
+                field_examples::$example(),
+                include_str!("field_examples.rs"),
+                include_str!(concat!("../references/field-tsx/field-", $source, ".tsx")),
+            )
+        };
+    }
+    component_article(
+        DocsPage::Field,
+        "Combine controls with labels, descriptions, and validation messages.",
+        "https://ui.shadcn.com/docs/components/base/field",
+    )
+    .child(demo!(demo, "demo", "Field demo"))
+    .child(heading("Usage"))
+    .child(code_block(r#"let control = element_ref();
+Field::new()
+    .child(FieldLabel::new("Email").for_control(control))
+    .child(input().label("Email").element_ref(&control))
+    .child(FieldDescription::new("Use your work email."))"#))
+    .child(heading("Composition"))
+    .child(muted("Start with a FieldSet and FieldLegend for named sections. Use FieldGroup to space related fields and FieldContent to group text next to a control."))
+    .child(heading("Input"))
+    .child(demo!(input_example, "input", "Input"))
+    .child(heading("Textarea"))
+    .child(demo!(textarea, "textarea", "Textarea"))
+    .child(heading("Select"))
+    .child(demo!(select_example, "select", "Select"))
+    .child(heading("Slider"))
+    .child(demo!(slider_example, "slider", "Slider"))
+    .child(heading("Fieldset"))
+    .child(demo!(fieldset, "fieldset", "Fieldset"))
+    .child(heading("Checkbox"))
+    .child(demo!(checkbox, "checkbox", "Checkbox"))
+    .child(heading("Radio"))
+    .child(demo!(radio_example, "radio", "Radio"))
+    .child(heading("Switch"))
+    .child(demo!(switch_example, "switch", "Switch"))
+    .child(heading("Choice Card"))
+    .child(demo!(choice_card, "choice-card", "Choice Card"))
+    .child(heading("Field Group"))
+    .child(demo!(group, "group", "Field Group"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("Responsive Layout"))
+    .child(demo!(responsive, "responsive", "Responsive Layout"))
+    .child(heading("Validation and Errors"))
+    .child(muted("Submit the checkout or profile preview with a blank field to see the validation state. Set the invalid state on both the Field and its control. Associate the control with its help or error text using accessibility_described_by."))
+    .child(code_block(r#"FieldError::messages(move || validate(email.get()))"#))
+    .child(heading("API Reference"))
+    .child(api_row("Field", "Choose Vertical, Horizontal, or Responsive orientation. Responsive fields switch at 448 points of available field width."))
+    .child(api_row("FieldSet / FieldLegend / FieldGroup", "Name sections and lay out related fields. FieldLegend supports Legend and Label variants."))
+    .child(api_row("FieldLabel / FieldTitle", "Display a field label or title. FieldLabel::for_control focuses the matching control when pressed."))
+    .child(api_row("FieldContent / FieldDescription", "Group secondary content and provide help text or links."))
+    .child(api_row("FieldSeparator", "Separate sections with an optional visible label."))
+    .child(api_row("FieldError", "Render a validation alert, or use messages to show a deduplicated list."))
 }
 
 fn component_page(
