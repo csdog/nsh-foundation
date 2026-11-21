@@ -1,12 +1,12 @@
 # nsh-foundation 组件进度
 
-更新于 2026-11-21。已发布 **7 / 66**，其余 **59 / 66** 正按顺序推进。[实施计划](PLAN.md)
+更新于 2026-11-21。已发布 **8 / 66**，待开始 **58 / 66**。下一项是 **Breadcrumb（#8）**。[实施计划](PLAN.md)
 
 ## 已交付基线
 
 - **Drawer** 已拆成纯 Rust 组合组件，包括 `DrawerTrigger`、`DrawerContent`、`DrawerHeader`、`DrawerTitle`、`DrawerDescription`、`DrawerFooter` 和 `DrawerClose`。文档已有 9 个交互示例及 Preview / Rust / TSX 标签。贴边面板默认留 8 点外边距，按实际尺寸滑入和滑出，分别用时 450 ms 和 400 ms。[组件源码](src/drawer.rs) · [TSX 参考](references/drawer-tsx/)
-- **线上版本**为 12，发布提交为 `0bd7a00`。Web 打包和 WASM 校验已完成。云端预览端口启动受限，浏览器视觉核验仍待复核。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site)
-- **基线复测**于 2026-11-21 通过 `cargo fmt --check` 和 `cargo test --offline`，共 24 项 Rust 测试。
+- **线上版本**为 13，发布提交为 `034d1b7`。Web 打包和 WASM 校验已完成。云端预览端口启动受限，浏览器视觉核验仍待复核。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site)
+- **基线复测**于 2026-11-21 通过 `cargo fmt --check` 和 `cargo test --offline`，共 26 项 Rust 测试。
 - **设计参考**已固定 shadcn/ui 源码版本，Obra 预览图已保存。可编辑的 Figma 原文件仍未获取。[参考资料记录](references/README.md)
 - **Accordion** 已发布于 v7（`7abbcb5`），含 7 个官方示例及 Preview / Rust / TSX。支持默认与受控状态、单项与多项展开、禁用、方向键和 RTL。15 项 Rust 测试、Web 打包及 WASM 校验已通过，浏览器视觉核验受预览端口限制。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#accordion) · [组件源码](src/accordion.rs) · [TSX 参考](references/accordion-tsx/)
 - **Alert** 已发布于 v8（`1e44dc4`），含 6 个官方示例及 Preview / Rust / TSX。支持普通和 destructive 样式、自定义主题颜色、操作按钮和 RTL。无头测试覆盖移动端交互、复制代码和历史导航。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#alert) · [组件源码](src/alert.rs) · [TSX 参考](references/alert-tsx/)
@@ -14,6 +14,7 @@
 - **Aspect Ratio** 已发布于 v10（`b15b302`），含 4 个预览及 Preview / Rust / TSX。无头测试覆盖桌面和移动端比例、响应式比例更新及无效比例的方形回退。示例图片随站点打包。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#aspect-ratio) · [组件源码](src/aspect_ratio.rs)
 - **Attachment** 已发布于 v11（`68ff01e`），含 6 个预览及 Preview / Rust / TSX。覆盖 5 种状态、3 种尺寸、键盘横向滚动、预览与独立操作。重试是本地演示。组件导航改用可滚动菜单。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#attachment) · [组件源码](src/attachment.rs)
 - **Avatar** 已发布于 v12（`0bd7a00`），含 10 个预览及 Preview / Rust / TSX。测试覆盖图片失败回退、状态徽章的可访问名称、下拉菜单选择与 Escape 关闭。头像图片随站点打包，下拉选项只更新预览反馈。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#avatar) · [组件源码](src/avatar.rs)
+- **Badge** 已发布于 v13（`034d1b7`），含 7 个预览及 Preview / Rust / TSX。支持变体、主题自定义颜色、内联图标、加载动画和链接。测试覆盖链接打开和 RTL 图标顺序。链接示例指向上游文档的 Link 小节。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#badge) · [组件源码](src/badge.rs)
 
 ## 按官方顺序跟踪
 
@@ -27,8 +28,8 @@
 | 4 | Aspect Ratio | 已发布 |
 | 5 | Attachment | 已发布 |
 | 6 | Avatar | 已发布 |
-| 7 | Badge | 已实现 · 待发布 |
-| 8 | Breadcrumb | 待开始 |
+| 7 | Badge | 已发布 |
+| 8 | Breadcrumb | 待开始 · 下一项 |
 | 9 | Bubble | 待开始 |
 | 10 | Button | 待开始 |
 | 11 | Button Group | 待开始 |
