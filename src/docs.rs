@@ -14,7 +14,7 @@ use crate::{
     date_picker_examples, dialog_examples, dropdown_menu_examples, empty_examples, examples,
     field_examples, hover_card_examples, input_examples, input_group_examples, input_otp_examples,
     item_examples, kbd_examples, label_examples, marker_examples, menubar_examples,
-    message_examples, message_scroller_examples, native_select_examples,
+    message_examples, message_scroller_examples, native_select_examples, navigation_menu_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -174,6 +174,7 @@ enum DocsPage {
     Message,
     MessageScroller,
     NativeSelect,
+    NavigationMenu,
 }
 
 type ComponentRoute = (
@@ -458,6 +459,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#native-select",
         "native-select-docs-scroll",
         native_select_page,
+    ),
+    (
+        DocsPage::NavigationMenu,
+        "Navigation Menu",
+        "#navigation-menu",
+        "navigation-menu-docs-scroll",
+        navigation_menu_page,
     ),
 ];
 
@@ -2351,6 +2359,46 @@ fn native_select_page() -> View {
     .child(api_row("NativeSelect", "Set a default value or bind a Rust signal. Use disabled or invalid for field state, and size to choose the control height."))
     .child(api_row("NativeSelectOption", "Provide a unique value and visible label. Disabled options are skipped during selection."))
     .child(api_row("NativeSelectOptGroup", "Group related options under a heading. Disabling a group disables each of its options."))
+}
+
+fn navigation_menu_page() -> View {
+    component_article(
+        DocsPage::NavigationMenu,
+        "Group direct links and dropdown link collections in a site navigation bar.",
+        "https://ui.shadcn.com/docs/components/base/navigation-menu",
+    )
+    .child(example(
+        "Navigation Menu demo",
+        navigation_menu_examples::demo(),
+        include_str!("navigation_menu_examples.rs"),
+        include_str!("../references/navigation-menu-tsx/navigation-menu-demo.tsx"),
+    ))
+    .child(heading("Usage"))
+    .child(code_block(r#"NavigationMenu::new(
+    "Site navigation",
+    NavigationMenuList::new()
+        .item(NavigationMenuItem::new(
+            NavigationMenuTrigger::new("Getting started"),
+            NavigationMenuContent::new()
+                .link(NavigationMenuLink::new("Installation", "https://ui.shadcn.com/docs/installation")),
+        ))
+        .item(NavigationMenuItem::link(
+            NavigationMenuLink::new("Docs", "https://ui.shadcn.com/docs"),
+        )),
+)"#))
+    .child(heading("Link Component"))
+    .child(muted("Direct links and links inside a panel both accept a destination, optional icon, description, and current-page state."))
+    .child(heading("RTL"))
+    .child(example(
+        "RTL",
+        navigation_menu_examples::rtl(),
+        include_str!("navigation_menu_examples.rs"),
+        include_str!("../references/navigation-menu-tsx/navigation-menu-rtl.tsx"),
+    ))
+    .child(heading("API Reference"))
+    .child(api_row("NavigationMenu / NavigationMenuList", "Group top-level links and triggers under a named navigation landmark. Enable indicator to mark the open trigger."))
+    .child(api_row("NavigationMenuItem / NavigationMenuTrigger", "Add a direct link, or pair a trigger with a panel. Arrow keys navigate the bar, and Escape closes the panel."))
+    .child(api_row("NavigationMenuContent / NavigationMenuLink", "Compose an anchored list or grid of links. Set columns and width for larger panels."))
 }
 
 fn component_page(
