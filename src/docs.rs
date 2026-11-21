@@ -16,7 +16,7 @@ use crate::{
     item_examples, kbd_examples, label_examples, marker_examples, menubar_examples,
     message_examples, message_scroller_examples, native_select_examples, navigation_menu_examples,
     pagination_examples, popover_examples, progress_examples, questionnaire_examples,
-    radio_group_examples, resizable_examples,
+    radio_group_examples, resizable_examples, scroll_area_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -183,6 +183,7 @@ enum DocsPage {
     Questionnaire,
     RadioGroup,
     Resizable,
+    ScrollArea,
 }
 
 type ComponentRoute = (
@@ -516,6 +517,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#resizable",
         "resizable-docs-scroll",
         resizable_page,
+    ),
+    (
+        DocsPage::ScrollArea,
+        "Scroll Area",
+        "#scroll-area",
+        "scroll-area-docs-scroll",
+        scroll_area_page,
     ),
 ];
 
@@ -2714,6 +2722,42 @@ fn resizable_page() -> View {
     .child(api_row("ResizablePanelGroup", "Set an orientation or nest groups on different axes. Bind layout to share percentages with the host, and use on_resize for completed changes."))
     .child(api_row("ResizablePanel", "Set a default size and optional minimum and maximum percentages. Percentages exclude the space occupied by dividers."))
     .child(api_row("ResizableHandle", "Set a label, show a grip or disable resizing. Focus a divider and press an arrow key to resize by one percentage point. Home and End move to the limits."))
+}
+
+fn scroll_area_page() -> View {
+    macro_rules! demo {
+        ($function:ident, $file:literal, $name:literal) => {
+            example(
+                $name,
+                scroll_area_examples::$function(),
+                include_str!("scroll_area_examples.rs"),
+                include_str!(concat!(
+                    "../references/scroll-area-tsx/scroll-area-",
+                    $file,
+                    ".tsx"
+                )),
+            )
+        };
+    }
+    component_article(
+        DocsPage::ScrollArea,
+        "Scroll clipped content within a fixed viewport with a draggable indicator.",
+        "https://ui.shadcn.com/docs/components/base/scroll-area",
+    )
+    .child(demo!(demo, "demo", "Scroll Area demo"))
+    .child(heading("Usage"))
+    .child(code_block(r#"ScrollArea::new("Release tags", tags)
+    .width(192.0)
+    .height(288.0)
+    .scroll_bar(ScrollBar::new(ScrollAreaOrientation::Vertical))"#))
+    .child(heading("Horizontal"))
+    .child(demo!(horizontal, "horizontal-demo", "Horizontal"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("ScrollArea", "Name and size a viewport. Give it an optional reference for programmatic scrolling."))
+    .child(api_row("ScrollBar", "Choose the viewport's scrolling axis and when to show the draggable indicator. Each viewport scrolls on one axis."))
+    .child(api_row("Keyboard", "Focus the viewport. Use arrow keys along the scrolling axis, Page Up and Page Down for larger steps, or Home and End for the boundaries."))
 }
 
 fn component_page(
