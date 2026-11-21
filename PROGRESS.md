@@ -1,12 +1,12 @@
 # nsh-foundation 组件进度
 
-更新于 2026-11-21。已发布 **57 / 66**，待开始 **9 / 66**。下一项是 **Table（#58）**。[实施计划](PLAN.md)
+更新于 2026-11-21。已发布 **58 / 66**，待开始 **8 / 66**。下一项是 **Tabs（#59）**。[实施计划](PLAN.md)
 
 ## 已交付基线
 
 - **Drawer** 含 9 个交互示例及 Preview / Rust / TSX 标签。v51（`1857e44`）按 Rhea 将 16 px 留白放回 Header、Footer 和各示例正文，正文可独立设置内边距。边缘面板默认留 8 px 外边距，浮动示例为 16 px。滑入 450 ms，普通滑出 320 ms，面板和遮罩在普通关闭时使用同一条缓动曲线。拖拽关闭继续按松手速度调整时长。Chromium 在 1280 × 900 和 390 × 844 验证了间距、逐帧位移、遮罩淡出、触摸拖拽、嵌套层、浮动间距、自定义尺寸和紧凑吸附点；减少动态效果模式也已复测。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#drawer) · [组件源码](src/drawer.rs) · [TSX 参考](references/drawer-tsx/)
-- **线上版本**为 66，发布提交为 `9a288ca`，新增 Switch。Web 打包和 WASM 内容校验已完成。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#switch)
-- **基线复测**于 2026-11-21 通过 `cargo fmt --check` 和 `cargo test --offline --locked`，共 106 项 Rust 测试（全量复测使用去除调试符号的构建）。
+- **线上版本**为 67，发布提交为 `ffd9488`，新增 Table。Web 打包和 WASM 内容校验已完成。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#table)
+- **基线复测**于 2026-11-21 通过 `cargo fmt --check` 和 `cargo test --offline --locked`，共 107 项 Rust 测试（全量复测使用去除调试符号的构建）。
 - **设计参考**已固定 shadcn/ui 源码版本，Obra 预览图已保存。可编辑的 Figma 原文件仍未获取。[参考资料记录](references/README.md)
 - **Accordion** 已发布于 v7（`7abbcb5`），含 7 个官方示例及 Preview / Rust / TSX。支持默认与受控状态、单项与多项展开、禁用、方向键和 RTL。15 项 Rust 测试、Web 打包及 WASM 校验已通过，浏览器视觉核验受预览端口限制。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#accordion) · [组件源码](src/accordion.rs) · [TSX 参考](references/accordion-tsx/)
 - **Alert** 已发布于 v8（`1e44dc4`），含 6 个官方示例及 Preview / Rust / TSX。支持普通和 destructive 样式、自定义主题颜色、操作按钮和 RTL。无头测试覆盖移动端交互、复制代码和历史导航。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#alert) · [组件源码](src/alert.rs) · [TSX 参考](references/alert-tsx/)
@@ -65,6 +65,7 @@
 - **Slider** 已发布于 v64（`524fd48`），含 7 个官方示例及 Preview / Rust / TSX。支持固定数量的滑块、水平和垂直、受控信号、小数步进、相邻滑块推移、禁用和 RTL。纵向示例由可访问名称注明方向。Chromium 在 1280 × 900 和 390 × 844 验证了轨道点按、鼠标和触屏拖动、松手焦点、键盘大步进、链式推移、无障碍数值、主题和代码标签。Rust 测试覆盖提交次数和 RTL 小数键盘操作。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#slider) · [组件源码](src/slider.rs) · [TSX 参考](references/slider-tsx/)
 - **Spinner** 已发布于 v65（`2279e37`），含 8 个官方示例及 Preview / Rust / TSX。默认圆弧和自定义辐条由 Native Shell 绘制，可替换图标、设置尺寸和颜色。具名 Spinner 使用无确定进度的进度条语义，内联图标可设为装饰。Chromium 验证了绘制、主题色、动态切换减少动态效果、RTL 和示例操作，并复测旧 Button 加载状态。Send 和 Cancel 更新本地预览状态。Rust 测试覆盖加载名称和取消。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#spinner) · [组件源码](src/spinner.rs) · [TSX 参考](references/spinner-tsx/)
 - **Switch** 已发布于 v66（`9a288ca`），含 7 个官方示例及 Preview / Rust / TSX。支持受控与初始状态、说明、禁用、无效态、两种尺寸、RTL 和减少动态效果。Field 示例复用相同组件。接受条款后，无效示例会清除错误状态。Chromium 验证了标签和卡片切换、手机焦点、键盘、尺寸、动画、主题、RTL 保留值及代码标签。Rust 测试覆盖默认值、空格键与卡片装配。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#switch) · [组件源码](src/switch.rs) · [TSX 参考](references/switch-tsx/)
+- **Table** 已发布于 v67（`ffd9488`），含 4 个官方示例及 Preview / Rust / TSX。组合部件使用 Native Shell 表格语义，支持固定和弹性列、合计行视觉跨列、表注、行菜单和 RTL。跨列由布局表达，Native Shell 当前无跨列无障碍元数据。Rust 示例按可见发票计算总计，行菜单只显示本地反馈。Chromium 验证了列宽对齐、排序目录、菜单与焦点、RTL 起始位置、触摸和键盘横滑、主题及代码标签。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#table) · [组件源码](src/table.rs) · [TSX 参考](references/table-tsx/)
 
 ## 按官方顺序跟踪
 
@@ -129,8 +130,8 @@
 | 55 | Slider | 已发布 |
 | 56 | Spinner | 已发布 |
 | 57 | Switch | 已发布 |
-| 58 | Table | 待开始 · 下一项 |
-| 59 | Tabs | 待开始 |
+| 58 | Table | 已发布 |
+| 59 | Tabs | 待开始 · 下一项 |
 | 60 | Textarea | 待开始 |
 | 61 | Toast | 待开始 |
 | 62 | Toggle | 待开始 |
