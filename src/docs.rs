@@ -1,12 +1,12 @@
 use nsh_base::theme;
 use nsh_core::{
-    element::{set_clipboard, set_color_scheme},
+    element::{app_url, next_app_url_change, set_app_url_with, set_clipboard, set_color_scheme},
     platform::Appearance,
     prelude::*,
 };
 
 use crate::{
-    examples,
+    accordion_examples, examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -123,10 +123,147 @@ const TSX_RESPONSIVE: &str = include_str!("../references/drawer-tsx/drawer-dialo
 const TSX_LICENSE: &str = include_str!("../references/drawer-tsx/LICENSE.md");
 
 pub(crate) fn page() -> View {
+    use nsh_core::url_scheme::HistoryBehavior;
+
+    let accordion = signal(false);
+    let dark = signal(false);
+    spawn(async move {
+        if let Some(url) = app_url().await {
+            accordion.set(url.ends_with("#accordion"));
+        }
+        loop {
+            accordion.set(next_app_url_change().await.url.ends_with("#accordion"));
+        }
+    });
+    let navigate = move |show_accordion| {
+        accordion.set(show_accordion);
+        let anchor = if show_accordion {
+            "#accordion"
+        } else {
+            "#drawer"
+        };
+        let _ = set_app_url_with(anchor, HistoryBehavior::Push);
+    };
+    let toggle_theme = move || {
+        dark.update(|enabled| *enabled = !*enabled);
+        set_color_scheme(if dark.get() {
+            Appearance::Dark
+        } else {
+            Appearance::Light
+        });
+    };
+
+    view()
+        .flex_1()
+        .child(when(accordion, move || {
+            accordion_page(move || navigate(false), toggle_theme)
+        }))
+        .child(when(
+            move || !accordion.get(),
+            move || drawer_page(move || navigate(true), toggle_theme),
+        ))
+}
+
+fn accordion_page(drawer: impl Fn() + 'static, toggle_theme: impl Fn() + 'static) -> View {
+    let article = view()
+        .w_full()
+        .max_w(px(820.0))
+        .self_center()
+        .p_5()
+        .gap_6()
+        .child(muted("Components / Accordion"))
+        .child(
+            text("Accordion")
+                .role(AccessibilityRole::Header)
+                .text_size(px(42.0))
+                .font_weight(FontWeight::BOLD),
+        )
+        .child(muted(
+            "Interactive headings that expand and collapse sections of content.",
+        ))
+        .child(
+            view()
+                .items_start()
+                .child(button("Base UI reference", Variant::Outline, || {
+                    let _ = open_url("https://ui.shadcn.com/docs/components/base/accordion");
+                })),
+        );
+    macro_rules! demo {
+        ($name:ident, $title:literal) => {
+            example(
+                $title,
+                view()
+                    .w_full()
+                    .max_w(px(384.0))
+                    .child(accordion_examples::$name::preview()),
+                include_str!(concat!("accordion_examples/", stringify!($name), ".rs")),
+                include_str!(concat!(
+                    "../references/accordion-tsx/accordion-",
+                    stringify!($name),
+                    ".tsx"
+                )),
+            )
+        };
+    }
+    let article = article
+        .child(demo!(demo, "Accordion demo"))
+        .child(heading("Usage"))
+        .child(muted("Create an Accordion with the IDs of the items that start open. Each AccordionItem pairs a trigger and a content panel. Pass a signal with with_value to share the selection with the rest of your app."))
+        .child(heading("Basic"))
+        .child(demo!(basic, "Basic"))
+        .child(heading("Multiple"))
+        .child(demo!(multiple, "Multiple"))
+        .child(heading("Disabled"))
+        .child(demo!(disabled, "Disabled"))
+        .child(heading("Borders"))
+        .child(demo!(borders, "Borders"))
+        .child(heading("Card"))
+        .child(demo!(card, "Card"))
+        .child(heading("RTL"))
+        .child(demo!(rtl, "RTL"))
+        .child(heading("API Reference"))
+        .child(api_row("Accordion", "Set defaults, share state with a signal, allow multiple open items, or set the layout direction."))
+        .child(api_row("AccordionItem", "Assign a stable ID and optionally disable the trigger."))
+        .child(api_row("AccordionTrigger / AccordionContent", "Set the trigger label and supply any Native Shell elements as panel content."));
+
+    view()
+        .flex_1()
+        .bg(move || theme().background)
+        .text_color(move || theme().foreground)
+        .child(
+            view()
+                .flex_row()
+                .items_center()
+                .justify_between()
+                .min_h(px(58.0))
+                .px_4()
+                .border_b(px(1.0))
+                .border_color(move || theme().border)
+                .child(text("nsh-foundation").font_weight(FontWeight::SEMIBOLD))
+                .child(
+                    view()
+                        .flex_row()
+                        .gap_1()
+                        .child(button("Drawer", Variant::Ghost, drawer))
+                        .child(button("Theme", Variant::Ghost, toggle_theme)),
+                ),
+        )
+        .child(
+            scroll()
+                .flex_1()
+                .min_h(px(0.0))
+                .test_id("accordion-docs-scroll")
+                .child(article),
+        )
+}
+
+fn drawer_page(
+    accordion: impl Fn() + Copy + 'static,
+    toggle_theme: impl Fn() + Copy + 'static,
+) -> View {
     let scroll_ref = element_ref();
     let locations = stored([0.0_f32; SECTIONS.len()]);
     let menu = signal(false);
-    let dark = signal(false);
     let selected = signal(None::<usize>);
     let status = signal(None::<SharedString>);
     let show_tsx_license = signal(false);
@@ -283,14 +420,11 @@ pub(crate) fn page() -> View {
                                 })
                             },
                         ))
-                        .child(button("Theme", Variant::Ghost, move || {
-                            dark.update(|enabled| *enabled = !*enabled);
-                            set_color_scheme(if dark.get() {
-                                Appearance::Dark
-                            } else {
-                                Appearance::Light
-                            });
-                        })),
+                        .child(
+                            button("Accordion", Variant::Ghost, accordion)
+                                .test_id("open-accordion-docs"),
+                        )
+                        .child(button("Theme", Variant::Ghost, toggle_theme)),
                 ),
         )
         .child(when(menu, move || {
@@ -305,7 +439,10 @@ pub(crate) fn page() -> View {
                 .flex_1()
                 .min_h(px(0.0))
                 .flex_row()
-                .child(when(|| window().width.0 >= 940.0, move || sidebar(go)))
+                .child(when(
+                    || window().width.0 >= 940.0,
+                    move || sidebar(go, accordion),
+                ))
                 .child(
                     scroll()
                         .flex_1()
@@ -406,7 +543,7 @@ fn section_links(go: impl Fn(usize) + Copy + 'static, selected: Signal<Option<us
     links
 }
 
-fn sidebar(go: impl Fn(usize) + Copy + 'static) -> View {
+fn sidebar(go: impl Fn(usize) + Copy + 'static, accordion: impl Fn() + 'static) -> View {
     view()
         .w(px(215.0))
         .flex_shrink_0()
@@ -430,6 +567,11 @@ fn sidebar(go: impl Fn(usize) + Copy + 'static) -> View {
             view()
                 .gap_2()
                 .child(muted("Components"))
+                .child(
+                    view()
+                        .items_start()
+                        .child(button("Accordion", Variant::Ghost, accordion)),
+                )
                 .child(view().items_start().child(button(
                     "Drawer",
                     Variant::Secondary,
