@@ -12,7 +12,7 @@ use crate::{
     chart_examples, checkbox_examples, code_block_examples, collapsible_examples,
     combobox_examples, command_examples, context_menu_examples, data_table_examples,
     date_picker_examples, dialog_examples, dropdown_menu_examples, empty_examples, examples,
-    field_examples, hover_card_examples, input_examples, input_group_examples,
+    field_examples, hover_card_examples, input_examples, input_group_examples, input_otp_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -163,6 +163,7 @@ enum DocsPage {
     HoverCard,
     Input,
     InputGroup,
+    InputOtp,
 }
 
 type ComponentRoute = (
@@ -390,6 +391,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#input-group",
         "input-group-docs-scroll",
         input_group_page,
+    ),
+    (
+        DocsPage::InputOtp,
+        "Input OTP",
+        "#input-otp",
+        "input-otp-docs-scroll",
+        input_otp_page,
     ),
 ];
 
@@ -1873,6 +1881,58 @@ fn input_group_page() -> View {
     .child(api_row("InputGroupAddon", "Choose InlineStart, InlineEnd, BlockStart, or BlockEnd. The inline sides follow the layout direction. Press a text addon to focus the field."))
     .child(api_row("input_group_input / input_group_textarea", "Create a native control styled for the group. Configure labels, values, keyboard and events on the returned control."))
     .child(api_row("input_group_text / input_group_button", "Use the supplied text and button styles for adornments and interactive actions."))
+}
+
+fn input_otp_page() -> View {
+    macro_rules! demo {
+        ($example:ident, $source:literal, $title:literal) => {
+            example(
+                $title,
+                input_otp_examples::$example(),
+                include_str!("input_otp_examples.rs"),
+                include_str!(concat!(
+                    "../references/input-otp-tsx/input-otp-",
+                    $source,
+                    ".tsx"
+                )),
+            )
+        };
+    }
+    component_article(
+        DocsPage::InputOtp,
+        "Enter a one-time verification code with one keyboard field and visible slots.",
+        "https://ui.shadcn.com/docs/components/base/input-otp",
+    )
+    .child(demo!(demo, "demo", "Input OTP demo"))
+    .child(heading("Usage"))
+    .child(code_block(r#"InputOtp::new("Verification code", 6)
+    .group(InputOtpGroup::slots(0..3))
+    .separator(InputOtpSeparator::new())
+    .group(InputOtpGroup::slots(3..6))"#))
+    .child(heading("Composition"))
+    .child(muted("Use InputOtpGroup to lay out adjacent cells. Add indexed InputOtpSlot values or use slots with a range. InputOtpSeparator divides groups."))
+    .child(heading("Pattern"))
+    .child(demo!(pattern, "pattern", "Pattern"))
+    .child(heading("Separator"))
+    .child(demo!(separator, "separator", "Separator"))
+    .child(heading("Disabled"))
+    .child(demo!(disabled, "disabled", "Disabled"))
+    .child(heading("Controlled"))
+    .child(demo!(controlled, "controlled", "Controlled"))
+    .child(heading("Invalid"))
+    .child(demo!(invalid, "invalid", "Invalid"))
+    .child(heading("Four Digits"))
+    .child(demo!(four_digits, "four-digits", "Four Digits"))
+    .child(heading("Alphanumeric"))
+    .child(demo!(alphanumeric, "alphanumeric", "Alphanumeric"))
+    .child(heading("Form"))
+    .child(demo!(form, "form", "Form"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("InputOtp", "Choose the number of slots and bind a Rust signal with value. Use on_change, on_complete, or on_submit to respond to edits."))
+    .child(api_row("InputOtpPattern", "Choose Digits, Alphanumeric, or a custom character predicate. The built-in patterns normalize supported localized digits and strip separators from pasted codes."))
+    .child(api_row("InputOtpSlot", "Index the character the slot shows. Set invalid on a slot or the complete input to display validation styling."))
 }
 
 fn component_page(

@@ -66,6 +66,8 @@ pub mod input;
 mod input_examples;
 pub mod input_group;
 mod input_group_examples;
+pub mod input_otp;
+mod input_otp_examples;
 mod menu_parts;
 mod ui;
 
