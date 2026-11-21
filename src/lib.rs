@@ -87,6 +87,8 @@ pub mod native_select;
 mod native_select_examples;
 pub mod navigation_menu;
 mod navigation_menu_examples;
+pub mod pagination;
+mod pagination_examples;
 mod ui;
 
 use nsh_core::prelude::*;

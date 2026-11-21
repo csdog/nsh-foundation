@@ -15,6 +15,7 @@ use crate::{
     field_examples, hover_card_examples, input_examples, input_group_examples, input_otp_examples,
     item_examples, kbd_examples, label_examples, marker_examples, menubar_examples,
     message_examples, message_scroller_examples, native_select_examples, navigation_menu_examples,
+    pagination_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -175,6 +176,7 @@ enum DocsPage {
     MessageScroller,
     NativeSelect,
     NavigationMenu,
+    Pagination,
 }
 
 type ComponentRoute = (
@@ -466,6 +468,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#navigation-menu",
         "navigation-menu-docs-scroll",
         navigation_menu_page,
+    ),
+    (
+        DocsPage::Pagination,
+        "Pagination",
+        "#pagination",
+        "pagination-docs-scroll",
+        pagination_page,
     ),
 ];
 
@@ -2399,6 +2408,50 @@ fn navigation_menu_page() -> View {
     .child(api_row("NavigationMenu / NavigationMenuList", "Group top-level links and triggers under a named navigation landmark. Enable indicator to mark the open trigger."))
     .child(api_row("NavigationMenuItem / NavigationMenuTrigger", "Add a direct link, or pair a trigger with a panel. Arrow keys navigate the bar, and Escape closes the panel."))
     .child(api_row("NavigationMenuContent / NavigationMenuLink", "Compose an anchored list or grid of links. Set columns and width for larger panels."))
+}
+
+fn pagination_page() -> View {
+    macro_rules! demo {
+        ($function:ident, $reference:literal, $name:literal) => {
+            example(
+                $name,
+                pagination_examples::$function(),
+                include_str!("pagination_examples.rs"),
+                include_str!(concat!(
+                    "../references/pagination-tsx/pagination-",
+                    $reference,
+                    ".tsx"
+                )),
+            )
+        };
+    }
+    component_article(
+        DocsPage::Pagination,
+        "Navigate a series of pages with numbered links and previous or next controls.",
+        "https://ui.shadcn.com/docs/components/base/pagination",
+    )
+    .child(demo!(demo, "demo", "Pagination demo"))
+    .child(heading("Usage"))
+    .child(code_block(r#"let page = signal(2);
+Pagination::new(
+    PaginationContent::new().item(PaginationItem::new(
+        PaginationLink::action("1", move || page.set(1))
+            .label("Page 1")
+            .current(move || page.get() == 1),
+    )),
+)"#))
+    .child(heading("Simple"))
+    .child(demo!(simple, "simple", "Simple"))
+    .child(heading("Icons Only"))
+    .child(demo!(icons_only, "icons-only", "Icons Only"))
+    .child(heading("Page Links"))
+    .child(muted("Use PaginationLink::new(label, href) for a destination or PaginationLink::action(label, handler) when the page changes in place. Bind current to mark the active page for assistive technology."))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("Pagination / PaginationContent / PaginationItem", "Group page controls in a named navigation landmark."))
+    .child(api_row("PaginationLink", "Set the current page and an accessible label. Disable unavailable actions or destinations."))
+    .child(api_row("PaginationPrevious / PaginationNext / PaginationEllipsis", "Add directional controls and a visual marker for omitted pages. Previous and next collapse to chevrons below 640 points."))
 }
 
 fn component_page(
