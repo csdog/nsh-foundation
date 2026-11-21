@@ -48,6 +48,8 @@ pub mod data_table;
 mod data_table_examples;
 pub mod date_picker;
 mod date_picker_examples;
+pub mod dialog;
+mod dialog_examples;
 mod docs;
 pub mod drawer;
 mod examples;

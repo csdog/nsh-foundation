@@ -61,7 +61,7 @@
 | 21 | Context Menu | 已发布 |
 | 22 | Data Table | 已发布 |
 | 23 | Date Picker | 已发布 |
-| 24 | Dialog | 待开始 · 下一项 |
+| 24 | Dialog | 已实现 · 待发布 |
 | 25 | Direction | 待开始 |
 | 26 | Drawer | 已发布 |
 | 27 | Dropdown Menu | 待开始 |

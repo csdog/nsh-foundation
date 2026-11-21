@@ -11,7 +11,7 @@ use crate::{
     button_examples, button_group_examples, calendar_examples, card_examples, carousel_examples,
     chart_examples, checkbox_examples, code_block_examples, collapsible_examples,
     combobox_examples, command_examples, context_menu_examples, data_table_examples,
-    date_picker_examples, examples,
+    date_picker_examples, dialog_examples, examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -154,6 +154,7 @@ enum DocsPage {
     ContextMenu,
     DataTable,
     DatePicker,
+    Dialog,
 }
 
 type ComponentRoute = (
@@ -325,6 +326,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#date-picker",
         "date-picker-docs-scroll",
         date_picker_page,
+    ),
+    (
+        DocsPage::Dialog,
+        "Dialog",
+        "#dialog",
+        "dialog-docs-scroll",
+        dialog_page,
     ),
 ];
 
@@ -1432,6 +1440,43 @@ fn date_picker_page() -> View {
     .child(demo!(natural_language, "natural-language", "Natural Language Picker"))
     .child(heading("RTL"))
     .child(demo!(rtl, "rtl", "RTL"))
+}
+
+fn dialog_page() -> View {
+    macro_rules! demo {
+        ($example:ident, $source:literal, $title:literal) => {
+            example(
+                $title,
+                dialog_examples::$example(),
+                include_str!("dialog_examples.rs"),
+                include_str!(concat!("../references/dialog-tsx/dialog-", $source, ".tsx")),
+            )
+        };
+    }
+    component_article(
+        DocsPage::Dialog,
+        "Open a modal window for a focused task.",
+        "https://ui.shadcn.com/docs/components/base/dialog",
+    )
+    .child(demo!(demo, "demo", "Dialog demo"))
+    .child(heading("Usage"))
+    .child(code_block("let state = Dialog::new(signal(false));\nlet trigger = DialogTrigger::new(state, \"Open Dialog\");\nlet title = DialogTitle::new(\"Edit profile\");\nlet content = DialogContent::new(state, DialogHeader::new(title));"))
+    .child(heading("Composition"))
+    .child(muted("Share the same Dialog state between DialogTrigger, DialogContent, and DialogClose. Compose a header from DialogTitle and DialogDescription."))
+    .child(heading("Custom Close Button"))
+    .child(demo!(close_button, "close-button", "Custom Close Button"))
+    .child(heading("No Close Button"))
+    .child(demo!(no_close_button, "no-close-button", "No Close Button"))
+    .child(heading("Sticky Footer"))
+    .child(demo!(sticky_footer, "sticky-footer", "Sticky Footer"))
+    .child(heading("Scrollable Content"))
+    .child(demo!(scrollable_content, "scrollable-content", "Scrollable Content"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("DialogContent", "Mounts the modal, backdrop, and optional corner action. Configure Escape and outside-click dismissal independently."))
+    .child(api_row("DialogFooter", "Keeps actions visible while the body scrolls. On narrow screens the actions stack."))
+    .child(api_row("DialogClose", "Use render() to give an existing button the close action."))
 }
 
 fn component_page(
