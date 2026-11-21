@@ -12,6 +12,8 @@ pub mod aspect_ratio;
 mod aspect_ratio_examples;
 pub mod attachment;
 mod attachment_examples;
+pub mod avatar;
+mod avatar_examples;
 mod docs;
 pub mod drawer;
 mod examples;

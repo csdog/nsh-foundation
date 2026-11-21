@@ -7,7 +7,7 @@ use nsh_core::{
 
 use crate::{
     accordion_examples, alert_dialog_examples, alert_examples, aspect_ratio_examples,
-    attachment_examples, examples,
+    attachment_examples, avatar_examples, examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -132,6 +132,7 @@ enum DocsPage {
     AlertDialog,
     AspectRatio,
     Attachment,
+    Avatar,
 }
 
 impl DocsPage {
@@ -143,6 +144,7 @@ impl DocsPage {
             Self::AlertDialog => "Alert Dialog",
             Self::AspectRatio => "Aspect Ratio",
             Self::Attachment => "Attachment",
+            Self::Avatar => "Avatar",
         }
     }
 
@@ -154,6 +156,7 @@ impl DocsPage {
             Self::AlertDialog => "#alert-dialog",
             Self::AspectRatio => "#aspect-ratio",
             Self::Attachment => "#attachment",
+            Self::Avatar => "#avatar",
         }
     }
 
@@ -164,6 +167,7 @@ impl DocsPage {
             Self::AlertDialog,
             Self::AspectRatio,
             Self::Attachment,
+            Self::Avatar,
         ]
         .into_iter()
         .find(|page| url.ends_with(page.anchor()))
@@ -262,6 +266,18 @@ pub(crate) fn page() -> View {
                     navigate,
                     toggle_theme,
                     "attachment-docs-scroll",
+                )
+            },
+        ))
+        .child(when(
+            move || page.get() == DocsPage::Avatar,
+            move || {
+                component_page(
+                    DocsPage::Avatar,
+                    avatar_page(),
+                    navigate,
+                    toggle_theme,
+                    "avatar-docs-scroll",
                 )
             },
         ))
@@ -506,6 +522,48 @@ fn attachment_page() -> View {
     .child(api_row("AttachmentGroup", "Arrange equal-width cards in a horizontal scrolling group."))
 }
 
+fn avatar_page() -> View {
+    macro_rules! demo {
+        ($module:ident, $name:literal, $title:literal) => {
+            example(
+                $title,
+                avatar_examples::$module::preview(),
+                include_str!(concat!("avatar_examples/", stringify!($module), ".rs")),
+                include_str!(concat!("../references/avatar-tsx/avatar-", $name, ".tsx")),
+            )
+        };
+    }
+    component_article(
+        DocsPage::Avatar,
+        "A profile image with a fallback, optional badge, and grouping.",
+        "https://ui.shadcn.com/docs/components/base/avatar",
+    )
+    .child(demo!(demo, "demo", "Avatar demo"))
+    .child(heading("Usage"))
+    .child(muted("Compose AvatarImage and AvatarFallback inside Avatar. Set the accessible name on Avatar and add an optional AvatarBadge."))
+    .child(heading("Basic"))
+    .child(demo!(basic, "basic", "Basic"))
+    .child(heading("Badge"))
+    .child(demo!(badge, "badge", "Badge"))
+    .child(heading("Badge with Icon"))
+    .child(demo!(badge_icon, "badge-icon", "Badge with Icon"))
+    .child(heading("Avatar Group"))
+    .child(demo!(group, "group", "Avatar Group"))
+    .child(heading("Avatar Group Count"))
+    .child(demo!(group_count, "group-count", "Avatar Group Count"))
+    .child(heading("Avatar Group with Icon"))
+    .child(demo!(group_count_icon, "group-count-icon", "Avatar Group with Icon"))
+    .child(heading("Sizes"))
+    .child(demo!(size, "size", "Sizes"))
+    .child(heading("Dropdown"))
+    .child(demo!(dropdown, "dropdown", "Dropdown"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("Avatar", "Use a name with an optional image, fallback, and status badge."))
+    .child(api_row("AvatarGroup", "Overlap avatars and supply an accessible count or icon for additional members."))
+}
+
 fn component_page(
     page: DocsPage,
     article: View,
@@ -576,6 +634,7 @@ fn component_links(page: DocsPage, navigate: impl Fn(DocsPage) + Copy + 'static)
         DocsPage::AlertDialog,
         DocsPage::AspectRatio,
         DocsPage::Attachment,
+        DocsPage::Avatar,
         DocsPage::Drawer,
     ] {
         if target != page {

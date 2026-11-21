@@ -25,7 +25,7 @@
 | 3 | Alert Dialog | 已发布 |
 | 4 | Aspect Ratio | 已发布 |
 | 5 | Attachment | 已发布 |
-| 6 | Avatar | 待开始 · 下一项 |
+| 6 | Avatar | 已实现 · 待发布 |
 | 7 | Badge | 待开始 |
 | 8 | Breadcrumb | 待开始 |
 | 9 | Bubble | 待开始 |
