@@ -53,7 +53,10 @@ mod dialog_examples;
 pub mod direction;
 mod docs;
 pub mod drawer;
+pub mod dropdown_menu;
+mod dropdown_menu_examples;
 mod examples;
+mod menu_parts;
 mod ui;
 
 use nsh_core::prelude::*;

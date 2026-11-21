@@ -11,7 +11,7 @@ use crate::{
     button_examples, button_group_examples, calendar_examples, card_examples, carousel_examples,
     chart_examples, checkbox_examples, code_block_examples, collapsible_examples,
     combobox_examples, command_examples, context_menu_examples, data_table_examples,
-    date_picker_examples, dialog_examples, examples,
+    date_picker_examples, dialog_examples, dropdown_menu_examples, examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -156,6 +156,7 @@ enum DocsPage {
     DatePicker,
     Dialog,
     Direction,
+    DropdownMenu,
 }
 
 type ComponentRoute = (
@@ -341,6 +342,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#direction",
         "direction-docs-scroll",
         direction_page,
+    ),
+    (
+        DocsPage::DropdownMenu,
+        "Dropdown Menu",
+        "#dropdown-menu",
+        "dropdown-menu-docs-scroll",
+        dropdown_menu_page,
     ),
 ];
 
@@ -1509,6 +1517,61 @@ fn direction_page() -> View {
     .child(code_panel(include_str!("../references/direction-tsx/direction.tsx"), true))
 }
 
+fn dropdown_menu_page() -> View {
+    macro_rules! demo {
+        ($example:ident, $source:literal, $title:literal) => {
+            example(
+                $title,
+                dropdown_menu_examples::$example(),
+                include_str!("dropdown_menu_examples.rs"),
+                include_str!(concat!(
+                    "../references/dropdown-menu-tsx/dropdown-menu-",
+                    $source,
+                    ".tsx"
+                )),
+            )
+        };
+    }
+    component_article(
+        DocsPage::DropdownMenu,
+        "Open a menu of actions from a button.",
+        "https://ui.shadcn.com/docs/components/base/dropdown-menu",
+    )
+    .child(demo!(demo, "demo", "Dropdown Menu demo"))
+    .child(heading("Usage"))
+    .child(code_block("DropdownMenu::new(\n    DropdownMenuTrigger::new(\"Open\"),\n    DropdownMenuContent::new().child(\n        DropdownMenuItem::new(\"Profile\").on_select(open_profile),\n    ),\n)"))
+    .child(heading("Composition"))
+    .child(muted("Use a button or custom trigger with one content surface. Compose labels, groups, separators, nested submenus, and checked items."))
+    .child(heading("Basic"))
+    .child(demo!(basic, "basic", "Basic"))
+    .child(heading("Submenu"))
+    .child(demo!(submenu, "submenu", "Submenu"))
+    .child(heading("Shortcuts"))
+    .child(demo!(shortcuts, "shortcuts", "Shortcuts"))
+    .child(heading("Icons"))
+    .child(demo!(icons, "icons", "Icons"))
+    .child(heading("Checkboxes"))
+    .child(demo!(checkboxes, "checkboxes", "Checkboxes"))
+    .child(heading("Checkboxes Icons"))
+    .child(demo!(checkboxes_icons, "checkboxes-icons", "Checkboxes Icons"))
+    .child(heading("Radio Group"))
+    .child(demo!(radio_group, "radio-group", "Radio Group"))
+    .child(heading("Radio Icons"))
+    .child(demo!(radio_icons, "radio-icons", "Radio Icons"))
+    .child(heading("Destructive"))
+    .child(demo!(destructive, "destructive", "Destructive"))
+    .child(heading("Avatar"))
+    .child(demo!(avatar, "avatar", "Avatar"))
+    .child(heading("Complex"))
+    .child(demo!(complex, "complex", "Complex"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("DropdownMenuContent", "Choose placement, alignment, and width. The native menu keeps the popup within available space and can show a sheet on touch devices."))
+    .child(api_row("DropdownMenuItem", "Use on_select to run an action. A Rust signal can supply checked or radio state. Set close_on_select(false) to keep the menu open while editing settings."))
+    .child(api_row("DropdownMenuSubmenu", "Add nested items or another submenu. Use the arrow keys to navigate, Enter to select, and Escape to go back or dismiss."))
+}
+
 fn component_page(
     page: DocsPage,
     article: View,
@@ -1573,11 +1636,11 @@ fn component_links(page: DocsPage, navigate: impl Fn(DocsPage) + Copy + 'static)
     let mut links = view()
         .role(AccessibilityRole::Navigation)
         .label("Components");
-    for target in COMPONENTS
-        .iter()
-        .map(|route| route.0)
-        .chain([DocsPage::Drawer])
-    {
+    // Drawer uses a separate page layout and keeps its catalogue position.
+    let ordered = COMPONENTS.iter().map(|route| route.0).flat_map(|target| {
+        std::iter::once(target).chain((target == DocsPage::Direction).then_some(DocsPage::Drawer))
+    });
+    for target in ordered {
         if target != page {
             links = links.child(button(target.label(), Variant::Ghost, move || {
                 navigate(target)
