@@ -17,6 +17,7 @@ use crate::{
     message_examples, message_scroller_examples, native_select_examples, navigation_menu_examples,
     pagination_examples, popover_examples, progress_examples, questionnaire_examples,
     radio_group_examples, resizable_examples, scroll_area_examples, select_examples,
+    separator_examples,
     ui::{Variant, button, heading, muted},
 };
 
@@ -185,6 +186,7 @@ enum DocsPage {
     Resizable,
     ScrollArea,
     Select,
+    Separator,
 }
 
 type ComponentRoute = (
@@ -532,6 +534,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#select",
         "select-docs-scroll",
         select_page,
+    ),
+    (
+        DocsPage::Separator,
+        "Separator",
+        "#separator",
+        "separator-docs-scroll",
+        separator_page,
     ),
 ];
 
@@ -2811,6 +2820,44 @@ fn select_page() -> View {
     .child(api_row("SelectTrigger / SelectValue", "Set the trigger size and the placeholder shown before a choice is made."))
     .child(api_row("SelectContent / SelectGroup / SelectItem", "Add labeled groups and options. Set the maximum list height or choose whether a selected item overlaps the desktop trigger."))
     .child(muted("On touch devices, Native Shell displays the list in a bottom sheet. Longer lists use the Native Shell scrollbar and keyboard navigation."))
+}
+
+fn separator_page() -> View {
+    macro_rules! demo {
+        ($function:ident, $file:literal, $name:literal) => {
+            example(
+                $name,
+                separator_examples::$function(),
+                include_str!("separator_examples.rs"),
+                include_str!(concat!(
+                    "../references/separator-tsx/separator-",
+                    $file,
+                    ".tsx"
+                )),
+            )
+        };
+    }
+    component_article(
+        DocsPage::Separator,
+        "Visually divide sections, controls, or rows.",
+        "https://ui.shadcn.com/docs/components/base/separator",
+    )
+    .child(demo!(demo, "demo", "Separator demo"))
+    .child(heading("Usage"))
+    .child(code_block(r#"Separator::new()
+
+Separator::new().orientation(SeparatorOrientation::Vertical)"#))
+    .child(heading("Vertical"))
+    .child(demo!(vertical, "vertical", "Vertical"))
+    .child(heading("Menu"))
+    .child(demo!(menu, "menu", "Menu"))
+    .child(heading("List"))
+    .child(demo!(list, "list", "List"))
+    .child(heading("RTL"))
+    .child(demo!(rtl, "rtl", "RTL"))
+    .child(heading("API Reference"))
+    .child(api_row("Separator", "Horizontal lines fill their container width. Vertical lines stretch to the height of their row."))
+    .child(api_row("Accessibility", "A line is decorative by default. Use label to expose a named break as static text in Native Shell."))
 }
 
 fn component_page(
