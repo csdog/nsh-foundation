@@ -155,6 +155,7 @@ enum DocsPage {
     DataTable,
     DatePicker,
     Dialog,
+    Direction,
 }
 
 type ComponentRoute = (
@@ -333,6 +334,13 @@ const COMPONENTS: &[ComponentRoute] = &[
         "#dialog",
         "dialog-docs-scroll",
         dialog_page,
+    ),
+    (
+        DocsPage::Direction,
+        "Direction",
+        "#direction",
+        "direction-docs-scroll",
+        direction_page,
     ),
 ];
 
@@ -1477,6 +1485,28 @@ fn dialog_page() -> View {
     .child(api_row("DialogContent", "Mounts the modal, backdrop, and optional corner action. Configure Escape and outside-click dismissal independently."))
     .child(api_row("DialogFooter", "Keeps actions visible while the body scrolls. On narrow screens the actions stack."))
     .child(api_row("DialogClose", "Use render() to give an existing button the close action."))
+}
+
+fn direction_page() -> View {
+    component_article(
+        DocsPage::Direction,
+        "Set the layout direction for an application or a section.",
+        "https://ui.shadcn.com/docs/components/base/direction",
+    )
+    .child(example(
+        "Direction demo",
+        card_examples::login::direction(),
+        include_str!("card_examples/login.rs"),
+        include_str!("../references/card-tsx/card-rtl.tsx"),
+    ))
+    .child(heading("Usage"))
+    .child(muted("Wrap a view in DirectionProvider. Supply Direction::Ltr, Direction::Rtl, or a Rust signal to switch direction at runtime. An inner provider can override direction for its own children."))
+    .child(code_block("let direction = signal(Direction::Rtl);\n\nDirectionProvider::new(direction, || {\n    view().child(text(\"Content in this direction scope\"))\n})"))
+    .child(heading("use_direction"))
+    .child(muted("Read the nearest provider from a component inside the scope. Without a provider the value follows the Native Shell surface."))
+    .child(code_block("let direction = use_direction();\ntext(move || format!(\"Current direction: {}\", direction.get().as_str()))"))
+    .child(heading("TSX provider"))
+    .child(code_panel(include_str!("../references/direction-tsx/direction.tsx"), true))
 }
 
 fn component_page(

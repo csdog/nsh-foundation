@@ -50,6 +50,7 @@ pub mod date_picker;
 mod date_picker_examples;
 pub mod dialog;
 mod dialog_examples;
+pub mod direction;
 mod docs;
 pub mod drawer;
 mod examples;

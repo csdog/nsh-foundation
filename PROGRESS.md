@@ -63,7 +63,7 @@
 | 22 | Data Table | 已发布 |
 | 23 | Date Picker | 已发布 |
 | 24 | Dialog | 已发布 |
-| 25 | Direction | 待开始 · 下一项 |
+| 25 | Direction | 已实现 · 待发布 |
 | 26 | Drawer | 已发布 |
 | 27 | Dropdown Menu | 待开始 |
 | 28 | Empty | 待开始 |

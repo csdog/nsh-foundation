@@ -3,6 +3,7 @@ use nsh_core::{AccessibilityState, KeyboardType, element::LayoutDirection, prelu
 use nsh_foundation::{
     button::{Button, ButtonSize, ButtonVariant},
     card::{Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle},
+    direction::{Direction, DirectionProvider, use_direction},
 };
 
 struct Labels {
@@ -109,6 +110,14 @@ pub fn spacing() -> impl IntoElement {
 }
 
 pub fn rtl() -> impl IntoElement {
+    rtl_preview(false)
+}
+
+pub fn direction() -> impl IntoElement {
+    rtl_preview(true)
+}
+
+fn rtl_preview(show_direction: bool) -> impl IntoElement {
     let language = signal(1);
     let choices = [
         ("English", &ENGLISH),
@@ -137,15 +146,31 @@ pub fn rtl() -> impl IntoElement {
         .max_w(px(384.0))
         .gap_4()
         .child(controls)
-        .child(dynamic(move || {
-            let index = language.get();
-            let direction = if index == 0 {
-                LayoutDirection::Ltr
-            } else {
-                LayoutDirection::Rtl
-            };
-            login(choices[index].1, direction, 20.0, "card-rtl")
-        }))
+        .child(DirectionProvider::new(
+            move || {
+                if language.get() == 0 {
+                    Direction::Ltr
+                } else {
+                    Direction::Rtl
+                }
+            },
+            move || {
+                let direction = use_direction();
+                let status = direction.clone();
+                view()
+                    .gap_2()
+                    .child(show_direction.then(|| {
+                        text(move || format!("Current direction: {}", status.get().as_str()))
+                            .test_id("direction-value")
+                            .text_sm()
+                            .text_color(move || theme().muted_foreground)
+                    }))
+                    .child(dynamic(move || {
+                        let copy = choices[language.get()].1;
+                        login(copy, direction.get().into(), 20.0, "card-rtl")
+                    }))
+            },
+        ))
 }
 
 fn login(
