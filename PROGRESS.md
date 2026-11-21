@@ -1,12 +1,12 @@
 # nsh-foundation 组件进度
 
-更新于 2026-11-21。已发布 **55 / 66**，待开始 **11 / 66**。下一项是 **Spinner（#56）**。[实施计划](PLAN.md)
+更新于 2026-11-21。已发布 **56 / 66**，待开始 **10 / 66**。下一项是 **Switch（#57）**。[实施计划](PLAN.md)
 
 ## 已交付基线
 
 - **Drawer** 含 9 个交互示例及 Preview / Rust / TSX 标签。v51（`1857e44`）按 Rhea 将 16 px 留白放回 Header、Footer 和各示例正文，正文可独立设置内边距。边缘面板默认留 8 px 外边距，浮动示例为 16 px。滑入 450 ms，普通滑出 320 ms，面板和遮罩在普通关闭时使用同一条缓动曲线。拖拽关闭继续按松手速度调整时长。Chromium 在 1280 × 900 和 390 × 844 验证了间距、逐帧位移、遮罩淡出、触摸拖拽、嵌套层、浮动间距、自定义尺寸和紧凑吸附点；减少动态效果模式也已复测。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#drawer) · [组件源码](src/drawer.rs) · [TSX 参考](references/drawer-tsx/)
-- **线上版本**为 64，发布提交为 `524fd48`，新增 Slider。Web 打包和 WASM 内容校验已完成。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#slider)
-- **基线复测**于 2026-11-21 通过 `cargo fmt --check` 和 `cargo test --offline --locked`，共 103 项 Rust 测试（全量复测使用去除调试符号的构建）。
+- **线上版本**为 65，发布提交为 `2279e37`，新增 Spinner。Web 打包和 WASM 内容校验已完成。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#spinner)
+- **基线复测**于 2026-11-21 通过 `cargo fmt --check` 和 `cargo test --offline --locked`，共 104 项 Rust 测试（全量复测使用去除调试符号的构建）。
 - **设计参考**已固定 shadcn/ui 源码版本，Obra 预览图已保存。可编辑的 Figma 原文件仍未获取。[参考资料记录](references/README.md)
 - **Accordion** 已发布于 v7（`7abbcb5`），含 7 个官方示例及 Preview / Rust / TSX。支持默认与受控状态、单项与多项展开、禁用、方向键和 RTL。15 项 Rust 测试、Web 打包及 WASM 校验已通过，浏览器视觉核验受预览端口限制。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#accordion) · [组件源码](src/accordion.rs) · [TSX 参考](references/accordion-tsx/)
 - **Alert** 已发布于 v8（`1e44dc4`），含 6 个官方示例及 Preview / Rust / TSX。支持普通和 destructive 样式、自定义主题颜色、操作按钮和 RTL。无头测试覆盖移动端交互、复制代码和历史导航。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#alert) · [组件源码](src/alert.rs) · [TSX 参考](references/alert-tsx/)
@@ -63,6 +63,7 @@
 - **Sidebar** 已发布于 v62（`effff22`），含工作区主示例、受控模式和 RTL 示例及 Preview / Rust / TSX。支持左右边缘、普通／浮动／内嵌样式、三种折叠方式、可配置宽度及桌面状态持久化。手机使用 Sheet。Chromium 在 1280 × 900 和 390 × 844 验证了折叠、动画、菜单、快捷键、触摸导航、RTL 和代码标签，并复测减少动态效果。工作区命令使用本地反馈，图标使用字符和随站头像。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#sidebar) · [组件源码](src/sidebar.rs) · [TSX 参考](references/sidebar-tsx/)
 - **Skeleton** 已发布于 v63（`3699695`），含 7 个官方示例及 Preview / Rust / TSX。支持自定义尺寸与形状、主题色和可关闭的脉冲动画。装饰形状跳过键盘与无障碍树。Sidebar 菜单占位复用该组件。Chromium 在 1280 × 900、390 × 844 和 320 × 844 验证了尺寸、比例、卡片间距、动画、减少动态效果、RTL、主题和代码标签。Rust 测试覆盖 RTL 镜像时尺寸保持一致。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#skeleton) · [组件源码](src/skeleton.rs) · [TSX 参考](references/skeleton-tsx/)
 - **Slider** 已发布于 v64（`524fd48`），含 7 个官方示例及 Preview / Rust / TSX。支持固定数量的滑块、水平和垂直、受控信号、小数步进、相邻滑块推移、禁用和 RTL。纵向示例由可访问名称注明方向。Chromium 在 1280 × 900 和 390 × 844 验证了轨道点按、鼠标和触屏拖动、松手焦点、键盘大步进、链式推移、无障碍数值、主题和代码标签。Rust 测试覆盖提交次数和 RTL 小数键盘操作。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#slider) · [组件源码](src/slider.rs) · [TSX 参考](references/slider-tsx/)
+- **Spinner** 已发布于 v65（`2279e37`），含 8 个官方示例及 Preview / Rust / TSX。默认圆弧和自定义辐条由 Native Shell 绘制，可替换图标、设置尺寸和颜色。具名 Spinner 使用无确定进度的进度条语义，内联图标可设为装饰。Chromium 验证了绘制、主题色、动态切换减少动态效果、RTL 和示例操作，并复测旧 Button 加载状态。Send 和 Cancel 更新本地预览状态。Rust 测试覆盖加载名称和取消。[在线演示](https://nsh-foundation-drawer.r8smtvbm6v.chatgpt.site/#spinner) · [组件源码](src/spinner.rs) · [TSX 参考](references/spinner-tsx/)
 
 ## 按官方顺序跟踪
 
@@ -125,8 +126,8 @@
 | 53 | Sidebar | 已发布 |
 | 54 | Skeleton | 已发布 |
 | 55 | Slider | 已发布 |
-| 56 | Spinner | 待开始 · 下一项 |
-| 57 | Switch | 待开始 |
+| 56 | Spinner | 已发布 |
+| 57 | Switch | 待开始 · 下一项 |
 | 58 | Table | 待开始 |
 | 59 | Tabs | 待开始 |
 | 60 | Textarea | 待开始 |
