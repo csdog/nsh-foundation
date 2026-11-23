@@ -18,6 +18,60 @@ use nsh_core::{
 };
 
 const FILE_LIMIT: usize = 8;
+const SAMPLE_TITLE: &str = "Mobile layout review";
+
+const SAMPLE_REVIEW: &[(bool, &str)] = &[
+    (false, "Can you review the mobile chat layout?"),
+    (true, "I’d start with the conversation, then check how the history panel and attachment menu behave around it.
+
+Keep the transcript in its own scroll area so the top bar and composer stay in place. On a narrow screen, a short message should size to its text, while a longer one wraps before it reaches the left margin."),
+    (false, "Focus on moving between chats and returning to where I was."),
+    (true, "The history panel should reveal the list by moving the conversation aside. Selecting a thread should bring the conversation back into view.
+
+Give the list room to scroll independently, and keep the New chat action at the bottom. This way the action remains reachable even when the list grows."),
+    (false, "What should we check for attachments?"),
+    (true, "Open the attachment menu from the composer, then choose a photo or a file. Each selected item should be visible before sending and removable on its own.
+
+Also try a short swipe from the left edge. The conversation should follow your finger and return to its starting position when you release early."),
+];
+
+const OTHER_SAMPLES: &[(&str, &str, &str)] = &[
+    (
+        "Release notes",
+        "Draft a short release note for this iteration.",
+        "This release adds mobile history gestures. Open history by swiping in from the left edge, and close it by swiping the exposed conversation back.",
+    ),
+    (
+        "Attachment flow",
+        "What happens when I attach a file?",
+        "Relay displays the file name and size in the draft. You can remove the item before sending. The demo keeps file information in this session.",
+    ),
+    (
+        "Keyboard navigation",
+        "Which keyboard shortcuts can I try?",
+        "Use Enter to send and Shift+Enter for a new line. Press Escape to close chat history or the attachment menu.",
+    ),
+    (
+        "Conversation search",
+        "How do I find an earlier conversation?",
+        "Open history and use its search field. Type part of a conversation title to filter the list, then select a result to return to that conversation.",
+    ),
+    (
+        "Motion settings",
+        "What changes with reduced motion enabled?",
+        "Menu open and close states switch immediately. During a direct swipe, the conversation still follows your finger.",
+    ),
+    (
+        "Responsive preview",
+        "What should I test at a narrow width?",
+        "Open a long conversation, add an attachment, and scroll the history. Make sure the composer stays within the viewport and the touch targets stay reachable.",
+    ),
+    (
+        "Next iteration",
+        "Summarize the next design checks.",
+        "Review long titles, multiline messages, and the keyboard-open layout. Check focus after closing a menu and revisit both light and dark appearances.",
+    ),
+];
 
 fn ink() -> AdaptiveColor {
     AdaptiveColor::new(rgb(0x232323), rgb(0xf0efed))
@@ -88,6 +142,24 @@ impl Thread {
             messages: signal(Vec::new()),
             pending: signal(None),
         }
+    }
+
+    fn sample(id: usize, title: &str, turns: &[(bool, &str)]) -> Self {
+        let thread = Self::new(id);
+        thread.title.set(title.into());
+        thread.messages.set(
+            turns
+                .iter()
+                .enumerate()
+                .map(|(id, &(local_reply, text))| Message {
+                    id,
+                    local_reply,
+                    text: text.into(),
+                    attachments: Vec::new(),
+                })
+                .collect(),
+        );
+        thread
     }
 
     fn can_send(self) -> bool {
@@ -164,10 +236,20 @@ struct Chat {
 
 impl Chat {
     fn new() -> Self {
-        let initial = Thread::new(0);
+        let initial = Thread::sample(0, SAMPLE_TITLE, SAMPLE_REVIEW);
+        let threads = std::iter::once(initial)
+            .chain(
+                OTHER_SAMPLES
+                    .iter()
+                    .enumerate()
+                    .map(|(index, &(title, prompt, reply))| {
+                        Thread::sample(index + 1, title, &[(false, prompt), (true, reply)])
+                    }),
+            )
+            .collect();
         Self {
             owner: Owner::current(),
-            threads: signal(vec![initial]),
+            threads: signal(threads),
             active: signal(initial),
             history_open: signal(false),
             history_trigger: element_ref(),
@@ -440,13 +522,25 @@ pub(crate) fn page(go_components: impl Fn() + 'static, toggle_theme: impl Fn() +
     });
 
     let empty = computed(move || messages.with(|(_, list)| list.is_empty()));
+    let away_from_latest = signal(false);
+    let previous_thread = stored(None);
+    let scroll_to_latest = move |animated: bool| {
+        chat.transcript
+            .scroll_to(point(px(0.0), px(f32::MAX)), animated && !reduce_motion());
+    };
     effect(move || {
         let (thread, len) = messages.with(|(thread, list)| (*thread, list.len()));
+        let changed_thread = previous_thread.replace(Some(thread)) != Some(thread);
+        if !changed_thread && away_from_latest.get_untracked() {
+            return;
+        }
+        if changed_thread {
+            away_from_latest.set(false);
+        }
         spawn(async move {
             next_frame().await;
             if messages.with_untracked(|(current, list)| *current == thread && list.len() == len) {
-                chat.transcript
-                    .scroll_to(point(px(0.0), px(f32::MAX)), false);
+                scroll_to_latest(false);
             }
         });
     });
@@ -508,44 +602,86 @@ pub(crate) fn page(go_components: impl Fn() + 'static, toggle_theme: impl Fn() +
                         .accessibility_elements_hidden(revealing_history)
                         .child(header(chat, go_components, toggle_theme))
                         .child(
-                            scroll()
+                            view()
+                                .relative()
                                 .flex_1()
                                 .min_h(px(0.0))
-                                .min_w(px(0.0))
-                                .element_ref(&chat.transcript)
-                                .test_id("chat-transcript")
                                 .child(
-                                    view()
-                                        .w_full()
-                                        .max_w(px(780.0))
-                                        .self_center()
-                                        .px_4()
-                                        .pt_6()
-                                        .pb_4()
-                                        .gap_5()
-                                        .child(each(
-                                            move || {
-                                                messages.with(|(thread, items)| {
-                                                    items
-                                                        .iter()
-                                                        .cloned()
-                                                        .map(|message| (*thread, message))
-                                                        .collect::<Vec<_>>()
-                                                })
-                                            },
-                                            |(thread, message)| (*thread, message.id),
-                                            move |row, _| message_view(row.get_untracked().1),
-                                        ))
-                                        .child(when(
-                                            move || chat.active.get().pending.get().is_some(),
-                                            || {
-                                                text("Preparing a reply…")
-                                                    .test_id("chat-pending")
-                                                    .text_sm()
-                                                    .text_color(accent())
-                                            },
-                                        )),
-                                ),
+                                    scroll()
+                                        .flex_1()
+                                        .min_h(px(0.0))
+                                        .min_w(px(0.0))
+                                        .element_ref(&chat.transcript)
+                                        .test_id("chat-transcript")
+                                        .on_scroll(move |event: &ScrollEvent| {
+                                            away_from_latest.set(
+                                                event.content_size.height.0
+                                                    - event.size.height.0
+                                                    - event.offset.y.0
+                                                    > 72.0,
+                                            );
+                                        })
+                                        .child(
+                                            view()
+                                                .w_full()
+                                                .max_w(px(780.0))
+                                                .self_center()
+                                                .px_4()
+                                                .pt_5()
+                                                .pb_5()
+                                                .gap_5()
+                                                .child(each(
+                                                    move || {
+                                                        messages.with(|(thread, items)| {
+                                                            items
+                                                                .iter()
+                                                                .cloned()
+                                                                .map(|message| (*thread, message))
+                                                                .collect::<Vec<_>>()
+                                                        })
+                                                    },
+                                                    |(thread, message)| (*thread, message.id),
+                                                    move |row, _| {
+                                                        message_view(row.get_untracked().1)
+                                                    },
+                                                ))
+                                                .child(when(
+                                                    move || {
+                                                        chat.active.get().pending.get().is_some()
+                                                    },
+                                                    || {
+                                                        text("Preparing a reply…")
+                                                            .test_id("chat-pending")
+                                                            .text_sm()
+                                                            .text_color(accent())
+                                                    },
+                                                )),
+                                        ),
+                                )
+                                .child(when(
+                                    move || away_from_latest.get() && !empty.get(),
+                                    move || {
+                                        view()
+                                            .absolute()
+                                            .bottom_3()
+                                            .left_0()
+                                            .right_0()
+                                            .items_center()
+                                            .pointer_events(PointerEvents::BoxNone)
+                                            .child(
+                                                icon_action(
+                                                    "Jump to latest",
+                                                    "M8 2.5v11m4.5-4.6L8 13.5 3.5 8.9",
+                                                )
+                                                .on_press(move || scroll_to_latest(true))
+                                                .size(px(42.0))
+                                                .border(px(1.0))
+                                                .border_color(|| theme().border)
+                                                .bg(canvas_color())
+                                                .shadow_sm(),
+                                            )
+                                    },
+                                )),
                         )
                         .child(when(empty, move || welcome(chat)))
                         .child(view().flex_grow(move || {
@@ -900,12 +1036,16 @@ fn message_view(message: Message) -> View {
                     .font_weight(FontWeight::BOLD)
                     .text_color(accent()),
             )
-            .child(
-                text(body.with(|text| text.clone()))
-                    .text_base()
-                    .line_height(px(24.0))
-                    .selectable(true),
-            )
+            .child(view().w_full().gap_3().children(body.with(|body| {
+                body.split("\n\n")
+                    .map(|paragraph| {
+                        text(paragraph.to_owned())
+                            .text_base()
+                            .line_height(px(25.0))
+                            .selectable(true)
+                    })
+                    .collect::<Vec<_>>()
+            })))
             .child(
                 action(move || {
                     SharedString::from(if copied.get() { "Copied" } else { "Copy reply" })

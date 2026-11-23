@@ -14,6 +14,8 @@ fn mobile_blocks_chat_keeps_drafts_and_messages_in_their_own_threads() {
     app.first_render().unwrap();
     app.wait_for("id:blocks-chat").unwrap();
 
+    app.press("id:chat-new").unwrap();
+    app.wait_for("Start a conversation").unwrap();
     app.type_text("label:Message", "First thread").unwrap();
     app.press("role:button[Send]").unwrap();
     app.wait_for("id:chat-reply").unwrap();
@@ -60,6 +62,8 @@ fn desktop_composer_moves_below_the_transcript_and_preserves_the_editor() {
             .y
             .0
     };
+    app.press("id:chat-new").unwrap();
+    app.wait_for("Start a conversation").unwrap();
     let initial = composer_top(&app);
     assert!((260.0..580.0).contains(&initial));
     app.type_text("label:Message", "First message").unwrap();
@@ -84,6 +88,8 @@ fn stopping_a_local_reply_keeps_the_message_and_allows_another_send() {
     app.first_render().unwrap();
     app.wait_for("id:blocks-chat").unwrap();
 
+    app.press("id:chat-new").unwrap();
+    app.wait_for("Start a conversation").unwrap();
     app.type_text("label:Message", "Keep this message").unwrap();
     app.press("role:button[Send]").unwrap();
     app.wait_for("id:chat-pending").unwrap();
@@ -160,4 +166,27 @@ fn mobile_history_swipes_commit_or_return_to_their_start() {
     app.drag(close, point(px(-150.0), px(0.0))).unwrap();
     assert_eq!(app.screen().count(panel), Ok(0));
     assert_eq!(app.screen().count(edge), Ok(1));
+}
+
+#[test]
+fn blocks_opens_a_populated_sample_and_allows_switching_to_a_blank_chat() {
+    let mut config = EngineConfig::new(Root::of::<App>());
+    config.viewport = Size::new(px(390.0), px(844.0));
+    config.environment.reduce_motion = true;
+    let mut app = Headless::start_at_page(config, "https://foundation.test/#blocks").unwrap();
+    app.first_render().unwrap();
+    app.wait_for("Mobile layout review").unwrap();
+    assert_eq!(app.screen().count("id:chat-message"), Ok(3));
+    assert_eq!(app.screen().count("id:chat-reply"), Ok(3));
+
+    app.press("role:button[History]").unwrap();
+    app.press("role:navigation[Chat history] >> Release notes")
+        .unwrap();
+    app.wait_for("Draft a short release note for this iteration.")
+        .unwrap();
+    assert_eq!(app.screen().count("id:chat-reply"), Ok(1));
+
+    app.press("id:chat-new").unwrap();
+    app.wait_for("Start a conversation").unwrap();
+    assert_eq!(app.screen().count("id:chat-message"), Ok(0));
 }
