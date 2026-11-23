@@ -3831,21 +3831,21 @@ fn docs_header(
                     text("nsh-foundation")
                         .font_weight(FontWeight::SEMIBOLD)
                         .truncate(),
-                ),
-        )
-        .child(
-            view()
-                .flex_row()
-                .items_center()
-                .gap_1()
+                )
                 .child(when(desktop_navigation, move || {
                     view()
                         .flex_row()
                         .gap_1()
                         .child(button("Components", Variant::Ghost, open_components))
                         .child(button("Blocks", Variant::Ghost, open_blocks))
-                        .child(dynamic(desktop_sections))
-                }))
+                })),
+        )
+        .child(
+            view()
+                .flex_row()
+                .items_center()
+                .gap_1()
+                .child(when(desktop_navigation, move || dynamic(desktop_sections)))
                 .child(button("Theme", Variant::Ghost, toggle_theme).h(px(44.0))),
         )
 }
