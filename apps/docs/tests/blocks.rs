@@ -133,3 +133,30 @@ fn mobile_history_returns_to_the_same_chat_surface() {
     app.press("role:button[Send]").unwrap();
     app.wait_for("Keep this draft").unwrap();
 }
+
+#[test]
+fn mobile_history_swipes_commit_or_return_to_their_start() {
+    let mut config = EngineConfig::new(Root::of::<App>());
+    config.viewport = Size::new(px(390.0), px(844.0));
+    config.environment.reduce_motion = true;
+    let mut app = Headless::start_at_page(config, "https://foundation.test/#blocks").unwrap();
+    app.first_render().unwrap();
+    let edge = "id:chat-history-edge";
+    let panel = "id:chat-history-underlay";
+    let close = "id:chat-history-return";
+    app.wait_for(edge).unwrap();
+
+    app.drag(edge, point(px(14.0), px(0.0))).unwrap();
+    assert_eq!(app.screen().count(panel), Ok(0));
+
+    app.drag(edge, point(px(150.0), px(0.0))).unwrap();
+    app.wait_for(panel).unwrap();
+    assert_eq!(app.screen().count(close), Ok(1));
+
+    app.drag(close, point(px(-14.0), px(0.0))).unwrap();
+    assert_eq!(app.screen().count(panel), Ok(1));
+
+    app.drag(close, point(px(-150.0), px(0.0))).unwrap();
+    assert_eq!(app.screen().count(panel), Ok(0));
+    assert_eq!(app.screen().count(edge), Ok(1));
+}

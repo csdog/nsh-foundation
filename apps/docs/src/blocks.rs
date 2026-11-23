@@ -248,6 +248,33 @@ fn history_width() -> f32 {
     (width * 0.78).min((width - 56.0).max(0.0))
 }
 
+fn history_pan(
+    surface: View,
+    chat: Chat,
+    dragging: Signal<bool>,
+    offset: &AnimatedValue,
+    from_open: bool,
+) -> View {
+    surface
+        .pan_values(Some(offset), None)
+        .on_pan_start(move |_: &PanEvent| dragging.set(true))
+        .on_pan_end(move |event: &PanEvent| {
+            let direction = if from_open { -1.0 } else { 1.0 };
+            let distance = event.translation.x.0 * direction;
+            let velocity = event.velocity_x * direction;
+            let commits =
+                distance >= history_width() * 0.36 || (distance >= 18.0 && velocity >= 650.0);
+            if !event.cancelled && commits {
+                if from_open {
+                    chat.close_history();
+                } else {
+                    chat.history_open.set(true);
+                }
+            }
+            dragging.set(false);
+        })
+}
+
 fn mobile_history(chat: Chat) -> View {
     on_key_with(
         "escape",
@@ -314,7 +341,15 @@ pub(crate) fn page(go_components: impl Fn() + 'static, toggle_theme: impl Fn() +
     let chat = Chat::new();
     let revealing_history = computed(move || !desktop() && chat.history_open.get());
     let history_mounted = signal(false);
+    let dragging_history = signal(false);
     let chat_offset = animated_value(0.0);
+    let viewport_limit = animated_value(1.0);
+    let layout_offset = animated_value(0.0);
+    let translation = chat_offset
+        .div(&viewport_limit)
+        .interpolate(&[0.0, 1.0], &[0.0, 1.0])
+        .mul(&viewport_limit)
+        .sub(&layout_offset);
     let static_offset = move || {
         px(if revealing_history.get() && reduce_motion() {
             history_width()
@@ -324,22 +359,38 @@ pub(crate) fn page(go_components: impl Fn() + 'static, toggle_theme: impl Fn() +
     };
     effect(move || {
         let open = revealing_history.get();
-        let offset = if open { history_width() } else { 0.0 };
-        if open {
+        let dragging = dragging_history.get();
+        let width = history_width();
+        let offset = if open { width } else { 0.0 };
+        let reduced = reduce_motion();
+        viewport_limit.set(width.max(1.0));
+        // Keep the static hit area at its logical location in reduced motion.
+        layout_offset.set(if reduced { offset } else { 0.0 });
+        if desktop() {
+            chat_offset.set(0.0);
+            history_mounted.set(false);
+            chat.history_open.set(false);
+            dragging_history.set(false);
+            return;
+        }
+        if open || dragging {
             history_mounted.set(true);
         }
-        if reduce_motion() || desktop() {
-            chat_offset.set(0.0);
+        if dragging {
+            return;
+        }
+        if reduced {
+            chat_offset.set(offset);
             history_mounted.set(open);
-            if desktop() {
-                chat.history_open.set(false);
-            }
         } else {
             let transition =
                 chat_offset.timing(offset, 260.0, Easing::Bezier(0.25, 0.8, 0.25, 1.0));
             if !open {
                 spawn(async move {
-                    if transition.await && !revealing_history.get_untracked() {
+                    if transition.await
+                        && !revealing_history.get_untracked()
+                        && !dragging_history.get_untracked()
+                    {
                         history_mounted.set(false);
                     }
                 });
@@ -406,7 +457,7 @@ pub(crate) fn page(go_components: impl Fn() + 'static, toggle_theme: impl Fn() +
                         .test_id("chat-main-surface")
                         .relative()
                         .left(static_offset)
-                        .bind_translate_x(&chat_offset)
+                        .bind_translate_x(&translation)
                         .bg(canvas_color())
                         .style_when(history_mounted, |style| {
                             style.rounded_l(px(22.0)).shadow_xl().overflow_hidden()
@@ -482,22 +533,46 @@ pub(crate) fn page(go_components: impl Fn() + 'static, toggle_theme: impl Fn() +
                         ),
                 ),
         )
+        .child(when(
+            move || !desktop() && !revealing_history.get(),
+            move || {
+                history_pan(
+                    view()
+                        .absolute()
+                        .left_0()
+                        .top(px(56.0))
+                        .bottom(px(104.0))
+                        .w(px(22.0))
+                        .test_id("chat-history-edge"),
+                    chat,
+                    dragging_history,
+                    &chat_offset,
+                    false,
+                )
+            },
+        ))
         .child(when(revealing_history, move || {
-            view()
-                .absolute()
-                .left(static_offset)
-                .top_0()
-                .bottom_0()
-                .w(|| px(window().width.0 - history_width()))
-                .bind_translate_x(&chat_offset)
-                .bg(ink().opacity(0.08))
-                .rounded_l(px(22.0))
-                .role(AccessibilityRole::Button)
-                .label("Return to chat")
-                .test_id("chat-history-return")
-                .on_press(move || {
-                    chat.close_history();
-                })
+            history_pan(
+                view()
+                    .absolute()
+                    .left(static_offset)
+                    .top_0()
+                    .bottom_0()
+                    .w(|| px(window().width.0 - history_width()))
+                    .bind_translate_x(&translation)
+                    .bg(ink().opacity(0.08))
+                    .rounded_l(px(22.0))
+                    .role(AccessibilityRole::Button)
+                    .label("Return to chat")
+                    .test_id("chat-history-return")
+                    .on_press(move || {
+                        chat.close_history();
+                    }),
+                chat,
+                dragging_history,
+                &chat_offset,
+                true,
+            )
         }))
 }
 
