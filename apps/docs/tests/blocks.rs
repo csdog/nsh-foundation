@@ -26,6 +26,7 @@ fn mobile_blocks_chat_keeps_drafts_and_messages_in_their_own_threads() {
     app.press("role:button[Send]").unwrap();
 
     app.press("role:button[History]").unwrap();
+    app.press("role:button[Search history]").unwrap();
     app.type_text("label:Search chats", "first").unwrap();
     let history = "role:navigation[Chat history]";
     assert_eq!(

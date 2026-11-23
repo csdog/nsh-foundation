@@ -3,32 +3,55 @@ use std::time::Duration;
 use components::{
     button::{Button, ButtonSize, ButtonVariant},
     input::input,
-    popover::{Popover, PopoverContent, PopoverSide, PopoverTrigger},
-    textarea::textarea,
+    popover::{Popover, PopoverContent, PopoverTrigger},
 };
-use nsh_base::theme;
+use nsh_base::{PopoverEvent, popover, theme};
+
+use crate::examples::toggle_examples::icon;
 use nsh_core::{
-    SubmitBehavior, element::set_clipboard, file_dialog::FileFilter, keymap::When,
-    picker::FilePickRequest, prelude::*,
+    SubmitBehavior,
+    element::{input as native_input, set_clipboard},
+    file_dialog::FileFilter,
+    keymap::When,
+    picker::FilePickRequest,
+    prelude::*,
 };
 
 const FILE_LIMIT: usize = 8;
 
 fn ink() -> AdaptiveColor {
-    AdaptiveColor::new(rgb(0x182523), rgb(0xe9f1ef))
+    AdaptiveColor::new(rgb(0x232323), rgb(0xf0efed))
 }
 
 fn canvas_color() -> AdaptiveColor {
-    AdaptiveColor::new(rgb(0xf9fbfa), rgb(0x101817))
+    AdaptiveColor::new(rgb(0xfffefa), rgb(0x181817))
 }
 
 fn accent() -> AdaptiveColor {
-    AdaptiveColor::new(rgb(0x14594d), rgb(0x9be0ce))
+    AdaptiveColor::new(rgb(0x354bb4), rgb(0xa4b3ff))
 }
 
 fn tint() -> AdaptiveColor {
-    AdaptiveColor::new(rgb(0xe4f2ed), rgb(0x233c35))
+    AdaptiveColor::new(rgb(0xeeeae5), rgb(0x32312f))
 }
+
+fn history_color() -> AdaptiveColor {
+    AdaptiveColor::new(rgb(0xf7f5f1), rgb(0x201f1e))
+}
+
+const MENU_ICON: &str = "M2.5 5h11M2.5 10.5h7";
+const EDIT_ICON: &str = "M7 3H4a1.5 1.5 0 0 0-1.5 1.5V12A1.5 1.5 0 0 0 4 13.5h7.5A1.5 1.5 0 0 0 13 12v-3M7 10l.4-2.6L12 2.8a1.2 1.2 0 0 1 1.7 1.7L9.1 9.2 7 10Z";
+const MORE_ICON: &str = "M3 8h.1M8 8h.1M13 8h.1";
+const SEARCH_ICON: &str = "M10.8 10.8l2.7 2.7M12 7.2a4.8 4.8 0 1 1-9.6 0 4.8 4.8 0 0 1 9.6 0Z";
+const PLUS_ICON: &str = "M8 2.5v11M2.5 8h11";
+const SEND_ICON: &str = "M8 13.5v-11m-4.5 4.6L8 2.5l4.5 4.6";
+const STOP_ICON: &str = "M5 5h6v6H5Z";
+const COPY_ICON: &str = "M5.5 5V3.5A1.5 1.5 0 0 1 7 2h5.5A1.5 1.5 0 0 1 14 3.5V9a1.5 1.5 0 0 1-1.5 1.5H11M3.5 5.5H9A1.5 1.5 0 0 1 10.5 7v5.5A1.5 1.5 0 0 1 9 14H3.5A1.5 1.5 0 0 1 2 12.5V7a1.5 1.5 0 0 1 1.5-1.5Z";
+const CHECK_ICON: &str = "m3.5 8 3 3 6-6";
+const PHOTO_ICON: &str = "M4 2.5h8A1.5 1.5 0 0 1 13.5 4v8a1.5 1.5 0 0 1-1.5 1.5H4A1.5 1.5 0 0 1 2.5 12V4A1.5 1.5 0 0 1 4 2.5ZM2.8 11l3.5-3.5 4 4 1.5-1.5 1.5 1.5M10 5.7h.1";
+const FILE_ICON: &str =
+    "M4 2.5h5l3 3V12A1.5 1.5 0 0 1 10.5 13.5h-5A1.5 1.5 0 0 1 4 12v-9.5Zm5 0v3h3M6.5 8h3m-3 2.5h3";
+const CLOSE_ICON: &str = "m4 4 8 8m0-8-8 8";
 
 #[derive(Clone, PartialEq)]
 struct Attachment {
@@ -288,13 +311,15 @@ fn mobile_history(chat: Chat) -> View {
         },
     );
     let open = chat.history_open;
-    let close = element_ref();
+    let search_toggle = element_ref();
+    let search_field = element_ref();
+    let searching = signal(false);
     effect(move || {
         if open.get() {
             spawn(async move {
                 next_frame().await;
                 if open.get_untracked() {
-                    close.focus();
+                    search_toggle.focus();
                 }
             });
         }
@@ -307,7 +332,7 @@ fn mobile_history(chat: Chat) -> View {
         .w(|| px(history_width()))
         .pt(|| safe_area().top + px(6.0))
         .pb(|| safe_area().bottom)
-        .bg(tint())
+        .bg(history_color())
         .role(AccessibilityRole::Dialog)
         .label("Conversations")
         .accessibility_elements_hidden(move || !open.get())
@@ -318,23 +343,34 @@ fn mobile_history(chat: Chat) -> View {
                 .items_center()
                 .justify_between()
                 .px_4()
+                .pt_3()
                 .pb_2()
                 .child(
                     text("Relay")
                         .text_xl()
-                        .text_color(accent())
+                        .text_color(ink())
                         .font_weight(FontWeight::BOLD),
                 )
                 .child(
-                    icon_action("Close history", "×")
+                    icon_action("Search history", SEARCH_ICON)
                         .on_press(move || {
-                            chat.close_history();
+                            searching.update(|open| *open = !*open);
+                            if searching.get_untracked() {
+                                spawn(async move {
+                                    next_frame().await;
+                                    search_field.focus();
+                                });
+                            }
                         })
                         .size(px(44.0))
-                        .element_ref(&close),
+                        .element_ref(&search_toggle)
+                        .accessibility_state(move || AccessibilityState {
+                            expanded: Some(searching.get()),
+                            ..Default::default()
+                        }),
                 ),
         )
-        .child(history(chat))
+        .child(history(chat, Some((searching, search_field))))
 }
 
 pub(crate) fn page(go_components: impl Fn() + 'static, toggle_theme: impl Fn() + 'static) -> View {
@@ -421,7 +457,7 @@ pub(crate) fn page(go_components: impl Fn() + 'static, toggle_theme: impl Fn() +
         .min_h(px(0.0))
         .relative()
         .overflow_hidden()
-        .bg(tint())
+        .bg(history_color())
         .text_color(ink())
         .child(when(history_mounted, move || mobile_history(chat)))
         .child(
@@ -437,7 +473,7 @@ pub(crate) fn page(go_components: impl Fn() + 'static, toggle_theme: impl Fn() +
                         .flex_shrink_0()
                         .border_r(px(1.0))
                         .border_color(|| theme().border)
-                        .bg(tint().opacity(0.45))
+                        .bg(history_color())
                         .child(
                             text("Relay")
                                 .px_5()
@@ -447,7 +483,7 @@ pub(crate) fn page(go_components: impl Fn() + 'static, toggle_theme: impl Fn() +
                                 .text_color(accent())
                                 .font_weight(FontWeight::BOLD),
                         )
-                        .child(history(chat))
+                        .child(history(chat, None))
                 }))
                 .child(
                     view()
@@ -601,7 +637,7 @@ fn header(
                 .child(when(
                     || !desktop(),
                     move || {
-                        icon_action("History", "☰")
+                        icon_action("History", MENU_ICON)
                             .on_press(move || chat.history_open.set(true))
                             .size(px(44.0))
                             .element_ref(&chat.history_trigger)
@@ -623,7 +659,7 @@ fn header(
                         .child(
                             text("Relay workspace")
                                 .text_xs()
-                                .text_color(accent())
+                                .text_color(|| theme().muted_foreground)
                                 .truncate(),
                         ),
                 ),
@@ -634,7 +670,7 @@ fn header(
                 .items_center()
                 .gap_1()
                 .child(
-                    icon_action("Start new chat", "＋")
+                    icon_action("Start new chat", EDIT_ICON)
                         .on_press(move || chat.new_thread())
                         .size(px(44.0))
                         .test_id("chat-new"),
@@ -642,7 +678,9 @@ fn header(
                 .child(
                     Popover::new(
                         PopoverTrigger::render(
-                            icon_action("Chat options", "⋯").surface().size(px(44.0)),
+                            icon_action("Chat options", MORE_ICON)
+                                .surface()
+                                .size(px(44.0)),
                         ),
                         PopoverContent::new()
                             .label("Chat options")
@@ -676,17 +714,22 @@ fn action(label: impl IntoReactive<SharedString>) -> Button {
         .pointer_cursor()
 }
 
-fn icon_action(label: &'static str, glyph: &'static str) -> Button {
+fn icon_action(label: &'static str, path: &'static str) -> Button {
     action(label)
         .size(ButtonSize::Icon)
-        .icon_start(text(glyph).text_xl())
+        .icon_start(icon(path, false))
         .radius(22.0)
 }
 
-fn history(chat: Chat) -> View {
+fn history(chat: Chat, mobile_search: Option<(Signal<bool>, ElementRef)>) -> View {
     let query = signal(String::new());
     let visible_threads = computed(move || {
         let query = query.with(|value| value.trim().to_lowercase());
+        let query = if mobile_search.is_some_and(|(shown, _)| !shown.get()) {
+            String::new()
+        } else {
+            query
+        };
         chat.threads.with(|threads| {
             threads
                 .iter()
@@ -721,44 +764,57 @@ fn history(chat: Chat) -> View {
                 action(move || SharedString::from(thread.title.get()))
                     .on_press(move || chat.select(thread))
                     .justify_start()
-                    .h(px(44.0))
+                    .h(px(46.0))
                     .style_when(
                         move || chat.active.get().id == thread.id,
-                        |s| s.bg(tint()).text_color(accent()),
+                        |s| s.bg(tint()).text_color(ink()),
                     )
             },
         ));
+    let search = move || {
+        input()
+            .label("Search chats")
+            .placeholder("Search chats")
+            .h(px(44.0))
+            .value(move || query.get())
+            .on_change(move |value: &str| query.set(value.to_owned()))
+            .when_some(
+                mobile_search.map(|(_, reference)| reference),
+                |input, reference| input.element_ref(&reference),
+            )
+    };
+    let new_chat = move || {
+        Button::new("New chat")
+            .variant(ButtonVariant::Default)
+            .icon_start(icon(EDIT_ICON, false))
+            .radius(20.0)
+            .on_press(move || chat.new_thread())
+            .self_start()
+            .h(px(44.0))
+            .bg(accent())
+            .text_color(canvas_color())
+    };
     view()
-        .gap_2()
+        .gap_3()
         .px_3()
-        .pb_3()
+        .pb_4()
         .flex_1()
         .min_h(px(0.0))
-        .child(
-            Button::new("New chat")
-                .variant(ButtonVariant::Outline)
-                .icon_start(text("＋").text_lg())
-                .radius(10.0)
-                .on_press(move || chat.new_thread())
-                .justify_start()
-                .h(px(44.0)),
-        )
-        .child(
-            input()
-                .label("Search chats")
-                .placeholder("Search chats")
-                .h(px(44.0))
-                .value(move || query.get())
-                .on_change(move |value: &str| query.set(value.to_owned())),
-        )
+        .child((mobile_search.is_none()).then(new_chat))
+        .child(when(
+            move || mobile_search.is_none_or(|(shown, _)| shown.get()),
+            search,
+        ))
         .child(
             text("Recent chats")
-                .text_xs()
-                .text_color(accent())
-                .px_2()
+                .text_sm()
+                .font_weight(FontWeight::MEDIUM)
+                .text_color(|| theme().muted_foreground)
+                .px_3()
                 .pt_2(),
         )
         .child(scroll().min_h(px(0.0)).flex_1().child(list))
+        .child((mobile_search.is_some()).then(new_chat))
 }
 
 fn welcome(chat: Chat) -> View {
@@ -854,11 +910,16 @@ fn message_view(message: Message) -> View {
                 action(move || {
                     SharedString::from(if copied.get() { "Copied" } else { "Copy reply" })
                 })
+                .size(ButtonSize::Icon)
+                .icon_start(dynamic(move || {
+                    icon(if copied.get() { CHECK_ICON } else { COPY_ICON }, false)
+                }))
                 .on_press(move || {
                     set_clipboard(body.with(|text| text.clone()));
                     copied.set(true);
                 })
-                .h(px(44.0)),
+                .size(px(42.0))
+                .text_color(|| theme().muted_foreground),
             );
     }
     view()
@@ -885,33 +946,79 @@ fn message_view(message: Message) -> View {
         )
 }
 
-fn attachment_menu(chat: Chat) -> Popover {
+fn attachment_menu(chat: Chat) -> impl IntoElement {
     let open = signal(false);
-    let trigger = icon_action("Add attachment", "+")
-        .disabled(move || {
-            chat.picker_open.get() || chat.active.get().attachments.with(Vec::len) >= FILE_LIMIT
+    let first = element_ref();
+    let attach = move |photos, label, path, reference| {
+        action(label)
+            .icon_start(
+                view()
+                    .size(px(34.0))
+                    .items_center()
+                    .justify_center()
+                    .rounded_full()
+                    .bg(tint())
+                    .child(icon(path, false)),
+            )
+            .on_press(move || {
+                open.set(false);
+                chat.pick(photos);
+            })
+            .justify_start()
+            .gap_3()
+            .h(px(54.0))
+            .when_some(reference, |button, reference| {
+                button.element_ref(&reference)
+            })
+    };
+    popover()
+        .open(move || Some(open.get()))
+        .on_open_change(move |event: &PopoverEvent| {
+            if let PopoverEvent::OpenChange(next, _) = event {
+                open.set(*next);
+            }
         })
-        .surface()
-        .size(px(44.0));
-    let mut menu = PopoverContent::new()
-        .label("Add attachment")
-        .side(PopoverSide::Top)
+        .on_open(move || first.focus())
+        .placement(Placement::Top)
         .align(Align::Start)
-        .width(212.0)
-        .side_offset(12.0);
-    for (photos, label, glyph) in [(true, "Photos", "▧"), (false, "Files", "▤")] {
-        menu = menu.child(
-            action(label)
-                .icon_start(text(glyph).text_lg().text_color(accent()))
-                .on_press(move || {
-                    open.set(false);
-                    chat.pick(photos);
+        .margin(px(12.0))
+        .offset(px(9.0))
+        .popup_class(move || {
+            (!reduce_motion()).then(|| SharedString::from("transition duration-150"))
+        })
+        .popup_starting_class(move || {
+            (!reduce_motion()).then(|| SharedString::from("opacity-0 translate-y-1"))
+        })
+        .popup_ending_class(move || {
+            (!reduce_motion()).then(|| SharedString::from("opacity-0 translate-y-1"))
+        })
+        .popup_style(|style| {
+            style
+                .w(|| px((window().width.0 - 28.0).clamp(0.0, 268.0)))
+                .rounded(px(25.0))
+                .bg(canvas_color())
+                .shadow_xl()
+                .border(px(1.0))
+                .border_color(|| theme().border)
+        })
+        .trigger(
+            icon_action("Add attachment", PLUS_ICON)
+                .disabled(move || {
+                    chat.picker_open.get()
+                        || chat.active.get().attachments.with(Vec::len) >= FILE_LIMIT
                 })
-                .justify_start()
-                .h(px(44.0)),
-        );
-    }
-    Popover::new(PopoverTrigger::render(trigger), menu).open(open)
+                .surface()
+                .size(px(44.0)),
+        )
+        .child(
+            view()
+                .role(AccessibilityRole::Dialog)
+                .label("Add attachment")
+                .p_2()
+                .gap_1()
+                .child(attach(true, "Photos", PHOTO_ICON, Some(first)))
+                .child(attach(false, "Files", FILE_ICON, None)),
+        )
 }
 
 fn composer(chat: Chat) -> View {
@@ -929,19 +1036,16 @@ fn composer(chat: Chat) -> View {
         .w_full()
         .max_w(px(760.0))
         .self_center()
-        .px_3()
+        .px_4()
         .pt_2()
         .test_id("chat-composer")
         .pb(|| safe_area().bottom + px(10.0))
         .gap_2()
         .child(
             view()
-                .bg(|| theme().background)
-                .rounded(px(24.0))
-                .shadow_sm()
-                .border(px(1.0))
-                .border_color(|| theme().border)
-                .p_2()
+                .bg(tint().opacity(0.72))
+                .rounded(px(27.0))
+                .p_1()
                 .child(when(
                     move || !pending.with(Vec::is_empty),
                     move || {
@@ -962,7 +1066,7 @@ fn composer(chat: Chat) -> View {
                                     .child(
                                         action(format!("Remove {}", file.name))
                                             .size(ButtonSize::Icon)
-                                            .icon_start(text("×"))
+                                            .icon_start(icon(CLOSE_ICON, false))
                                             .on_press(move || {
                                                 thread.attachments.update(|files| {
                                                     files.retain(|f| f.id != file.id)
@@ -981,8 +1085,17 @@ fn composer(chat: Chat) -> View {
                         .gap_1()
                         .child(attachment_menu(chat))
                         .child(
-                            textarea()
+                            native_input()
+                                .multiline(true)
                                 .label("Message")
+                                .text_base()
+                                .line_height(px(24.0))
+                                .text_color(ink())
+                                .px_1()
+                                .py_2()
+                                .border(px(0.0))
+                                .outline(px(0.0))
+                                .focus_visible(|style| style.underline().underline_offset(px(3.0)))
                                 .placeholder(move || {
                                     if chat.active.get().messages.with(Vec::is_empty) {
                                         "Ask Relay"
@@ -1014,16 +1127,10 @@ fn composer(chat: Chat) -> View {
                             })
                             .size(ButtonSize::Icon)
                             .radius(22.0)
-                            .icon_start(
-                                text(move || {
-                                    if chat.active.get().pending.get().is_some() {
-                                        "■"
-                                    } else {
-                                        "↑"
-                                    }
-                                })
-                                .text_lg(),
-                            )
+                            .icon_start(dynamic(move || {
+                                let stopping = chat.active.get().pending.get().is_some();
+                                icon(if stopping { STOP_ICON } else { SEND_ICON }, stopping)
+                            }))
                             .disabled(move || {
                                 let thread = chat.active.get();
                                 thread.pending.get().is_none() && !thread.can_send()
