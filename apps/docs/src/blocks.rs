@@ -1,27 +1,34 @@
+use std::time::Duration;
+
 use components::{
     button::{Button, ButtonSize, ButtonVariant},
+    input::input,
+    popover::{Popover, PopoverContent, PopoverSide, PopoverTrigger},
     sheet::{Sheet, SheetContent, SheetHeader, SheetSide, SheetTitle, SheetTrigger},
     textarea::textarea,
 };
 use nsh_base::theme;
-use nsh_core::{SubmitBehavior, picker::FilePickRequest, prelude::*};
+use nsh_core::{
+    SubmitBehavior, element::set_clipboard, file_dialog::FileFilter, picker::FilePickRequest,
+    prelude::*,
+};
 
 const FILE_LIMIT: usize = 8;
 
 fn ink() -> AdaptiveColor {
-    AdaptiveColor::new(rgb(0x212a37), rgb(0xe9edf4))
+    AdaptiveColor::new(rgb(0x182523), rgb(0xe9f1ef))
 }
 
 fn canvas_color() -> AdaptiveColor {
-    AdaptiveColor::new(rgb(0xf1f3f7), rgb(0x151822))
+    AdaptiveColor::new(rgb(0xf9fbfa), rgb(0x101817))
 }
 
 fn accent() -> AdaptiveColor {
-    AdaptiveColor::new(rgb(0x4338aa), rgb(0xb8afff))
+    AdaptiveColor::new(rgb(0x14594d), rgb(0x9be0ce))
 }
 
 fn tint() -> AdaptiveColor {
-    AdaptiveColor::new(rgb(0xe9e5ff), rgb(0x2c2651))
+    AdaptiveColor::new(rgb(0xe4f2ed), rgb(0x233c35))
 }
 
 #[derive(Clone, PartialEq)]
@@ -46,6 +53,7 @@ struct Thread {
     draft: Signal<String>,
     attachments: Signal<Vec<Attachment>>,
     messages: Signal<Vec<Message>>,
+    pending: Signal<Option<usize>>,
 }
 
 impl Thread {
@@ -56,6 +64,7 @@ impl Thread {
             draft: signal(String::new()),
             attachments: signal(Vec::new()),
             messages: signal(Vec::new()),
+            pending: signal(None),
         }
     }
 
@@ -65,7 +74,7 @@ impl Thread {
     }
 
     fn send(self) {
-        if !untracked(|| self.can_send()) {
+        if self.pending.get_untracked().is_some() || !untracked(|| self.can_send()) {
             return;
         }
         let content = self.draft.get_untracked();
@@ -81,14 +90,21 @@ impl Thread {
                 title
             });
         }
+        let id = self.messages.with_untracked(Vec::len);
         self.messages.update(|messages| {
-            let id = messages.len();
             messages.push(Message {
                 id,
                 local_reply: false,
                 text: content.trim().into(),
                 attachments,
             });
+        });
+        self.pending.set(Some(id));
+        spawn(async move {
+            timer(Duration::from_millis(650)).await;
+            if self.pending.get_untracked() != Some(id) {
+                return;
+            }
             let text = match count {
                 0 => "Message received. This is a local chat demo.".into(),
                 1 => {
@@ -98,12 +114,15 @@ impl Thread {
                     "Message received with {count} attachments. Their contents stay on your device."
                 ),
             };
-            messages.push(Message {
-                id: id + 1,
-                local_reply: true,
-                text,
-                attachments: Vec::new(),
+            self.messages.update(|messages| {
+                messages.push(Message {
+                    id: id + 1,
+                    local_reply: true,
+                    text,
+                    attachments: Vec::new(),
+                });
             });
+            self.pending.set(None);
         });
     }
 }
@@ -155,7 +174,12 @@ impl Chat {
         }
     }
 
-    fn pick(self) {
+    fn send(self) {
+        let thread = self.active.get_untracked();
+        self.owner.run(|| thread.send());
+    }
+
+    fn pick(self, photos: bool) {
         if self.picker_open.get_untracked() {
             return;
         }
@@ -165,7 +189,16 @@ impl Chat {
             return;
         }
         self.picker_open.set(true);
-        let pending = pick_files(FilePickRequest::new(true, slots as u32).max_size(0));
+        let request = FilePickRequest::new(true, slots as u32).max_size(0);
+        let request = if photos {
+            request.filter(FileFilter::new(
+                "Images",
+                ["jpg", "jpeg", "png", "gif", "webp", "heic", "heif", "avif"],
+            ))
+        } else {
+            request
+        };
+        let pending = pick_files(request);
         spawn(async move {
             let files = pending.await;
             self.picker_open.set(false);
@@ -200,6 +233,7 @@ pub(crate) fn page(go_components: impl Fn() + 'static, toggle_theme: impl Fn() +
         (thread.id, thread.messages.get())
     });
 
+    let empty = computed(move || messages.with(|(_, list)| list.is_empty()));
     effect(move || {
         let (thread, len) = messages.with(|(thread, list)| (*thread, list.len()));
         spawn(async move {
@@ -225,12 +259,21 @@ pub(crate) fn page(go_components: impl Fn() + 'static, toggle_theme: impl Fn() +
                 .child(when(desktop, move || {
                     view()
                         .test_id("desktop-chat-history")
-                        .w(px(248.0))
+                        .w(px(244.0))
                         .flex_shrink_0()
                         .border_r(px(1.0))
                         .border_color(|| theme().border)
-                        .bg(|| theme().background)
-                        .child(history(chat))
+                        .bg(tint().opacity(0.45))
+                        .child(
+                            text("Relay")
+                                .px_5()
+                                .pt_5()
+                                .pb_2()
+                                .text_lg()
+                                .text_color(accent())
+                                .font_weight(FontWeight::BOLD),
+                        )
+                        .child(history(chat, false))
                 }))
                 .child(
                     view()
@@ -250,12 +293,10 @@ pub(crate) fn page(go_components: impl Fn() + 'static, toggle_theme: impl Fn() +
                                         .w_full()
                                         .max_w(px(780.0))
                                         .self_center()
-                                        .p_4()
-                                        .gap_3()
-                                        .child(when(
-                                            move || messages.with(|(_, items)| items.is_empty()),
-                                            move || welcome(chat),
-                                        ))
+                                        .px_4()
+                                        .pt_6()
+                                        .pb_4()
+                                        .gap_5()
                                         .child(each(
                                             move || {
                                                 messages.with(|(thread, items)| {
@@ -268,10 +309,38 @@ pub(crate) fn page(go_components: impl Fn() + 'static, toggle_theme: impl Fn() +
                                             },
                                             |(thread, message)| (*thread, message.id),
                                             move |row, _| message_view(row.get_untracked().1),
+                                        ))
+                                        .child(when(
+                                            move || chat.active.get().pending.get().is_some(),
+                                            || {
+                                                text("Preparing a reply…")
+                                                    .test_id("chat-pending")
+                                                    .text_sm()
+                                                    .text_color(accent())
+                                            },
                                         )),
                                 ),
                         )
-                        .child(composer(chat)),
+                        .child(when(empty, move || welcome(chat)))
+                        .child(view().flex_grow(move || {
+                            if empty.get() && !desktop() {
+                                1.0_f32
+                            } else {
+                                0.0
+                            }
+                        }))
+                        .child(composer(chat))
+                        .child(
+                            view()
+                                .flex_grow(move || {
+                                    if empty.get() && desktop() {
+                                        1.5_f32
+                                    } else {
+                                        0.0
+                                    }
+                                })
+                                .test_id("chat-composer-spacer"),
+                        ),
                 ),
         )
         .child(
@@ -281,7 +350,7 @@ pub(crate) fn page(go_components: impl Fn() + 'static, toggle_theme: impl Fn() +
             )
             .side(SheetSide::Left)
             .close_button(Some("Close history"))
-            .body(move || history(chat)),
+            .body(move || history(chat, true)),
         )
 }
 
@@ -290,34 +359,47 @@ fn header(
     go_components: impl Fn() + 'static,
     toggle_theme: impl Fn() + 'static,
 ) -> View {
+    let menu = signal(false);
     view()
         .flex_row()
         .justify_between()
         .items_center()
         .flex_shrink_0()
-        .gap_1()
+        .gap_2()
         .px_3()
-        .min_h(px(58.0))
+        .min_h(px(56.0))
         .border_b(px(1.0))
         .border_color(|| theme().border)
-        .bg(|| theme().background)
         .child(
             view()
                 .flex_row()
                 .items_center()
-                .gap_1()
+                .gap_2()
                 .min_w(px(0.0))
                 .child(when(
                     || !desktop(),
                     move || {
-                        SheetTrigger::render(chat.history, action("History").surface().h(px(44.0)))
+                        SheetTrigger::render(
+                            chat.history,
+                            icon_action("History", "☰").surface().size(px(44.0)),
+                        )
                     },
                 ))
                 .child(
-                    text("Blocks")
-                        .font_weight(FontWeight::BOLD)
-                        .text_color(accent())
-                        .truncate(),
+                    view()
+                        .min_w(px(0.0))
+                        .child(
+                            text(move || SharedString::from(chat.active.get().title.get()))
+                                .text_sm()
+                                .font_weight(FontWeight::SEMIBOLD)
+                                .truncate(),
+                        )
+                        .child(
+                            text("Relay workspace")
+                                .text_xs()
+                                .text_color(accent())
+                                .truncate(),
+                        ),
                 ),
         )
         .child(
@@ -325,8 +407,39 @@ fn header(
                 .flex_row()
                 .items_center()
                 .gap_1()
-                .child(action("Components").on_press(go_components).h(px(44.0)))
-                .child(action("Theme").on_press(toggle_theme).h(px(44.0))),
+                .child(
+                    icon_action("Start new chat", "＋")
+                        .on_press(move || chat.new_thread())
+                        .size(px(44.0))
+                        .test_id("chat-new"),
+                )
+                .child(
+                    Popover::new(
+                        PopoverTrigger::render(
+                            icon_action("Chat options", "⋯").surface().size(px(44.0)),
+                        ),
+                        PopoverContent::new()
+                            .label("Chat options")
+                            .align(Align::End)
+                            .width(196.0)
+                            .child(
+                                action("Theme")
+                                    .on_press(move || {
+                                        menu.set(false);
+                                        toggle_theme();
+                                    })
+                                    .justify_start()
+                                    .h(px(44.0)),
+                            )
+                            .child(
+                                action("Components")
+                                    .on_press(go_components)
+                                    .justify_start()
+                                    .h(px(44.0)),
+                            ),
+                    )
+                    .open(menu),
+                ),
         )
 }
 
@@ -337,89 +450,138 @@ fn action(label: impl IntoReactive<SharedString>) -> Button {
         .pointer_cursor()
 }
 
-fn history(chat: Chat) -> View {
+fn icon_action(label: &'static str, glyph: &'static str) -> Button {
+    action(label)
+        .size(ButtonSize::Icon)
+        .icon_start(text(glyph).text_xl())
+        .radius(22.0)
+}
+
+fn history(chat: Chat, in_sheet: bool) -> View {
+    let query = signal(String::new());
+    let visible_threads = computed(move || {
+        let query = query.with(|value| value.trim().to_lowercase());
+        chat.threads.with(|threads| {
+            threads
+                .iter()
+                .filter(|thread| {
+                    query.is_empty()
+                        || thread
+                            .title
+                            .with(|title| title.to_lowercase().contains(&query))
+                })
+                .copied()
+                .collect::<Vec<_>>()
+        })
+    });
+    let list = view()
+        .gap_1()
+        .role(AccessibilityRole::Navigation)
+        .label("Chat history")
+        .child(when(
+            move || visible_threads.with(Vec::is_empty),
+            || {
+                text("No matching chats")
+                    .text_sm()
+                    .px_2()
+                    .text_color(|| theme().muted_foreground)
+            },
+        ))
+        .child(each(
+            visible_threads,
+            |thread| thread.id,
+            move |thread, _| {
+                let thread = thread.get_untracked();
+                action(move || SharedString::from(thread.title.get()))
+                    .on_press(move || chat.select(thread))
+                    .justify_start()
+                    .h(px(44.0))
+                    .style_when(
+                        move || chat.active.get().id == thread.id,
+                        |s| s.bg(tint()).text_color(accent()),
+                    )
+            },
+        ));
     view()
-        .gap_3()
-        .p_3()
+        .gap_2()
+        .px_3()
+        .pb_3()
         .min_h(px(0.0))
         .child(
             Button::new("New chat")
                 .variant(ButtonVariant::Outline)
-                .radius(8.0)
+                .icon_start(text("＋").text_lg())
+                .radius(10.0)
                 .on_press(move || chat.new_thread())
+                .justify_start()
                 .h(px(44.0)),
         )
         .child(
-            scroll()
-                .min_h(px(0.0))
-                .max_h(|| px((window().height.0 - 185.0).max(48.0)))
-                .child(
-                    view()
-                        .gap_1()
-                        .role(AccessibilityRole::Navigation)
-                        .label("Chat history")
-                        .child(each(
-                            chat.threads,
-                            |thread| thread.id,
-                            move |thread, _| {
-                                let thread = thread.get_untracked();
-                                action(move || SharedString::from(thread.title.get()))
-                                    .on_press(move || chat.select(thread))
-                                    .justify_start()
-                                    .h(px(44.0))
-                                    .style_when(
-                                        move || chat.active.get().id == thread.id,
-                                        |s| s.bg(tint()).text_color(accent()),
-                                    )
-                            },
-                        )),
-                ),
+            input()
+                .label("Search chats")
+                .placeholder("Search chats")
+                .h(px(44.0))
+                .value(move || query.get())
+                .on_change(move |value: &str| query.set(value.to_owned())),
         )
+        .child(
+            text("Recent chats")
+                .text_xs()
+                .text_color(accent())
+                .px_2()
+                .pt_2(),
+        )
+        .child(if in_sheet {
+            list.into_element()
+        } else {
+            scroll().min_h(px(0.0)).child(list).into_element()
+        })
 }
 
 fn welcome(chat: Chat) -> View {
     view()
-        .gap_3()
-        .pt_6()
+        .w_full()
+        .max_w(px(760.0))
+        .self_center()
+        .px_4()
         .pb_4()
-        .items_start()
-        .child(
-            text("Relay")
-                .text_size(px(34.0))
-                .font_weight(FontWeight::BOLD)
-                .text_color(accent()),
-        )
+        .items_center()
+        .gap_3()
         .child(
             text("Start a conversation")
                 .role(AccessibilityRole::Header)
-                .text_xl()
-                .font_weight(FontWeight::SEMIBOLD),
+                .text_size(move || px(if desktop() { 32.0 } else { 25.0 }))
+                .font_weight(FontWeight::BOLD)
+                .text_center(),
         )
-        .child(
-            text("Try a prompt or type your own message.")
-                .text_sm()
-                .text_color(|| theme().muted_foreground),
-        )
-        .child(
-            view().flex_row().flex_wrap().gap_2().children(
-                [
-                    "Sketch a project plan",
-                    "Explain a concept",
-                    "Draft an outline",
-                ]
-                .into_iter()
-                .map(move |prompt| {
-                    Button::new(prompt)
-                        .variant(ButtonVariant::Outline)
-                        .radius(8.0)
-                        .on_press(move || {
-                            chat.active.get_untracked().draft.set(prompt.into());
-                            chat.editor.focus();
-                        })
-                        .h(px(44.0))
-                }),
-            ),
-        )
+        .child(when(
+            || window().height.0 >= 500.0,
+            move || {
+                view()
+                    .flex_row()
+                    .flex_wrap()
+                    .justify_center()
+                    .gap_2()
+                    .children(
+                        [
+                            "Sketch a project plan",
+                            "Explain a concept",
+                            "Draft an outline",
+                        ]
+                        .into_iter()
+                        .map(move |prompt| {
+                            action(prompt)
+                                .variant(ButtonVariant::Outline)
+                                .radius(18.0)
+                                .on_press(move || {
+                                    chat.active.get_untracked().draft.set(prompt.into());
+                                    chat.editor.focus();
+                                })
+                                .h(px(44.0))
+                        }),
+                    )
+            },
+        ))
 }
 
 fn file_size(bytes: u64) -> String {
@@ -446,40 +608,87 @@ fn file_label(file: &Attachment) -> View {
 }
 
 fn message_view(message: Message) -> View {
+    if message.local_reply {
+        let copied = signal(false);
+        let body = stored(message.text);
+        return view()
+            .test_id("chat-reply")
+            .gap_1()
+            .items_start()
+            .child(
+                text("Relay")
+                    .text_xs()
+                    .font_weight(FontWeight::BOLD)
+                    .text_color(accent()),
+            )
+            .child(
+                text(body.with(|text| text.clone()))
+                    .text_base()
+                    .line_height(px(24.0))
+                    .selectable(true),
+            )
+            .child(
+                action(move || {
+                    SharedString::from(if copied.get() { "Copied" } else { "Copy reply" })
+                })
+                .on_press(move || {
+                    set_clipboard(body.with(|text| text.clone()));
+                    copied.set(true);
+                })
+                .h(px(44.0)),
+            );
+    }
     view()
-        .test_id(if message.local_reply {
-            "chat-reply"
-        } else {
-            "chat-message"
-        })
+        .test_id("chat-message")
+        .self_end()
+        .max_w(percentage(0.86))
+        .min_w(px(0.0))
         .gap_2()
-        .p_3()
-        .rounded(px(12.0))
-        .border(px(1.0))
-        .border_color(|| theme().border)
-        .bg(move || {
-            if message.local_reply {
-                theme().background
-            } else {
-                tint()
-            }
-        })
-        .child(
-            text(if message.local_reply {
-                "Relay · Demo"
-            } else {
-                "You"
-            })
-            .text_xs()
-            .font_weight(FontWeight::SEMIBOLD),
-        )
-        .child((!message.text.is_empty()).then(|| text(message.text).text_sm().selectable(true)))
+        .px_4()
+        .py_3()
+        .rounded(px(19.0))
+        .bg(tint())
+        .child((!message.text.is_empty()).then(|| {
+            text(message.text)
+                .text_base()
+                .line_height(px(23.0))
+                .selectable(true)
+        }))
         .children(
             message
                 .attachments
                 .iter()
                 .map(|file| file_label(file).flex_grow(0.0)),
         )
+}
+
+fn attachment_menu(chat: Chat) -> Popover {
+    let open = signal(false);
+    let trigger = icon_action("Add attachment", "+")
+        .disabled(move || {
+            chat.picker_open.get() || chat.active.get().attachments.with(Vec::len) >= FILE_LIMIT
+        })
+        .surface()
+        .size(px(44.0));
+    let mut menu = PopoverContent::new()
+        .label("Add attachment")
+        .side(PopoverSide::Top)
+        .align(Align::Start)
+        .width(212.0)
+        .side_offset(12.0);
+    for (photos, label, glyph) in [(true, "Photos", "▧"), (false, "Files", "▤")] {
+        menu = menu.child(
+            action(label)
+                .icon_start(text(glyph).text_lg().text_color(accent()))
+                .on_press(move || {
+                    open.set(false);
+                    chat.pick(photos);
+                })
+                .justify_start()
+                .h(px(44.0)),
+        );
+    }
+    Popover::new(PopoverTrigger::render(trigger), menu).open(open)
 }
 
 fn composer(chat: Chat) -> View {
@@ -495,16 +704,18 @@ fn composer(chat: Chat) -> View {
     view()
         .flex_shrink_0()
         .w_full()
-        .max_w(px(780.0))
+        .max_w(px(760.0))
         .self_center()
         .px_3()
         .pt_2()
+        .test_id("chat-composer")
         .pb(|| safe_area().bottom + px(10.0))
         .gap_2()
         .child(
             view()
                 .bg(|| theme().background)
-                .rounded(px(12.0))
+                .rounded(px(24.0))
+                .shadow_sm()
                 .border(px(1.0))
                 .border_color(|| theme().border)
                 .p_2()
@@ -541,45 +752,76 @@ fn composer(chat: Chat) -> View {
                     },
                 ))
                 .child(
-                    textarea()
-                        .label("Message")
-                        .placeholder("Write a message")
-                        .element_ref(&chat.editor)
-                        .min_h(px(48.0))
-                        .max_h(px(120.0))
-                        .submit_behavior(SubmitBehavior::Submit)
-                        .value(move || chat.active.get().draft.get())
-                        .on_change(move |value: &str| {
-                            chat.active.get_untracked().draft.set(value.to_owned())
-                        })
-                        .on_submit(move |_: &str| chat.active.get_untracked().send()),
-                )
-                .child(
                     view()
                         .flex_row()
-                        .items_center()
-                        .justify_between()
+                        .items_end()
+                        .gap_1()
+                        .child(attachment_menu(chat))
                         .child(
-                            action("Add attachment")
-                                .disabled(move || {
-                                    chat.picker_open.get()
-                                        || chat.active.get().attachments.with(Vec::len)
-                                            >= FILE_LIMIT
+                            textarea()
+                                .label("Message")
+                                .placeholder(move || {
+                                    if chat.active.get().messages.with(Vec::is_empty) {
+                                        "Ask Relay"
+                                    } else {
+                                        "Follow up"
+                                    }
                                 })
-                                .on_press(move || chat.pick())
-                                .h(px(44.0)),
+                                .element_ref(&chat.editor)
+                                .bg(AdaptiveColor::TRANSPARENT)
+                                .min_w(px(0.0))
+                                .w(auto())
+                                .flex_1()
+                                .min_h(px(44.0))
+                                .max_h(px(120.0))
+                                .submit_behavior(SubmitBehavior::Submit)
+                                .value(move || chat.active.get().draft.get())
+                                .on_change(move |value: &str| {
+                                    chat.active.get_untracked().draft.set(value.to_owned())
+                                })
+                                .on_submit(move |_: &str| chat.send()),
                         )
                         .child(
-                            Button::new("Send")
-                                .radius(8.0)
-                                .disabled(move || !chat.active.get().can_send())
-                                .on_press(move || chat.active.get_untracked().send())
-                                .h(px(44.0)),
+                            action(move || {
+                                if chat.active.get().pending.get().is_some() {
+                                    "Stop reply"
+                                } else {
+                                    "Send"
+                                }
+                            })
+                            .size(ButtonSize::Icon)
+                            .radius(22.0)
+                            .icon_start(
+                                text(move || {
+                                    if chat.active.get().pending.get().is_some() {
+                                        "■"
+                                    } else {
+                                        "↑"
+                                    }
+                                })
+                                .text_lg(),
+                            )
+                            .disabled(move || {
+                                let thread = chat.active.get();
+                                thread.pending.get().is_none() && !thread.can_send()
+                            })
+                            .on_press(move || {
+                                let thread = chat.active.get_untracked();
+                                if thread.pending.get_untracked().is_some() {
+                                    thread.pending.set(None);
+                                } else {
+                                    chat.send();
+                                }
+                            })
+                            .size(px(44.0))
+                            .bg(accent())
+                            .text_color(canvas_color()),
                         ),
                 ),
         )
         .child(
-            text("Local demo · Conversation and attachments stay in this session.")
+            text("Local demo · No files are uploaded.")
+                .text_center()
                 .text_xs()
                 .text_color(|| theme().muted_foreground),
         )
