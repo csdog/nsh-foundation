@@ -74,23 +74,23 @@ const OTHER_SAMPLES: &[(&str, &str, &str)] = &[
 ];
 
 fn ink() -> AdaptiveColor {
-    AdaptiveColor::new(rgb(0x232323), rgb(0xf0efed))
+    AdaptiveColor::new(rgb(0x171717), rgb(0xf2f2f2))
 }
 
 fn canvas_color() -> AdaptiveColor {
-    AdaptiveColor::new(rgb(0xfffefa), rgb(0x181817))
+    AdaptiveColor::new(rgb(0xffffff), rgb(0x171717))
 }
 
 fn accent() -> AdaptiveColor {
-    AdaptiveColor::new(rgb(0x354bb4), rgb(0xa4b3ff))
+    AdaptiveColor::new(rgb(0x2855c9), rgb(0xa7baff))
 }
 
 fn tint() -> AdaptiveColor {
-    AdaptiveColor::new(rgb(0xeeeae5), rgb(0x32312f))
+    AdaptiveColor::new(rgb(0xefefef), rgb(0x2d2d2d))
 }
 
 fn history_color() -> AdaptiveColor {
-    AdaptiveColor::new(rgb(0xf7f5f1), rgb(0x201f1e))
+    AdaptiveColor::new(rgb(0xf8f8f8), rgb(0x212121))
 }
 
 const MENU_ICON: &str = "M2.5 5h11M2.5 10.5h7";
@@ -1089,6 +1089,8 @@ fn message_view(message: Message) -> View {
 fn attachment_menu(chat: Chat) -> impl IntoElement {
     let open = signal(false);
     let first = element_ref();
+    let below_trigger = signal(false);
+    let toward_trigger = move || px(if below_trigger.get() { -8.0 } else { 8.0 });
     let attach = move |photos, label, path, reference| {
         action(label)
             .icon_start(
@@ -1119,18 +1121,32 @@ fn attachment_menu(chat: Chat) -> impl IntoElement {
             }
         })
         .on_open(move || first.focus())
+        .on_position(move |event: &PopoverEvent| {
+            if let PopoverEvent::Position(side, _, _) = event {
+                below_trigger.set(*side == Placement::Bottom);
+            }
+        })
         .placement(Placement::Top)
         .align(Align::Start)
         .margin(px(12.0))
         .offset(px(9.0))
         .popup_class(move || {
-            (!reduce_motion()).then(|| SharedString::from("transition duration-150"))
+            Some(SharedString::from(if below_trigger.get() {
+                "origin-top-left"
+            } else {
+                "origin-bottom-left"
+            }))
         })
-        .popup_starting_class(move || {
-            (!reduce_motion()).then(|| SharedString::from("opacity-0 translate-y-1"))
+        .popup_starting_style(move |style| {
+            style.opacity(0.0).scale(0.90).translate_y(toward_trigger)
         })
-        .popup_ending_class(move || {
-            (!reduce_motion()).then(|| SharedString::from("opacity-0 translate-y-1"))
+        .popup_ending_style(move |style| {
+            style
+                .opacity(0.0)
+                .scale(0.90)
+                .translate_y(toward_trigger)
+                .duration(160.0)
+                .ease_in()
         })
         .popup_style(|style| {
             style
@@ -1140,6 +1156,9 @@ fn attachment_menu(chat: Chat) -> impl IntoElement {
                 .shadow_xl()
                 .border(px(1.0))
                 .border_color(|| theme().border)
+                .transition()
+                .duration(240.0)
+                .ease_bezier(0.2, 0.75, 0.25, 1.0)
         })
         .trigger(
             icon_action("Add attachment", PLUS_ICON)
