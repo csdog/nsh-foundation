@@ -1,0 +1,15 @@
+[package]
+name = "docs"
+version.workspace = true
+edition.workspace = true
+publish = false
+
+[dependencies]
+components.workspace = true
+nsh-core.workspace = true
+nsh-base.workspace = true
+chrono.workspace = true
+
+[dev-dependencies]
+nsh-engine.workspace = true
+nsh-testing.workspace = true

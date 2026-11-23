@@ -1,0 +1,19 @@
+[package]
+name = "components"
+version.workspace = true
+edition.workspace = true
+publish = false
+
+[dependencies]
+nsh-core.workspace = true
+nsh-base.workspace = true
+chrono.workspace = true
+icu_calendar = { version = "=2.4.0", default-features = false }
+syntect = { version = "=5.3.0", default-features = false, features = ["default-themes", "regex-fancy"] }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+two-face = { version = "=0.4.5", default-features = false, features = ["syntect-fancy"] }
+
+[dev-dependencies]
+nsh-engine.workspace = true
+nsh-testing.workspace = true

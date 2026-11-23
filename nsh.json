@@ -3,7 +3,7 @@
   "id": "com.example.nshfoundation",
   "version": "1.0.0",
   "build": 1,
-  "rust": ".",
+  "rust": "apps/docs",
   "root": "App",
   "window": {
     "title": "nsh-foundation · Components"

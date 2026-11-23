@@ -314,6 +314,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "components"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "icu_calendar",
+ "nsh-base",
+ "nsh-core",
+ "nsh-engine",
+ "nsh-testing",
+ "syntect",
+ "two-face",
+]
+
+[[package]]
 name = "const-oid"
 version = "0.9.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -505,6 +519,18 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 3.0.10",
+]
+
+[[package]]
+name = "docs"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "components",
+ "nsh-base",
+ "nsh-core",
+ "nsh-engine",
+ "nsh-testing",
 ]
 
 [[package]]
@@ -1537,20 +1563,6 @@ dependencies = [
  "tokio",
  "ureq",
  "windows-sys 0.61.2",
-]
-
-[[package]]
-name = "nsh-foundation"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "icu_calendar",
- "nsh-base",
- "nsh-core",
- "nsh-engine",
- "nsh-testing",
- "syntect",
- "two-face",
 ]
 
 [[package]]
