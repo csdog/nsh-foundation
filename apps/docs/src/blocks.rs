@@ -4,13 +4,12 @@ use components::{
     button::{Button, ButtonSize, ButtonVariant},
     input::input,
     popover::{Popover, PopoverContent, PopoverSide, PopoverTrigger},
-    sheet::{Sheet, SheetContent, SheetHeader, SheetSide, SheetTitle, SheetTrigger},
     textarea::textarea,
 };
 use nsh_base::theme;
 use nsh_core::{
-    SubmitBehavior, element::set_clipboard, file_dialog::FileFilter, picker::FilePickRequest,
-    prelude::*,
+    SubmitBehavior, element::set_clipboard, file_dialog::FileFilter, keymap::When,
+    picker::FilePickRequest, prelude::*,
 };
 
 const FILE_LIMIT: usize = 8;
@@ -132,7 +131,8 @@ struct Chat {
     owner: Owner,
     threads: Signal<Vec<Thread>>,
     active: Signal<Thread>,
-    history: Sheet,
+    history_open: Signal<bool>,
+    history_trigger: ElementRef,
     picker_open: Signal<bool>,
     next_file: Stored<usize>,
     transcript: ElementRef,
@@ -146,7 +146,8 @@ impl Chat {
             owner: Owner::current(),
             threads: signal(vec![initial]),
             active: signal(initial),
-            history: Sheet::new(signal(false)),
+            history_open: signal(false),
+            history_trigger: element_ref(),
             picker_open: signal(false),
             next_file: stored(0),
             transcript: element_ref(),
@@ -156,7 +157,23 @@ impl Chat {
 
     fn select(self, thread: Thread) {
         self.active.set(thread);
-        self.history.close();
+        self.close_history();
+    }
+
+    fn close_history(self) -> bool {
+        if !self.history_open.get_untracked() {
+            return false;
+        }
+        self.history_open.set(false);
+        self.owner.run(|| {
+            spawn(async move {
+                next_frame().await;
+                if !self.history_open.get_untracked() && !desktop() {
+                    self.history_trigger.focus();
+                }
+            });
+        });
+        true
     }
 
     fn new_thread(self) {
@@ -167,7 +184,7 @@ impl Chat {
             self.threads.update(|threads| threads.insert(0, thread));
             self.select(thread);
         } else {
-            self.history.close();
+            self.close_history();
         }
         if untracked(desktop) {
             self.editor.focus();
@@ -226,8 +243,110 @@ fn desktop() -> bool {
     window().width.0 >= 840.0
 }
 
+fn history_width() -> f32 {
+    let width = window().width.0;
+    (width * 0.78).min((width - 56.0).max(0.0))
+}
+
+fn mobile_history(chat: Chat) -> View {
+    on_key_with(
+        "escape",
+        KeyOptions {
+            when: When::Always,
+            for_focus: true,
+            ..Default::default()
+        },
+        move |_| {
+            chat.close_history();
+        },
+    );
+    let open = chat.history_open;
+    let close = element_ref();
+    effect(move || {
+        if open.get() {
+            spawn(async move {
+                next_frame().await;
+                if open.get_untracked() {
+                    close.focus();
+                }
+            });
+        }
+    });
+    view()
+        .absolute()
+        .top_0()
+        .bottom_0()
+        .left_0()
+        .w(|| px(history_width()))
+        .pt(|| safe_area().top + px(6.0))
+        .pb(|| safe_area().bottom)
+        .bg(tint())
+        .role(AccessibilityRole::Dialog)
+        .label("Conversations")
+        .accessibility_elements_hidden(move || !open.get())
+        .test_id("chat-history-underlay")
+        .child(
+            view()
+                .flex_row()
+                .items_center()
+                .justify_between()
+                .px_4()
+                .pb_2()
+                .child(
+                    text("Relay")
+                        .text_xl()
+                        .text_color(accent())
+                        .font_weight(FontWeight::BOLD),
+                )
+                .child(
+                    icon_action("Close history", "×")
+                        .on_press(move || {
+                            chat.close_history();
+                        })
+                        .size(px(44.0))
+                        .element_ref(&close),
+                ),
+        )
+        .child(history(chat))
+}
+
 pub(crate) fn page(go_components: impl Fn() + 'static, toggle_theme: impl Fn() + 'static) -> View {
     let chat = Chat::new();
+    let revealing_history = computed(move || !desktop() && chat.history_open.get());
+    let history_mounted = signal(false);
+    let chat_offset = animated_value(0.0);
+    let static_offset = move || {
+        px(if revealing_history.get() && reduce_motion() {
+            history_width()
+        } else {
+            0.0
+        })
+    };
+    effect(move || {
+        let open = revealing_history.get();
+        let offset = if open { history_width() } else { 0.0 };
+        if open {
+            history_mounted.set(true);
+        }
+        if reduce_motion() || desktop() {
+            chat_offset.set(0.0);
+            history_mounted.set(open);
+            if desktop() {
+                chat.history_open.set(false);
+            }
+        } else {
+            let transition =
+                chat_offset.timing(offset, 260.0, Easing::Bezier(0.25, 0.8, 0.25, 1.0));
+            if !open {
+                spawn(async move {
+                    if transition.await && !revealing_history.get_untracked() {
+                        history_mounted.set(false);
+                    }
+                });
+            }
+        }
+    });
+    on_back_press(move || chat.close_history());
     let messages = computed(move || {
         let thread = chat.active.get();
         (thread.id, thread.messages.get())
@@ -249,13 +368,17 @@ pub(crate) fn page(go_components: impl Fn() + 'static, toggle_theme: impl Fn() +
         .test_id("blocks-chat")
         .flex_1()
         .min_h(px(0.0))
-        .bg(canvas_color())
+        .relative()
+        .overflow_hidden()
+        .bg(tint())
         .text_color(ink())
+        .child(when(history_mounted, move || mobile_history(chat)))
         .child(
             view()
                 .flex_row()
                 .flex_1()
                 .min_h(px(0.0))
+                .pointer_events(PointerEvents::BoxNone)
                 .child(when(desktop, move || {
                     view()
                         .test_id("desktop-chat-history")
@@ -273,13 +396,29 @@ pub(crate) fn page(go_components: impl Fn() + 'static, toggle_theme: impl Fn() +
                                 .text_color(accent())
                                 .font_weight(FontWeight::BOLD),
                         )
-                        .child(history(chat, false))
+                        .child(history(chat))
                 }))
                 .child(
                     view()
                         .flex_1()
                         .min_w(px(0.0))
                         .min_h(px(0.0))
+                        .test_id("chat-main-surface")
+                        .relative()
+                        .left(static_offset)
+                        .bind_translate_x(&chat_offset)
+                        .bg(canvas_color())
+                        .style_when(history_mounted, |style| {
+                            style.rounded_l(px(22.0)).shadow_xl().overflow_hidden()
+                        })
+                        .pointer_events(move || {
+                            if revealing_history.get() {
+                                PointerEvents::None
+                            } else {
+                                PointerEvents::Auto
+                            }
+                        })
+                        .accessibility_elements_hidden(revealing_history)
                         .child(header(chat, go_components, toggle_theme))
                         .child(
                             scroll()
@@ -343,15 +482,23 @@ pub(crate) fn page(go_components: impl Fn() + 'static, toggle_theme: impl Fn() +
                         ),
                 ),
         )
-        .child(
-            SheetContent::new(
-                chat.history,
-                SheetHeader::new(SheetTitle::new("Conversations")),
-            )
-            .side(SheetSide::Left)
-            .close_button(Some("Close history"))
-            .body(move || history(chat, true)),
-        )
+        .child(when(revealing_history, move || {
+            view()
+                .absolute()
+                .left(static_offset)
+                .top_0()
+                .bottom_0()
+                .w(|| px(window().width.0 - history_width()))
+                .bind_translate_x(&chat_offset)
+                .bg(ink().opacity(0.08))
+                .rounded_l(px(22.0))
+                .role(AccessibilityRole::Button)
+                .label("Return to chat")
+                .test_id("chat-history-return")
+                .on_press(move || {
+                    chat.close_history();
+                })
+        }))
 }
 
 fn header(
@@ -379,10 +526,14 @@ fn header(
                 .child(when(
                     || !desktop(),
                     move || {
-                        SheetTrigger::render(
-                            chat.history,
-                            icon_action("History", "☰").surface().size(px(44.0)),
-                        )
+                        icon_action("History", "☰")
+                            .on_press(move || chat.history_open.set(true))
+                            .size(px(44.0))
+                            .element_ref(&chat.history_trigger)
+                            .accessibility_state(move || AccessibilityState {
+                                expanded: Some(chat.history_open.get()),
+                                ..Default::default()
+                            })
                     },
                 ))
                 .child(
@@ -457,7 +608,7 @@ fn icon_action(label: &'static str, glyph: &'static str) -> Button {
         .radius(22.0)
 }
 
-fn history(chat: Chat, in_sheet: bool) -> View {
+fn history(chat: Chat) -> View {
     let query = signal(String::new());
     let visible_threads = computed(move || {
         let query = query.with(|value| value.trim().to_lowercase());
@@ -506,6 +657,7 @@ fn history(chat: Chat, in_sheet: bool) -> View {
         .gap_2()
         .px_3()
         .pb_3()
+        .flex_1()
         .min_h(px(0.0))
         .child(
             Button::new("New chat")
@@ -531,11 +683,7 @@ fn history(chat: Chat, in_sheet: bool) -> View {
                 .px_2()
                 .pt_2(),
         )
-        .child(if in_sheet {
-            list.into_element()
-        } else {
-            scroll().min_h(px(0.0)).child(list).into_element()
-        })
+        .child(scroll().min_h(px(0.0)).flex_1().child(list))
 }
 
 fn welcome(chat: Chat) -> View {

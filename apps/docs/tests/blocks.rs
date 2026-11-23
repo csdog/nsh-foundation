@@ -19,6 +19,7 @@ fn mobile_blocks_chat_keeps_drafts_and_messages_in_their_own_threads() {
     app.wait_for("id:chat-reply").unwrap();
     app.type_text("label:Message", "Original draft").unwrap();
     app.press("role:button[History]").unwrap();
+    app.wait_for("id:chat-history-underlay").unwrap();
     app.press("role:button[New chat]").unwrap();
     app.wait_for("Start a conversation").unwrap();
     app.type_text("label:Message", "Second thread").unwrap();
@@ -96,4 +97,39 @@ fn stopping_a_local_reply_keeps_the_message_and_allows_another_send() {
     app.wait_for("id:chat-reply").unwrap();
     assert_eq!(app.screen().count("id:chat-message"), Ok(2));
     assert_eq!(app.screen().count("id:chat-reply"), Ok(1));
+}
+
+#[test]
+fn mobile_history_returns_to_the_same_chat_surface() {
+    let mut config = EngineConfig::new(Root::of::<App>());
+    config.viewport = Size::new(px(390.0), px(844.0));
+    config.environment.reduce_motion = true;
+    let mut app = Headless::start_at_page(config, "https://foundation.test/#blocks").unwrap();
+    app.first_render().unwrap();
+    app.wait_for("id:chat-main-surface").unwrap();
+    let position = |app: &Headless, id| {
+        app.screen()
+            .layout_nodes()
+            .into_iter()
+            .find(|node| node.test_id.as_deref() == Some(id))
+            .unwrap()
+            .bounds
+    };
+    app.type_text("label:Message", "Keep this draft").unwrap();
+    app.press("role:button[History]").unwrap();
+    app.wait_for("id:chat-history-underlay").unwrap();
+    let panel = position(&app, "chat-history-underlay");
+    let surface = position(&app, "chat-main-surface");
+    assert_eq!(panel.origin.x, px(0.0));
+    assert_eq!(surface.origin.x, panel.size.width);
+    assert_eq!(surface.size.width, px(390.0));
+    app.press("id:chat-history-return").unwrap();
+    assert_eq!(app.screen().count("id:chat-history-underlay"), Ok(0));
+
+    app.press("role:button[History]").unwrap();
+    app.press_key("escape").unwrap();
+    assert_eq!(app.screen().count("id:chat-history-underlay"), Ok(0));
+    assert_eq!(app.screen().count("id:chat-main-surface"), Ok(1));
+    app.press("role:button[Send]").unwrap();
+    app.wait_for("Keep this draft").unwrap();
 }
