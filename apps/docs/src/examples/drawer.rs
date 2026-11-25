@@ -1,11 +1,14 @@
 use nsh_base::{input, theme};
-use nsh_core::{AccessibilityState, Checked, prelude::*};
+use nsh_core::{AccessibilityState, Checked, element::StyleRefinement, prelude::*};
 
 use components::{
+    div,
     drawer::{
-        Direction, Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter,
-        DrawerHeader, DrawerOptions, DrawerTitle, DrawerTrigger, Modality, SnapPoint,
+        Direction, Drawer, DrawerClose, DrawerCloseProps, DrawerContent, DrawerContentProps,
+        DrawerDescriptionProps, DrawerFooter, DrawerHeader, DrawerOptions, DrawerRootProps,
+        DrawerTitleProps, DrawerTrigger, DrawerTriggerProps, Modality, SnapPoint,
     },
+    rsx,
     ui::{Variant, button, button_surface, muted},
 };
 
@@ -32,121 +35,130 @@ const DELIVERY: [(&str, &str); 5] = [
     ("6:30 PM – 6:45 PM", "Last slot before kitchen closes"),
 ];
 
-pub(crate) fn delivery(
-    status: Signal<Option<SharedString>>,
-) -> (impl IntoElement, impl IntoElement) {
+pub(crate) fn delivery(status: Signal<Option<SharedString>>) -> impl IntoElement {
     let drawer = Drawer::new(signal(false));
     let selection = signal(0_usize);
-    let trigger = DrawerTrigger::render(drawer, button_surface("Open Drawer", Variant::Secondary))
-        .test_id("delivery-trigger");
-    let content = DrawerContent::new(drawer, "Pick a delivery time", move || {
-        let mut choices = view()
-            .gap_2()
-            .role(AccessibilityRole::Radiogroup)
-            .label("Delivery time");
-        for (index, (label, description)) in DELIVERY.into_iter().enumerate() {
-            let row = view()
-                .label(label)
-                .hint(description)
-                .role(AccessibilityRole::Radio)
-                .accessibility_state(move || AccessibilityState {
-                    checked: Some(if selection.get() == index {
-                        Checked::True
-                    } else {
-                        Checked::False
-                    }),
-                    ..Default::default()
-                })
-                .flex_row()
-                .items_center()
-                .justify_between()
-                .gap_2()
-                .p_3()
-                .rounded(px(10.0))
-                .border(px(1.0))
-                .border_color(move || {
-                    if selection.get() == index {
-                        theme().ring
-                    } else {
-                        theme().border
-                    }
-                })
-                .hover(|style| style.opacity(0.75))
-                .on_press(move || selection.set(index))
-                .child(
-                    view()
-                        .flex_1()
-                        .gap_1()
-                        .child(
-                            view()
-                                .flex_row()
-                                .items_center()
-                                .gap_2()
-                                .child(text(label).text_sm().font_weight(FontWeight::SEMIBOLD))
-                                .child((index == 0).then(|| {
-                                    view()
-                                        .px_2()
-                                        .py(px(2.0))
-                                        .rounded_full()
-                                        .bg(move || theme().secondary)
-                                        .child(
-                                            text("Fastest")
-                                                .text_xs()
-                                                .font_weight(FontWeight::MEDIUM),
-                                        )
-                                })),
-                        )
-                        .child(muted(description)),
-                )
-                .child(
-                    view()
-                        .size(px(16.0))
-                        .items_center()
-                        .justify_center()
-                        .rounded_full()
-                        .border(px(1.0))
-                        .border_color(move || theme().ring)
-                        .child(when(
-                            move || selection.get() == index,
-                            || {
-                                view()
-                                    .size(px(8.0))
-                                    .rounded_full()
-                                    .bg(move || theme().primary)
-                            },
-                        )),
-                );
-            choices = choices.child(row);
-        }
-        view()
-            .flex_1()
-            .child(
-                DrawerHeader::new()
-                    .child(DrawerTitle::new("Pick a delivery time"))
-                    .child(DrawerDescription::new(
-                        "We'll prepare your order as soon as possible.",
-                    )),
-            )
-            .child(scroll().flex_shrink(1.0).p_4().child(choices))
-            .child(
-                DrawerFooter::new()
-                    .child(button(
-                        "Confirm Delivery Time",
-                        Variant::Primary,
-                        move || {
+    DrawerRootProps { drawer }.with_body(move || {
+        let trigger = DrawerTriggerProps { label: "Open Drawer" }
+            .with_variant(Variant::Secondary)
+            .test_id("delivery-trigger");
+        let content = (rsx! {
+            DrawerContentProps { label: "Pick a delivery time" } => {
+                (div().style_with(StyleRefinement::flex_1)) {
+                    DrawerHeader::new() {
+                        DrawerTitleProps { text: "Pick a delivery time" },
+                        DrawerDescriptionProps { text: "We'll prepare your order as soon as possible." },
+                    },
+                    delivery_choices(selection),
+                    DrawerFooter::new() {
+                        button("Confirm Delivery Time", Variant::Primary, move || {
                             let (label, _) = DELIVERY[selection.get()];
                             status.set(Some(format!("Delivery time confirmed · {label}").into()));
                             drawer.close();
-                        },
-                    ))
-                    .child(DrawerClose::render(
-                        drawer,
-                        button_surface("Cancel", Variant::Outline),
-                    )),
-            )
+                        }),
+                        (DrawerCloseProps { label: "Cancel" }).with_variant(Variant::Outline),
+                    },
+                }
+            }
+        })
+        .options(adaptive);
+        [trigger.into_element(), content.into_element()]
     })
-    .options(adaptive);
-    (trigger, content)
+}
+
+fn delivery_choices(selection: Signal<usize>) -> impl IntoElement {
+    let choices = view()
+        .style_with(StyleRefinement::gap_2)
+        .role(AccessibilityRole::Radiogroup)
+        .label("Delivery time")
+        .children(
+            DELIVERY
+                .into_iter()
+                .enumerate()
+                .map(|(index, (label, description))| {
+                    view()
+                        .label(label)
+                        .hint(description)
+                        .role(AccessibilityRole::Radio)
+                        .accessibility_state(move || AccessibilityState {
+                            checked: Some(if selection.get() == index {
+                                Checked::True
+                            } else {
+                                Checked::False
+                            }),
+                            ..Default::default()
+                        })
+                        .style_with(move |style| {
+                            let border = if selection.get() == index {
+                                theme().ring
+                            } else {
+                                theme().border
+                            };
+                            delivery_option_style(style).border_color(border)
+                        })
+                        .hover(|style| style.opacity(0.75))
+                        .on_press(move || selection.set(index))
+                        .child(
+                            view()
+                                .style_with(|style| style.flex_1().gap_1())
+                                .child(
+                                    view()
+                                        .style_with(|style| style.flex_row().items_center().gap_2())
+                                        .child(text(label).style_with(|style| {
+                                            style.text_sm().font_weight(FontWeight::SEMIBOLD)
+                                        }))
+                                        .child((index == 0).then(delivery_badge)),
+                                )
+                                .child(muted(description)),
+                        )
+                        .child(
+                            view()
+                                .style_with(|style| {
+                                    style
+                                        .size(px(16.0))
+                                        .items_center()
+                                        .justify_center()
+                                        .rounded_full()
+                                        .border(px(1.0))
+                                        .border_color(theme().ring)
+                                })
+                                .child(when(
+                                    move || selection.get() == index,
+                                    || {
+                                        view().style_with(|style| {
+                                            style.size(px(8.0)).rounded_full().bg(theme().primary)
+                                        })
+                                    },
+                                )),
+                        )
+                }),
+        );
+    scroll()
+        .style_with(|style| style.flex_shrink(1.0).p_4())
+        .child(choices)
+}
+
+fn delivery_option_style(style: StyleRefinement) -> StyleRefinement {
+    style
+        .flex_row()
+        .items_center()
+        .justify_between()
+        .gap_2()
+        .p_3()
+        .rounded(px(10.0))
+        .border(px(1.0))
+}
+
+fn delivery_badge() -> View {
+    view()
+        .style_with(|style| {
+            style
+                .px_2()
+                .py(px(2.0))
+                .rounded_full()
+                .bg(theme().secondary)
+        })
+        .child(text("Fastest").style_with(|style| style.text_xs().font_weight(FontWeight::MEDIUM)))
 }
 
 pub(crate) fn positions() -> (impl IntoElement, impl IntoElement) {
@@ -426,31 +438,37 @@ fn demo_panel(
     description: &'static str,
     options: impl Fn() -> DrawerOptions + 'static,
 ) -> impl IntoElement {
-    DrawerContent::new(drawer, title, move || {
-        view()
-            .flex_1()
-            .child(example_header(title, description))
-            .child(placeholder(240.0))
-            .child(DrawerFooter::new().child(DrawerClose::new(drawer, "Close")))
-    })
+    rsx! {
+        DrawerContent::new(drawer, title) => {
+            (div().style_with(StyleRefinement::flex_1)) {
+                example_header(title, description),
+                placeholder(240.0),
+                DrawerFooter::new() {
+                    DrawerClose::new(drawer, "Close"),
+                },
+            }
+        }
+    }
     .options(options)
 }
 
 fn example_header(title: &'static str, description: &'static str) -> DrawerHeader {
-    let header = DrawerHeader::new().child(DrawerTitle::new(title));
+    let header = DrawerHeader::new().child(DrawerTitleProps { text: title });
     if description.is_empty() {
         header
     } else {
-        header.child(DrawerDescription::new(description))
+        header.child(DrawerDescriptionProps { text: description })
     }
 }
 
 fn placeholder(height: f32) -> View {
-    view().flex_1().p_4().child(
-        view()
-            .min_h(px(height))
-            .flex_1()
-            .rounded(px(16.0))
-            .bg(move || theme().muted),
-    )
+    view()
+        .style_with(|style| style.flex_1().p_4())
+        .child(view().style_with(move |style| {
+            style
+                .min_h(px(height))
+                .flex_1()
+                .rounded(px(16.0))
+                .bg(theme().muted)
+        }))
 }

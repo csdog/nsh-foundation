@@ -3,7 +3,10 @@
 use nsh_base::{dialog, theme};
 use nsh_core::{
     TransformOrigin,
-    element::{AnimatedNode, AnimationOutput, ElNode, Extrapolate, Interpolation},
+    element::{
+        AnimatedNode, AnimationOutput, ElNode, Extrapolate, Interpolation, IntoElements,
+        StyleRefinement,
+    },
     prelude::*,
 };
 
@@ -152,9 +155,65 @@ impl Drawer {
     }
 }
 
+#[derive(Clone, Copy)]
+struct DrawerContext(Drawer);
+
+fn drawer_from_root() -> Drawer {
+    use_context::<DrawerContext>()
+        .expect("Drawer parts using from_root must be built inside DrawerRoot")
+        .0
+}
+
+/// Shares a drawer with the parts built by its children closure.
+pub struct DrawerRoot<F> {
+    drawer: Drawer,
+    children: F,
+}
+
+impl<F> DrawerRoot<F> {
+    pub fn new(drawer: Drawer, children: F) -> Self {
+        Self { drawer, children }
+    }
+}
+
+impl<F, E> IntoElement for DrawerRoot<F>
+where
+    F: Fn() -> E + 'static,
+    E: IntoElements,
+{
+    fn into_element(self) -> AnyElement {
+        dynamic(move || {
+            provide_context(DrawerContext(self.drawer));
+            (self.children)()
+        })
+    }
+}
+
+/// Named properties for a scope shared by the drawer parts.
+pub struct DrawerRootProps {
+    pub drawer: Drawer,
+}
+
+impl DrawerRootProps {
+    pub fn with_body<F>(self, children: F) -> DrawerRoot<F> {
+        DrawerRoot::new(self.drawer, children)
+    }
+}
+
 type DrawerBody = Box<dyn Fn() -> View>;
 type DrawerConfiguration = Box<dyn Fn() -> DrawerOptions>;
 type SwipeHandleStyle = Box<dyn Fn(DrawerSwipeHandle) -> DrawerSwipeHandle>;
+
+/// Named properties for content built inside a [`DrawerRoot`].
+pub struct DrawerContentProps {
+    pub label: &'static str,
+}
+
+impl DrawerContentProps {
+    pub fn with_body(self, body: impl Fn() -> View + 'static) -> DrawerContent {
+        DrawerContent::from_root(self.label, body)
+    }
+}
 
 /// The popup gives its body 16 points of padding. The body is built when the
 /// drawer opens and released after it exits.
@@ -175,6 +234,11 @@ impl DrawerContent {
             body: Box::new(body),
             handle_style: None,
         }
+    }
+
+    /// Uses the nearest [`DrawerRoot`]. Call inside its children closure.
+    pub fn from_root(label: &'static str, body: impl Fn() -> View + 'static) -> Self {
+        Self::new(drawer_from_root(), label, body)
     }
 
     /// Supplies options each time the content opens.
@@ -272,14 +336,19 @@ impl IntoElement for DrawerPortal {
             Modality::NonModal => {
                 on_key("escape", move |_| drawer.close());
                 view()
-                    .absolute()
-                    .inset_0()
-                    .pointer_events(PointerEvents::BoxNone)
+                    .style_with(portal_style)
                     .children(self.children)
                     .into_element()
             }
         }
     }
+}
+
+fn portal_style(style: StyleRefinement) -> StyleRefinement {
+    style
+        .absolute()
+        .inset_0()
+        .pointer_events(PointerEvents::BoxNone)
 }
 
 impl DrawerOverlay {
@@ -311,19 +380,20 @@ impl DrawerOverlay {
             }
         });
         let layer = view()
-            .absolute()
-            .inset_0()
             .focusable(false)
-            .pointer_events(move || {
-                if drawer.open.get() && (modal || !options.disable_outside_dismissal) {
+            .style_with(move |style| {
+                let events = if drawer.open.get() && (modal || !options.disable_outside_dismissal) {
                     PointerEvents::Auto
                 } else {
                     PointerEvents::None
+                };
+                let style = style.absolute().inset_0().pointer_events(events);
+                if modal {
+                    // Match the Rhea drawer overlay.
+                    style.bg(hsla(0.0, 0.0, 0.0, 0.30)).backdrop_blur(px(8.0))
+                } else {
+                    style
                 }
-            })
-            .when(modal, |layer| {
-                // shadcn/ui's Rhea drawer overlay uses bg-black/30 and backdrop-blur-sm.
-                layer.bg(hsla(0.0, 0.0, 0.0, 0.30)).backdrop_blur(px(8.0))
             })
             .test_id("drawer-backdrop");
         let layer = match swipe_visibility {
@@ -505,25 +575,14 @@ impl Drawer {
             }
         });
         let children = view()
-            .flex_1()
-            .min_h(px(0.0))
-            .min_w(px(0.0))
-            .overflow_hidden()
+            .style_with(content_style)
             .bind_opacity(&stack_visibility)
             .test_id("drawer-content")
             .child(children);
 
-        let radius = px(24.0);
         let inset = px(options.inset);
         let mut panel = view()
-            .absolute()
-            .pointer_events(PointerEvents::Auto)
-            .bg(move || theme().popover)
-            .text_color(move || theme().popover_foreground)
-            .border(px(1.0))
-            .border_color(move || theme().border)
-            .shadow_xl()
-            .overflow_hidden()
+            .style_with(panel_style)
             .bind_scale(&scale)
             .test_id("drawer-panel");
 
@@ -532,12 +591,14 @@ impl Drawer {
         }
 
         if options.centered {
-            let width = || (window().width.0 - 32.0).clamp(0.0, 425.0);
             return (
                 container_centered(
                     panel
-                        .w(move || px(width()))
-                        .rounded(radius)
+                        .style_with(|style| {
+                            style
+                                .relative()
+                                .w(px((window().width.0 - 32.0).clamp(0.0, 425.0)))
+                        })
                         .bind_opacity(&fade)
                         .child(children),
                 ),
@@ -551,7 +612,7 @@ impl Drawer {
             Direction::Left => "left center",
             Direction::Right => "right center",
         };
-        panel = panel.transform_origin(TransformOrigin::parse(origin).unwrap());
+        let origin = TransformOrigin::parse(origin).unwrap();
         panel = panel.on_layout(move |bounds: &Bounds<Points>| {
             let length = if vertical {
                 bounds.size.height.0
@@ -563,40 +624,41 @@ impl Drawer {
             }
         });
 
-        panel = match direction {
-            Direction::Up => panel.top(inset).left(inset).right(inset),
-            Direction::Down => panel.bottom(inset).left(inset).right(inset),
-            Direction::Left => panel.left(inset).top(inset).bottom(inset),
-            Direction::Right => panel.right(inset).top(inset).bottom(inset),
-        };
-
-        panel = panel.rounded(radius);
+        panel = panel.style_with(move |style| {
+            let style = style.absolute().transform_origin(origin);
+            match direction {
+                Direction::Up => style.top(inset).left(inset).right(inset),
+                Direction::Down => style.bottom(inset).left(inset).right(inset),
+                Direction::Left => style.left(inset).top(inset).bottom(inset),
+                Direction::Right => style.right(inset).top(inset).bottom(inset),
+            }
+        });
 
         if vertical {
-            panel = panel.max_h(move || {
-                px(if snapped || options.height.is_some() {
-                    extent()
+            panel = panel.style_with(move |style| {
+                let available = extent();
+                if snapped || options.height.is_some() {
+                    style
+                        .max_h(px(available))
+                        .h(px(options.height.unwrap_or(available)))
                 } else {
-                    (extent() - 96.0).max(0.0)
-                })
+                    style.max_h(px((available - 96.0).max(0.0)))
+                }
             });
-            if snapped || options.height.is_some() {
-                panel = panel.h(move || px(options.height.unwrap_or_else(extent)));
-            }
             panel = panel.bind_translate_y(&translation);
         } else {
             panel = panel
-                .w(move || {
+                .style_with(move |style| {
                     let viewport = window().width.0;
                     let default_width = if viewport >= 640.0 {
                         384.0
                     } else {
                         viewport * 0.75
                     };
-                    px(options
+                    style.w(px(options
                         .width
                         .unwrap_or(default_width)
-                        .min((viewport - options.inset * 2.0).max(0.0)))
+                        .min((viewport - options.inset * 2.0).max(0.0))))
                 })
                 .bind_translate_x(&translation);
         }
@@ -675,17 +737,15 @@ impl Drawer {
                 Direction::Up => panel.child(children).child(handle),
                 Direction::Left => panel.child(
                     view()
-                        .flex_1()
-                        .flex_row()
-                        .child(children.flex_1())
+                        .style_with(handle_row_style)
+                        .child(children)
                         .child(handle),
                 ),
                 Direction::Right => panel.child(
                     view()
-                        .flex_1()
-                        .flex_row()
+                        .style_with(handle_row_style)
                         .child(handle)
-                        .child(children.flex_1()),
+                        .child(children),
                 ),
             }
         } else {
@@ -695,15 +755,36 @@ impl Drawer {
     }
 }
 
+fn content_style(style: StyleRefinement) -> StyleRefinement {
+    style
+        .flex_1()
+        .min_h(px(0.0))
+        .min_w(px(0.0))
+        .overflow_hidden()
+}
+
+fn panel_style(style: StyleRefinement) -> StyleRefinement {
+    let colors = theme();
+    style
+        .pointer_events(PointerEvents::Auto)
+        .bg(colors.popover)
+        .text_color(colors.popover_foreground)
+        .border(px(1.0))
+        .border_color(colors.border)
+        .shadow_xl()
+        .overflow_hidden()
+        .rounded(px(24.0))
+}
+
+fn handle_row_style(style: StyleRefinement) -> StyleRefinement {
+    style.flex_1().flex_row()
+}
+
 fn container_centered(panel: View) -> View {
     // The modal fills the root window and lays out its child in the center.
     view()
-        .absolute()
-        .inset_0()
-        .pointer_events(PointerEvents::BoxNone)
-        .items_center()
-        .justify_center()
-        .child(panel.relative())
+        .style_with(|style| portal_style(style).items_center().justify_center())
+        .child(panel)
 }
 
 fn settle_snap(
@@ -784,6 +865,11 @@ impl DrawerTrigger {
         Self::render(drawer, button_surface(label, Variant::Outline))
     }
 
+    /// Uses the nearest [`DrawerRoot`]. Call inside its children closure.
+    pub fn from_root(label: &'static str) -> Self {
+        Self::new(drawer_from_root(), label)
+    }
+
     /// Uses the supplied control as the trigger, with no extra node.
     pub fn render(drawer: Drawer, control: View) -> Self {
         Self(
@@ -802,9 +888,32 @@ impl DrawerTrigger {
     }
 }
 
+/// Named properties for a trigger built inside a [`DrawerRoot`].
+pub struct DrawerTriggerProps {
+    pub label: &'static str,
+}
+
+impl DrawerTriggerProps {
+    /// Uses a shared button variant inside the nearest drawer root.
+    pub fn with_variant(self, variant: Variant) -> DrawerTrigger {
+        DrawerTrigger::render(drawer_from_root(), button_surface(self.label, variant))
+    }
+}
+
+impl IntoElement for DrawerTriggerProps {
+    fn into_element(self) -> AnyElement {
+        DrawerTrigger::from_root(self.label).into_element()
+    }
+}
+
 impl DrawerClose {
     pub fn new(drawer: Drawer, label: &'static str) -> Self {
         Self::render(drawer, button_surface(label, Variant::Primary))
+    }
+
+    /// Uses the nearest [`DrawerRoot`], including inside lazy drawer content.
+    pub fn from_root(label: &'static str) -> Self {
+        Self::new(drawer_from_root(), label)
     }
 
     /// Uses the supplied control as the close button, with no extra node.
@@ -817,14 +926,33 @@ impl DrawerClose {
     }
 }
 
+/// Named properties for a close button built inside a [`DrawerRoot`].
+pub struct DrawerCloseProps {
+    pub label: &'static str,
+}
+
+impl DrawerCloseProps {
+    /// Uses a shared button variant inside the nearest drawer root.
+    pub fn with_variant(self, variant: Variant) -> DrawerClose {
+        DrawerClose::render(drawer_from_root(), button_surface(self.label, variant))
+    }
+}
+
+impl IntoElement for DrawerCloseProps {
+    fn into_element(self) -> AnyElement {
+        DrawerClose::from_root(self.label).into_element()
+    }
+}
+
 impl DrawerHeader {
     pub fn new() -> Self {
         Self(
             view()
-                .flex_shrink_0()
-                .px_4()
-                .pt_4()
-                .gap(move || px(if window().width.0 >= 768.0 { 6.0 } else { 2.0 })),
+                // Static defaults allow callers to override padding with builder methods.
+                .style_when(true, |style| style.flex_shrink_0().px_4().pt_4())
+                .style_with(|style| {
+                    style.gap(px(if window().width.0 >= 768.0 { 6.0 } else { 2.0 }))
+                }),
         )
     }
 }
@@ -843,15 +971,40 @@ impl DrawerTitle {
     }
 }
 
+/// Named text for a drawer title.
+pub struct DrawerTitleProps<T> {
+    pub text: T,
+}
+
+impl<T: IntoReactive<SharedString>> IntoElement for DrawerTitleProps<T> {
+    fn into_element(self) -> AnyElement {
+        DrawerTitle::new(self.text).into_element()
+    }
+}
+
 impl DrawerDescription {
     pub fn new(description: impl IntoReactive<SharedString>) -> Self {
         Self(muted(description))
     }
 }
 
+/// Named text for a drawer description.
+pub struct DrawerDescriptionProps<T> {
+    pub text: T,
+}
+
+impl<T: IntoReactive<SharedString>> IntoElement for DrawerDescriptionProps<T> {
+    fn into_element(self) -> AnyElement {
+        DrawerDescription::new(self.text).into_element()
+    }
+}
+
 impl DrawerFooter {
     pub fn new() -> Self {
-        Self(view().mt(auto()).flex_shrink_0().px_4().pb_4().gap_2())
+        // Keep slot defaults below any caller-supplied static declarations.
+        Self(view().style_when(true, |style| {
+            style.mt(auto()).flex_shrink_0().px_4().pb_4().gap_2()
+        }))
     }
 }
 
@@ -893,23 +1046,27 @@ fn swipe_handle(vertical: bool, on_press: impl Fn() + 'static) -> View {
         (28.0, 112.0, 6.0, 100.0)
     };
     view()
-        .w(px(width))
-        .h(px(height))
-        .self_center()
-        .flex_shrink_0()
-        .items_center()
-        .justify_center()
+        // The public swipe-handle hook can override these static defaults.
+        .style_when(true, |style| {
+            style
+                .w(px(width))
+                .h(px(height))
+                .self_center()
+                .flex_shrink_0()
+                .items_center()
+                .justify_center()
+        })
         .role(AccessibilityRole::Button)
         .label("Drawer swipe handle")
         .test_id("drawer-swipe-handle")
         .on_press(on_press)
-        .child(
-            view()
+        .child(view().style_with(move |style| {
+            style
                 .w(px(mark_width))
                 .h(px(mark_height))
                 .rounded_full()
-                .bg(move || theme().muted_foreground),
-        )
+                .bg(theme().muted_foreground)
+        }))
 }
 
 #[cfg(test)]

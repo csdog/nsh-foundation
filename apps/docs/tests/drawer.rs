@@ -187,9 +187,11 @@ fn code_tabs_copy_the_selected_language_and_can_return_to_preview() {
     interact(&mut app, &format!("{region} >> Rust"));
     interact(&mut app, &format!("{region} >> Copy"));
     let source = app.screen().clipboard().unwrap();
-    assert!(source.contains("DrawerTrigger::new"));
-    assert!(source.contains("DrawerContent::new"));
-    assert!(source.contains("DrawerTitle::new"));
+    assert!(source.contains("DrawerTriggerProps {"));
+    assert!(source.contains("DrawerContentProps {"));
+    assert!(source.contains("DrawerTitleProps {"));
+    assert!(source.contains("DrawerRootProps { drawer } =>"));
+    assert!(source.contains(".style_with(body_style)"));
     interact(&mut app, &format!("{region} >> TSX"));
     assert!(app.shows("shadcn/ui · React + Base UI"));
     interact(&mut app, &format!("{region} >> Copy"));
@@ -229,51 +231,49 @@ fn PartsExample() -> impl IntoElement {
 
     let drawer = Drawer::new(signal(false));
     let builds = stored(0);
-    view()
-        .child(
+    components::rsx! {
+        view() {
             DrawerTrigger::render(
                 drawer,
                 view().p_4().label("Custom opener").child(text("Open")),
             )
             .test_id("parts-trigger"),
-        )
-        .child(DrawerContent::new(drawer, "Compound Drawer", move || {
-            builds.replace(builds.get() + 1);
-            view()
-                .child(
-                    DrawerHeader::new()
-                        .child(
+            text(move || format!("Body builds: {}", builds.get())),
+            DrawerContent::new(drawer, "Compound Drawer") => {{
+                builds.replace(builds.get() + 1);
+                components::rsx! {
+                    view() {
+                        DrawerHeader::new() {
                             view()
                                 .test_id("parts-title")
                                 .child(DrawerTitle::new("Compound Drawer")),
-                        )
-                        .child(DrawerDescription::new(
-                            "Only mounted while the drawer is visible.",
-                        )),
-                )
-                .child(
-                    view().py_4().child(
-                        view()
-                            .test_id("parts-body")
-                            .label("Reopen during exit")
-                            .on_press(move || {
-                                drawer.close();
-                                set_timeout(Duration::from_millis(100), move || drawer.open());
-                            })
-                            .child(text(format!("Body build {}", builds.get()))),
-                    ),
-                )
-                .child(
-                    DrawerFooter::new().child(DrawerClose::render(
-                        drawer,
-                        view()
-                            .p_4()
-                            .label("Custom closer")
-                            .test_id("parts-close")
-                            .child(text("Done")),
-                    )),
-                )
-        }))
+                            DrawerDescription::new("Only mounted while the drawer is visible."),
+                        },
+                        view().py_4().child(
+                            view()
+                                .test_id("parts-body")
+                                .label("Reopen during exit")
+                                .on_press(move || {
+                                    drawer.close();
+                                    set_timeout(Duration::from_millis(100), move || drawer.open());
+                                })
+                                .child(text(format!("Body build {}", builds.get()))),
+                        ),
+                        DrawerFooter::new() {
+                            DrawerClose::render(
+                                drawer,
+                                view()
+                                    .p_4()
+                                    .label("Custom closer")
+                                    .test_id("parts-close")
+                                    .child(text("Done")),
+                            ),
+                        },
+                    }
+                }
+            }},
+        }
+    }
 }
 
 #[test]
@@ -286,6 +286,7 @@ fn independently_styled_trigger_and_close_compose_with_lazy_content() {
     app.first_render().unwrap();
     let description = "Only mounted while the drawer is visible.";
     assert!(!app.shows(description));
+    assert!(app.shows("Body builds: 0"));
     interact(&mut app, "id:parts-trigger");
     assert_count(&app, 1);
     assert!(app.shows(description));
@@ -306,4 +307,6 @@ fn independently_styled_trigger_and_close_compose_with_lazy_content() {
     interact(&mut app, "Custom closer");
     assert_count(&app, 0);
     assert!(!app.shows(description));
+    interact(&mut app, "id:parts-trigger");
+    assert!(app.shows("Body build 2"));
 }

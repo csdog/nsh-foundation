@@ -29,28 +29,46 @@ If the CLI reports a stale generated package name after a crate rename, move asi
 
 ## Compose a Drawer
 
-Share a `Drawer` state across its trigger, content, and close action. Build
-the content using the individual Rust elements.
+Pass the shared state to `DrawerRootProps` once. Set component inputs with
+named fields and apply reusable style functions with `style_with`.
+In `rsx!`, `=> { ... }` supplies a closure so the drawer body is built
+only when it opens.
 
 ```rust
-use nsh_core::prelude::*;
-use components::drawer::{
-    Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader,
-    DrawerTitle, DrawerTrigger,
+use components::{
+    div,
+    drawer::{
+        Drawer, DrawerCloseProps, DrawerContentProps, DrawerDescriptionProps,
+        DrawerFooter, DrawerHeader, DrawerRootProps, DrawerTitleProps, DrawerTriggerProps,
+    },
+    rsx,
 };
+use nsh_core::{element::StyleRefinement, prelude::*};
+
+fn body_style(style: StyleRefinement) -> StyleRefinement {
+    style.flex_1().gap_2()
+}
 
 fn example() -> impl IntoElement {
     let drawer = Drawer::new(signal(false));
-    view()
-        .child(DrawerTrigger::new(drawer, "Open Drawer"))
-        .child(DrawerContent::new(drawer, "Move Goal", move || {
-            view()
-                .child(DrawerHeader::new()
-                    .child(DrawerTitle::new("Move Goal"))
-                    .child(DrawerDescription::new("Set your daily activity goal.")))
-                .child(DrawerFooter::new()
-                    .child(DrawerClose::new(drawer, "Done")))
-        }))
+    rsx! {
+        DrawerRootProps { drawer } => {
+            div() {
+                DrawerTriggerProps { label: "Open Drawer" },
+                DrawerContentProps { label: "Move Goal" } => {
+                    (div().style_with(body_style)) {
+                        DrawerHeader::new() {
+                            DrawerTitleProps { text: "Move Goal" },
+                            DrawerDescriptionProps { text: "Set your daily activity goal." },
+                        },
+                        DrawerFooter::new() {
+                            DrawerCloseProps { label: "Done" },
+                        },
+                    }
+                },
+            }
+        }
+    }
 }
 ```
 

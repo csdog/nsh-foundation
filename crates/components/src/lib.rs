@@ -1,5 +1,8 @@
 //! Composable Native Shell components.
 
+/// An alias for Native Shell's generic view container.
+pub use nsh_core::prelude::view as div;
+
 pub mod accordion;
 pub mod alert;
 pub mod alert_dialog;
@@ -49,6 +52,7 @@ pub mod progress;
 pub mod questionnaire;
 pub mod radio_group;
 pub mod resizable;
+mod rsx;
 pub mod scroll_area;
 pub mod select;
 pub mod separator;

@@ -48,24 +48,40 @@ const SECTIONS: [&str; 13] = [
     "API Reference",
 ];
 
-const SIMPLE: &str = r#"use nsh_core::prelude::*;
-use components::drawer::{
-    Drawer, DrawerClose, DrawerContent, DrawerDescription,
-    DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger,
+const SIMPLE: &str = r#"use components::{
+    div,
+    drawer::{
+        Drawer, DrawerCloseProps, DrawerContentProps, DrawerDescriptionProps,
+        DrawerFooter, DrawerHeader, DrawerRootProps, DrawerTitleProps, DrawerTriggerProps,
+    },
+    rsx,
 };
+use nsh_core::{element::StyleRefinement, prelude::*};
+
+fn body_style(style: StyleRefinement) -> StyleRefinement {
+    style.flex_1().gap_2()
+}
 
 fn example() -> impl IntoElement {
     let drawer = Drawer::new(signal(false));
-    view()
-        .child(DrawerTrigger::new(drawer, "Open Drawer"))
-        .child(DrawerContent::new(drawer, "Drawer", move || {
-            view()
-                .child(DrawerHeader::new()
-                    .child(DrawerTitle::new("Drawer"))
-                    .child(DrawerDescription::new("A panel at the edge.")))
-                .child(DrawerFooter::new()
-                    .child(DrawerClose::new(drawer, "Close")))
-        }))
+    rsx! {
+        DrawerRootProps { drawer } => {
+            div() {
+                DrawerTriggerProps { label: "Open Drawer" },
+                DrawerContentProps { label: "Move Goal" } => {
+                    (div().style_with(body_style)) {
+                        DrawerHeader::new() {
+                            DrawerTitleProps { text: "Move Goal" },
+                            DrawerDescriptionProps { text: "Set your daily activity goal." },
+                        },
+                        DrawerFooter::new() {
+                            DrawerCloseProps { label: "Done" },
+                        },
+                    }
+                },
+            }
+        }
+    }
 }"#;
 
 const SIZED: &str = r#"DrawerContent::new(drawer, "Notification history", move || {
@@ -4027,7 +4043,7 @@ fn drawer_page(
         );
     };
 
-    let (delivery, delivery_panel) = drawer::delivery(status);
+    let delivery = drawer::delivery(status);
     let (custom_size, custom_size_panel) = drawer::custom_size();
     let (floating, floating_panel) = drawer::floating();
     let (positions, position_panels) = drawer::positions();
@@ -4063,7 +4079,6 @@ fn drawer_page(
                     .child(button("Source", Variant::Ghost, || { let _ = open_url(SOURCE); }))),
         )
         .child(example("Delivery time", delivery, SIMPLE, TSX_DELIVERY))
-        .child(delivery_panel)
         .child(
             section("Installation", 0, locations)
                 .child(muted("Build the Native Shell Rust project for the Web target."))
@@ -4071,7 +4086,7 @@ fn drawer_page(
         )
         .child(
             section("Usage", 1, locations)
-                .child(muted("Pass the same Drawer to DrawerTrigger and DrawerContent. Build the content from DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter, and DrawerClose."))
+                .child(muted("Pass the Drawer state to DrawerRootProps once. Use named props for the drawer parts and apply reusable styles with style_with."))
                 .child(code_block(SIMPLE))
                 .child(muted("The TSX tabs show React examples for shadcn/ui with Base UI. Use them in a project with the referenced components installed. The delivery example also needs Sonner’s Toaster."))
                 .child(view().items_start().child(button("TSX license", Variant::Outline, move || {
@@ -4081,7 +4096,7 @@ fn drawer_page(
         )
         .child(section("Composition", 2, locations)
             .child(muted("The trigger can sit anywhere in the layout. DrawerContent supplies the window layer and backdrop, and mounts its children when the drawer opens."))
-            .child(code_block("Drawer\n├── DrawerTrigger\n└── DrawerContent\n    ├── DrawerPortal + DrawerOverlay\n    ├── DrawerHeader\n    │   ├── DrawerTitle\n    │   └── DrawerDescription\n    └── DrawerFooter\n        └── DrawerClose")))
+            .child(code_block("DrawerRoot\n├── DrawerTrigger\n└── DrawerContent\n    ├── DrawerPortal + DrawerOverlay\n    ├── DrawerHeader\n    │   ├── DrawerTitle\n    │   └── DrawerDescription\n    └── DrawerFooter\n        └── DrawerClose")))
         .child(section("Custom Sizes", 3, locations)
             .child(muted("Use height for vertical drawers and width for side drawers. Put long content in a scroll view."))
             .child(example("Custom Sizes", custom_size, SIZED, TSX_SIZED))
