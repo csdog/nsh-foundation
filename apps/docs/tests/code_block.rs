@@ -130,3 +130,26 @@ fn documentation_code_tabs_preserve_preview_state() {
         Some(Checked::True)
     );
 }
+
+#[test]
+fn documentation_copy_button_sits_above_the_source_at_each_width() {
+    let demo = "role:region[Code Block demo]";
+    for width in [390.0, 1280.0] {
+        let mut app = start(width);
+        app.press(&format!("{demo} >> role:tab[Rust]")).unwrap();
+        let bounds = |part| {
+            app.screen()
+                .layout(&format!("{demo} >> {part}"))
+                .unwrap()
+                .unwrap()
+                .bounds
+        };
+        let copy = bounds("role:button[Copy]");
+        let code = bounds("label:Code");
+        assert!(
+            copy.bottom() <= code.origin.y,
+            "overlapping code at {width}px"
+        );
+        assert!((code.right().0 - copy.right().0 - 16.0).abs() < 1.0);
+    }
+}

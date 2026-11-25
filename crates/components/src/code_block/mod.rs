@@ -8,7 +8,10 @@ use nsh_base::theme;
 use nsh_core::{
     SvgPaint,
     canvas::{LineCap, LineJoin},
-    element::{ClipboardWrite, LayoutDirection, announce_for_accessibility, idiom, set_clipboard},
+    element::{
+        ClipboardWrite, LayoutDirection, StyleRefinement, announce_for_accessibility, idiom,
+        set_clipboard,
+    },
     platform::Idiom,
     prelude::*,
 };
@@ -226,15 +229,23 @@ impl IntoElement for CodeBlockActions {
 }
 
 pub struct CodeBlockHeader {
-    title: CodeBlockTitle,
+    title: Option<CodeBlockTitle>,
     actions: Option<CodeBlockActions>,
 }
 
 impl CodeBlockHeader {
     pub fn new(title: CodeBlockTitle) -> Self {
         Self {
-            title,
+            title: Some(title),
             actions: None,
+        }
+    }
+
+    /// Places actions above the code without displaying a title.
+    pub fn actions_only(actions: CodeBlockActions) -> Self {
+        Self {
+            title: None,
+            actions: Some(actions),
         }
     }
 
@@ -244,20 +255,25 @@ impl CodeBlockHeader {
     }
 
     fn surface(self, padding: f32, font: f32) -> View {
+        let has_title = self.title.is_some();
         view()
-            .px(px(padding))
-            .pt(px(padding))
-            .flex_row()
-            .items_center()
-            .justify_between()
-            .gap_2()
-            .child(
-                text(self.title.0)
+            .style_with(move |style| header_style(style, padding, has_title))
+            .child(self.title.map(|title| {
+                text(title.0)
                     .text_size(px(font))
                     .font_weight(FontWeight::MEDIUM)
-                    .truncate(),
-            )
+                    .truncate()
+            }))
             .child(self.actions)
+    }
+}
+
+fn header_style(style: StyleRefinement, padding: f32, has_title: bool) -> StyleRefinement {
+    let style = style.px(px(padding)).flex_row().items_center().gap_2();
+    if has_title {
+        style.pt(px(padding)).justify_between()
+    } else {
+        style.pt(px(padding * 0.5)).justify_end()
     }
 }
 

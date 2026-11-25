@@ -25,7 +25,9 @@ use crate::examples::{
 };
 use components::{
     button::{Button, ButtonVariant},
-    code_block::{CodeBlock, CodeBlockActions, CodeBlockContent, CodeBlockCopyButton},
+    code_block::{
+        CodeBlock, CodeBlockActions, CodeBlockContent, CodeBlockCopyButton, CodeBlockHeader,
+    },
     collapsible::{Collapsible, CollapsibleContent, CollapsibleTrigger},
     drawer::Drawer,
     tabs::{Tabs, TabsContent, TabsList, TabsTrigger},
@@ -4482,11 +4484,9 @@ fn code_panel(value: &'static str, language: &'static str, scrollable: bool) -> 
         content = content.max_height(340.0);
     }
     CodeBlock::new(content)
-        .actions(
-            CodeBlockActions::new()
-                .always_visible()
-                .child(CodeBlockCopyButton::new(value)),
-        )
+        .header(CodeBlockHeader::actions_only(
+            CodeBlockActions::new().child(CodeBlockCopyButton::new(value)),
+        ))
         .surface()
 }
 
