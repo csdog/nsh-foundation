@@ -10,7 +10,7 @@ use nsh_core::{
     prelude::*,
 };
 
-use crate::ui::{Variant, button_surface, heading, muted};
+use crate::ui::{Variant, button_container, button_surface, heading, muted};
 
 const OPEN_MS: f32 = 450.0;
 const CLOSE_MS: f32 = 320.0;
@@ -842,8 +842,6 @@ macro_rules! drawer_part {
 }
 
 drawer_part! {
-    /// A button that opens its associated drawer.
-    DrawerTrigger(View);
     /// A button that closes its associated drawer.
     DrawerClose(View);
     /// Layout for the title and optional description.
@@ -860,6 +858,25 @@ drawer_part! {
     DrawerSwipeHandle(View);
 }
 
+/// A button that opens its associated drawer.
+pub struct DrawerTrigger {
+    view: View,
+}
+
+impl IntoElement for DrawerTrigger {
+    fn into_element(self) -> AnyElement {
+        self.view.into_element()
+    }
+}
+
+impl Element for DrawerTrigger {
+    fn node(&mut self) -> &mut ElNode {
+        self.view.node()
+    }
+}
+
+impl ParentElement for DrawerTrigger {}
+
 impl DrawerTrigger {
     pub fn new(drawer: Drawer, label: &'static str) -> Self {
         Self::render(drawer, button_surface(label, Variant::Outline))
@@ -872,25 +889,37 @@ impl DrawerTrigger {
 
     /// Uses the supplied control as the trigger, with no extra node.
     pub fn render(drawer: Drawer, control: View) -> Self {
-        Self(
-            control
+        Self {
+            view: control
                 .role(AccessibilityRole::Button)
                 .accessibility_state(move || AccessibilityState {
                     expanded: Some(drawer.open.get()),
                     ..Default::default()
                 })
                 .on_press(move || drawer.open()),
-        )
+        }
     }
 
     pub fn test_id(self, id: &str) -> Self {
-        Self(self.0.test_id(id))
+        Self {
+            view: self.view.test_id(id),
+        }
     }
 }
 
 /// Named properties for a trigger built inside a [`DrawerRoot`].
 pub struct DrawerTriggerProps {
     pub label: &'static str,
+}
+
+/// Builds an outline trigger inside the nearest [`DrawerRoot`]. The label
+/// names the button for assistive technology. Add its visible content as children.
+#[allow(non_snake_case)]
+pub fn DrawerTrigger(props: DrawerTriggerProps) -> DrawerTrigger {
+    DrawerTrigger::render(
+        drawer_from_root(),
+        button_container(props.label, Variant::Outline),
+    )
 }
 
 impl DrawerTriggerProps {
@@ -1018,7 +1047,7 @@ impl ParentElement for DrawerFooter {}
 
 #[deprecated(note = "Use DrawerTrigger::new")]
 pub fn trigger(drawer: Drawer, label: &'static str) -> View {
-    DrawerTrigger::new(drawer, label).0
+    DrawerTrigger::new(drawer, label).view
 }
 
 #[deprecated(note = "Use DrawerClose::new")]

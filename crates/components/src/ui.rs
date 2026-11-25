@@ -15,6 +15,19 @@ pub fn button(label: &'static str, variant: Variant, press: impl Fn() + 'static)
 }
 
 pub fn button_surface(label: &'static str, variant: Variant) -> View {
+    button_container(label, variant).child(
+        text(label)
+            .text_sm()
+            .font_weight(FontWeight::MEDIUM)
+            .text_color(move || match variant {
+                Variant::Primary => theme().primary_foreground,
+                Variant::Destructive => rgb(0xffffff).into(),
+                _ => theme().foreground,
+            }),
+    )
+}
+
+pub(crate) fn button_container(label: &'static str, variant: Variant) -> View {
     view()
         .role(AccessibilityRole::Button)
         .label(label)
@@ -39,16 +52,6 @@ pub fn button_surface(label: &'static str, variant: Variant) -> View {
         .hover(|style| style.opacity(0.78))
         .active(|style| style.opacity(0.62))
         .focus_visible(|style| style.outline(px(2.0)).outline_color(rgb(0x71717a)))
-        .child(
-            text(label)
-                .text_sm()
-                .font_weight(FontWeight::MEDIUM)
-                .text_color(move || match variant {
-                    Variant::Primary => theme().primary_foreground,
-                    Variant::Destructive => rgb(0xffffff).into(),
-                    _ => theme().foreground,
-                }),
-        )
 }
 
 pub fn muted(label: impl IntoReactive<SharedString>) -> Text {

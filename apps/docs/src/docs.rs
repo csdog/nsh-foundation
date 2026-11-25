@@ -55,7 +55,7 @@ const DRAWER_RSX: &str = r#"use components::{
     div,
     drawer::{
         Drawer, DrawerCloseProps, DrawerContentProps, DrawerDescriptionProps,
-        DrawerFooter, DrawerHeader, DrawerRootProps, DrawerTitleProps, DrawerTriggerProps,
+        DrawerFooter, DrawerHeader, DrawerRootProps, DrawerTitleProps, DrawerTrigger, DrawerTriggerProps,
     },
     rsx,
 };
@@ -70,7 +70,9 @@ fn example() -> impl IntoElement {
     rsx! {
         DrawerRootProps { drawer } => {
             div() {
-                DrawerTriggerProps { label: "Open Drawer" },
+                DrawerTrigger(DrawerTriggerProps { label: "Open Drawer" }) {
+                    text("Open Drawer"),
+                },
                 DrawerContentProps { label: "Move Goal" } => {
                     (div().style_with(body_style)) {
                         DrawerHeader::new() {
@@ -4160,7 +4162,7 @@ fn drawer_page(sections: DrawerSections, non_modal: Drawer) -> View {
         )
         .child(
             section("Usage", 1, locations)
-                .child(muted("Pass the Drawer state to DrawerRootProps once. Use named props for the drawer parts and apply reusable styles with style_with."))
+                .child(muted("Pass the Drawer state to DrawerRootProps once. The trigger's label names the button for assistive technology. Put its visible content inside the child block."))
                 .child(code_block(DRAWER_RSX))
                 .child(muted("The TSX tabs show React examples for shadcn/ui with Base UI. Use them in a project with the referenced components installed. The delivery example also needs Sonner’s Toaster."))
                 .child(view().items_start().child(button("TSX license", Variant::Outline, move || {

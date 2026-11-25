@@ -210,11 +210,15 @@ fn code_tabs_copy_the_selected_language_and_can_return_to_preview() {
             .count(&format!("{region} >> role:button[Copy]")),
         Ok(1),
     );
-    assert_highlighted_line(&app, "DrawerTriggerProps { label: \"Open Drawer\" },");
+    assert_highlighted_line(
+        &app,
+        "DrawerTrigger(DrawerTriggerProps { label: \"Open Drawer\" }) {",
+    );
     interact(&mut app, &format!("{region} >> Copy"));
     let source = app.screen().clipboard().unwrap();
     assert!(source.contains("rsx! {"));
     assert!(source.contains("DrawerRootProps { drawer } =>"));
+    assert!(source.contains("DrawerTrigger(DrawerTriggerProps { label: \"Open Drawer\" }) {"));
     assert!(source.contains("DrawerContentProps { label: \"Move Goal\" } =>"));
     assert!(source.contains(".style_with(body_style)"));
     interact(&mut app, &format!("{region} >> TSX"));
@@ -230,6 +234,41 @@ fn code_tabs_copy_the_selected_language_and_can_return_to_preview() {
     interact(&mut app, &format!("{region} >> Preview"));
     interact(&mut app, "id:delivery-trigger");
     assert!(app.shows("Pick a delivery time"));
+}
+
+#[component]
+fn TriggerChildrenExample() -> impl IntoElement {
+    use components::drawer::{
+        Drawer, DrawerContentProps, DrawerRootProps, DrawerTrigger, DrawerTriggerProps,
+    };
+
+    let drawer = Drawer::new(signal(false));
+    components::rsx! {
+        DrawerRootProps { drawer } => {
+            view() {
+                DrawerTrigger(DrawerTriggerProps { label: "Open settings drawer" }) {
+                    text("Settings"),
+                },
+                DrawerContentProps { label: "Settings drawer" } => {
+                    view() { text("Drawer content"), }
+                },
+            }
+        }
+    }
+}
+
+#[test]
+fn named_trigger_renders_its_children_and_opens_the_drawer() {
+    let mut app = Headless::start(EngineConfig::new(Root::of::<TriggerChildrenExample>())).unwrap();
+    app.first_render().unwrap();
+    let trigger = "role:button[Open settings drawer]";
+    assert_eq!(
+        app.screen().count(&format!("{trigger} >> text:Settings")),
+        Ok(1)
+    );
+    assert!(!app.shows("Open settings drawer"));
+    interact(&mut app, trigger);
+    assert!(app.shows("Drawer content"));
 }
 
 fn assert_highlighted_line(app: &Headless, expected: &str) {
