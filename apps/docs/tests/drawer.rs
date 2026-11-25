@@ -198,7 +198,8 @@ fn code_tabs_copy_the_selected_language_and_can_return_to_preview() {
         Ok(1),
     );
     let source = app.screen().clipboard().unwrap();
-    assert!(source.contains("DrawerTriggerProps {"));
+    assert!(source.contains("DrawerTrigger {"));
+    assert!(source.contains("..Default::default()"));
     assert!(source.contains("DrawerContentProps {"));
     assert!(source.contains("DrawerTitleProps {"));
     assert!(source.contains("DrawerRootProps { drawer }.with_body("));
@@ -210,15 +211,13 @@ fn code_tabs_copy_the_selected_language_and_can_return_to_preview() {
             .count(&format!("{region} >> role:button[Copy]")),
         Ok(1),
     );
-    assert_highlighted_line(
-        &app,
-        "DrawerTrigger(DrawerTriggerProps { label: \"Open Drawer\" }) {",
-    );
+    assert_highlighted_line(&app, "child: Some(text(\"Move Goal\").into_element()),");
     interact(&mut app, &format!("{region} >> Copy"));
     let source = app.screen().clipboard().unwrap();
     assert!(source.contains("rsx! {"));
     assert!(source.contains("DrawerRootProps { drawer } =>"));
-    assert!(source.contains("DrawerTrigger(DrawerTriggerProps { label: \"Open Drawer\" }) {"));
+    assert!(source.contains("DrawerTrigger {"));
+    assert!(source.contains("child: Some(text(\"Move Goal\").into_element())"));
     assert!(source.contains("DrawerContentProps { label: \"Move Goal\" } =>"));
     assert!(source.contains(".style_with(body_style)"));
     interact(&mut app, &format!("{region} >> TSX"));
@@ -238,16 +237,15 @@ fn code_tabs_copy_the_selected_language_and_can_return_to_preview() {
 
 #[component]
 fn TriggerChildrenExample() -> impl IntoElement {
-    use components::drawer::{
-        Drawer, DrawerContentProps, DrawerRootProps, DrawerTrigger, DrawerTriggerProps,
-    };
+    use components::drawer::{Drawer, DrawerContentProps, DrawerRootProps, DrawerTrigger};
 
     let drawer = Drawer::new(signal(false));
     components::rsx! {
         DrawerRootProps { drawer } => {
             view() {
-                DrawerTrigger(DrawerTriggerProps { label: "Open settings drawer" }) {
-                    text("Settings"),
+                DrawerTrigger {
+                    label: "Open settings drawer",
+                    child: Some(text("Settings").into_element()),
                 },
                 DrawerContentProps { label: "Settings drawer" } => {
                     view() { text("Drawer content"), }

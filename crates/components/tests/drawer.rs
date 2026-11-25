@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use components::{
     div,
-    drawer::{Drawer, DrawerCloseProps, DrawerContentProps, DrawerRootProps, DrawerTriggerProps},
+    drawer::{Drawer, DrawerCloseProps, DrawerContentProps, DrawerRootProps, DrawerTrigger},
     rsx,
 };
 use nsh_core::{element::Root, prelude::*};
@@ -19,7 +19,7 @@ fn ScopedDrawers() -> impl IntoElement {
             div() {
                 DrawerRootProps { drawer: inner } => {
                     div() {
-                        DrawerTriggerProps { label: "Open inner" },
+                        DrawerTrigger { label: "Open inner", ..Default::default() },
                         DrawerContentProps { label: "Inner Drawer" } => {
                             div() {
                                 DrawerCloseProps { label: "Close inner" },
@@ -27,7 +27,7 @@ fn ScopedDrawers() -> impl IntoElement {
                         },
                     }
                 },
-                DrawerTriggerProps { label: "Open outer" },
+                DrawerTrigger { label: "Open outer", ..Default::default() },
                 text(format!("Scoped builds: {}", builds.get())),
                 DrawerContentProps { label: "Outer Drawer" } => {{
                     builds.replace(builds.get() + 1);
@@ -57,6 +57,8 @@ fn drawer_parts_use_the_nearest_root_including_lazy_portal_content() {
     let mut app = Headless::start(EngineConfig::new(Root::of::<ScopedDrawers>())).unwrap();
     app.first_render().unwrap();
     assert!(app.shows("Scoped builds: 0"));
+    assert!(app.shows("Open inner"));
+    assert!(app.shows("Open outer"));
     assert_count(&app, 0);
 
     interact(&mut app, "Open inner");

@@ -57,7 +57,7 @@ const DRAWER_RSX: &str = r#"use components::{
     div,
     drawer::{
         Drawer, DrawerCloseProps, DrawerContentProps, DrawerDescriptionProps,
-        DrawerFooter, DrawerHeader, DrawerRootProps, DrawerTitleProps, DrawerTrigger, DrawerTriggerProps,
+        DrawerFooter, DrawerHeader, DrawerRootProps, DrawerTitleProps, DrawerTrigger,
     },
     rsx,
 };
@@ -72,8 +72,9 @@ fn example() -> impl IntoElement {
     rsx! {
         DrawerRootProps { drawer } => {
             div() {
-                DrawerTrigger(DrawerTriggerProps { label: "Open Drawer" }) {
-                    text("Open Drawer"),
+                DrawerTrigger {
+                    label: "Move Goal",
+                    child: Some(text("Move Goal").into_element()),
                 },
                 DrawerContentProps { label: "Move Goal" } => {
                     (div().style_with(body_style)) {
@@ -95,7 +96,7 @@ const DRAWER_RUST: &str = r#"use components::{
     div,
     drawer::{
         Drawer, DrawerCloseProps, DrawerContentProps, DrawerDescriptionProps,
-        DrawerFooter, DrawerHeader, DrawerRootProps, DrawerTitleProps, DrawerTriggerProps,
+        DrawerFooter, DrawerHeader, DrawerRootProps, DrawerTitleProps, DrawerTrigger,
     },
 };
 use nsh_core::{element::StyleRefinement, prelude::*};
@@ -108,7 +109,10 @@ fn example() -> impl IntoElement {
     let drawer = Drawer::new(signal(false));
     DrawerRootProps { drawer }.with_body(move || {
         div()
-            .child(DrawerTriggerProps { label: "Open Drawer" })
+            .child(DrawerTrigger {
+                label: "Open Drawer",
+                ..Default::default()
+            })
             .child(DrawerContentProps { label: "Move Goal" }.with_body(|| {
                 div().style_with(body_style)
                     .child(DrawerHeader::new()
@@ -4164,7 +4168,7 @@ fn drawer_page(sections: DrawerSections, non_modal: Drawer) -> View {
         )
         .child(
             section("Usage", 1, locations)
-                .child(muted("Pass the Drawer state to DrawerRootProps once. The trigger's label names the button for assistive technology. Put its visible content inside the child block."))
+                .child(muted("Pass the Drawer state to DrawerRootProps once. The trigger displays its label by default. Supply child for custom visible content and keep label as its accessible name."))
                 .child(code_block(DRAWER_RSX))
                 .child(muted("The TSX tabs show React examples for shadcn/ui with Base UI. Use them in a project with the referenced components installed. The delivery example also needs Sonner’s Toaster."))
                 .child(view().items_start().child(button("TSX license", Variant::Outline, move || {
@@ -4209,7 +4213,7 @@ fn drawer_page(sections: DrawerSections, non_modal: Drawer) -> View {
             .child(responsive_panel))
         .child(section("API Reference", 12, locations)
             .child(muted("Use Drawer::new with an open signal. Drawer::nested links a child to a parent that remains mounted."))
-            .child(api_row("DrawerTrigger / DrawerClose", "Use new for the default button or render to attach drawer behavior to your own control."))
+            .child(api_row("DrawerTrigger / DrawerClose", "Inside a drawer root, construct DrawerTrigger with a label and an optional child. Use render to attach drawer behavior to your own control."))
             .child(api_row("DrawerContent", "Creates the window layer and backdrop. Set placement, size, and behavior with options."))
             .child(api_row("DrawerHeader / DrawerTitle / DrawerDescription / DrawerFooter", "Compose the visible content with ordinary Native Shell children and styles."))
             .child(api_row("DrawerPortal / DrawerOverlay / DrawerSwipeHandle", "Customize the window layer or backdrop, or style the generated drag handle."))

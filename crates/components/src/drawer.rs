@@ -842,6 +842,8 @@ macro_rules! drawer_part {
 }
 
 drawer_part! {
+    /// A built trigger that can be styled as a Native Shell element.
+    DrawerTriggerElement(View);
     /// A button that closes its associated drawer.
     DrawerClose(View);
     /// Layout for the title and optional description.
@@ -858,80 +860,60 @@ drawer_part! {
     DrawerSwipeHandle(View);
 }
 
-/// A button that opens its associated drawer.
+/// Named inputs for a button that opens its nearest [`DrawerRoot`].
+#[derive(Default)]
 pub struct DrawerTrigger {
-    view: View,
+    /// The accessible name and the default visible text.
+    pub label: &'static str,
+    /// Custom visible content. `None` displays `label`.
+    pub child: Option<AnyElement>,
 }
-
-impl IntoElement for DrawerTrigger {
-    fn into_element(self) -> AnyElement {
-        self.view.into_element()
-    }
-}
-
-impl Element for DrawerTrigger {
-    fn node(&mut self) -> &mut ElNode {
-        self.view.node()
-    }
-}
-
-impl ParentElement for DrawerTrigger {}
 
 impl DrawerTrigger {
-    pub fn new(drawer: Drawer, label: &'static str) -> Self {
+    /// Builds a default trigger for an explicitly supplied drawer.
+    pub fn new(drawer: Drawer, label: &'static str) -> DrawerTriggerElement {
         Self::render(drawer, button_surface(label, Variant::Outline))
     }
 
     /// Uses the nearest [`DrawerRoot`]. Call inside its children closure.
-    pub fn from_root(label: &'static str) -> Self {
+    pub fn from_root(label: &'static str) -> DrawerTriggerElement {
         Self::new(drawer_from_root(), label)
     }
 
     /// Uses the supplied control as the trigger, with no extra node.
-    pub fn render(drawer: Drawer, control: View) -> Self {
-        Self {
-            view: control
+    pub fn render(drawer: Drawer, control: View) -> DrawerTriggerElement {
+        DrawerTriggerElement(
+            control
                 .role(AccessibilityRole::Button)
                 .accessibility_state(move || AccessibilityState {
                     expanded: Some(drawer.open.get()),
                     ..Default::default()
                 })
                 .on_press(move || drawer.open()),
-        }
+        )
     }
 
-    pub fn test_id(self, id: &str) -> Self {
-        Self {
-            view: self.view.test_id(id),
-        }
-    }
-}
-
-/// Named properties for a trigger built inside a [`DrawerRoot`].
-pub struct DrawerTriggerProps {
-    pub label: &'static str,
-}
-
-/// Builds an outline trigger inside the nearest [`DrawerRoot`]. The label
-/// names the button for assistive technology. Add its visible content as children.
-#[allow(non_snake_case)]
-pub fn DrawerTrigger(props: DrawerTriggerProps) -> DrawerTrigger {
-    DrawerTrigger::render(
-        drawer_from_root(),
-        button_container(props.label, Variant::Outline),
-    )
-}
-
-impl DrawerTriggerProps {
     /// Uses a shared button variant inside the nearest drawer root.
-    pub fn with_variant(self, variant: Variant) -> DrawerTrigger {
-        DrawerTrigger::render(drawer_from_root(), button_surface(self.label, variant))
+    pub fn with_variant(self, variant: Variant) -> DrawerTriggerElement {
+        let control = match self.child {
+            Some(child) => button_container(self.label, variant).child(child),
+            None => button_surface(self.label, variant),
+        };
+        Self::render(drawer_from_root(), control)
     }
 }
 
-impl IntoElement for DrawerTriggerProps {
+impl DrawerTriggerElement {
+    pub fn test_id(self, id: &str) -> Self {
+        Self(self.0.test_id(id))
+    }
+}
+
+impl ParentElement for DrawerTriggerElement {}
+
+impl IntoElement for DrawerTrigger {
     fn into_element(self) -> AnyElement {
-        DrawerTrigger::from_root(self.label).into_element()
+        self.with_variant(Variant::Outline).into_element()
     }
 }
 
@@ -1047,7 +1029,7 @@ impl ParentElement for DrawerFooter {}
 
 #[deprecated(note = "Use DrawerTrigger::new")]
 pub fn trigger(drawer: Drawer, label: &'static str) -> View {
-    DrawerTrigger::new(drawer, label).view
+    DrawerTrigger::new(drawer, label).0
 }
 
 #[deprecated(note = "Use DrawerClose::new")]

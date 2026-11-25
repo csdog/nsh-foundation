@@ -41,7 +41,6 @@ use components::{
     drawer::{
         Drawer, DrawerCloseProps, DrawerContentProps, DrawerDescriptionProps,
         DrawerFooter, DrawerHeader, DrawerRootProps, DrawerTitleProps, DrawerTrigger,
-        DrawerTriggerProps,
     },
     rsx,
 };
@@ -56,8 +55,9 @@ fn example() -> impl IntoElement {
     rsx! {
         DrawerRootProps { drawer } => {
             div() {
-                DrawerTrigger(DrawerTriggerProps { label: "Open Drawer" }) {
-                    text("Open Drawer"),
+                DrawerTrigger {
+                    label: "Move Goal",
+                    child: Some(text("Move Goal").into_element()),
                 },
                 DrawerContentProps { label: "Move Goal" } => {
                     (div().style_with(body_style)) {
@@ -76,8 +76,10 @@ fn example() -> impl IntoElement {
 }
 ```
 
-The trigger's `label` is its accessible name. Its children supply the
-visible content. Use `DrawerTrigger::render` or `DrawerClose::render` to use your own
+The trigger's `label` is its accessible name and default visible text. Use
+`DrawerTrigger { label: "Open Drawer", ..Default::default() }` for the default
+button, or set `child` to customize the visible content. Use
+`DrawerTrigger::render` or `DrawerClose::render` to use your own
 Native Shell view as the button. `DrawerContent` creates the `DrawerPortal`
 and `DrawerOverlay`, and exposes `swipe_handle` to style its interactive
 `DrawerSwipeHandle`.
