@@ -39,8 +39,7 @@ pub(crate) fn delivery(status: Signal<Option<SharedString>>) -> impl IntoElement
     let drawer = Drawer::new(signal(false));
     let selection = signal(0_usize);
     DrawerRootProps { drawer }.with_body(move || {
-        let trigger = DrawerTrigger { label: "Open Drawer", ..Default::default() }
-            .with_variant(Variant::Secondary)
+        let trigger = DrawerTrigger::render(drawer, button_surface("Open Drawer", Variant::Secondary))
             .test_id("delivery-trigger");
         let content = (rsx! {
             DrawerContentProps { label: "Pick a delivery time" } => {

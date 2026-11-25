@@ -15,7 +15,7 @@ pub fn button(label: &'static str, variant: Variant, press: impl Fn() + 'static)
 }
 
 pub fn button_surface(label: &'static str, variant: Variant) -> View {
-    button_container(label, variant).child(
+    button_container(variant).label(label).child(
         text(label)
             .text_sm()
             .font_weight(FontWeight::MEDIUM)
@@ -27,10 +27,9 @@ pub fn button_surface(label: &'static str, variant: Variant) -> View {
     )
 }
 
-pub(crate) fn button_container(label: &'static str, variant: Variant) -> View {
+pub(crate) fn button_container(variant: Variant) -> View {
     view()
         .role(AccessibilityRole::Button)
-        .label(label)
         .cursor_pointer()
         .h(px(36.0))
         .px_3()

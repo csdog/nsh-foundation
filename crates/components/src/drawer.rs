@@ -863,10 +863,10 @@ drawer_part! {
 /// Named inputs for a button that opens its nearest [`DrawerRoot`].
 #[derive(Default)]
 pub struct DrawerTrigger {
-    /// The accessible name and the default visible text.
-    pub label: &'static str,
-    /// Custom visible content. `None` displays `label`.
-    pub child: Option<AnyElement>,
+    /// The accessible name, when the children do not convey it.
+    pub accessibility_label: Prop<Option<SharedString>>,
+    /// The visible contents of the button.
+    pub children: Vec<AnyElement>,
 }
 
 impl DrawerTrigger {
@@ -895,10 +895,9 @@ impl DrawerTrigger {
 
     /// Uses a shared button variant inside the nearest drawer root.
     pub fn with_variant(self, variant: Variant) -> DrawerTriggerElement {
-        let control = match self.child {
-            Some(child) => button_container(self.label, variant).child(child),
-            None => button_surface(self.label, variant),
-        };
+        let control = button_container(variant)
+            .optional_label(self.accessibility_label)
+            .children(self.children);
         Self::render(drawer_from_root(), control)
     }
 }

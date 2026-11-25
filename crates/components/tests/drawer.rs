@@ -19,7 +19,10 @@ fn ScopedDrawers() -> impl IntoElement {
             div() {
                 DrawerRootProps { drawer: inner } => {
                     div() {
-                        DrawerTrigger { label: "Open inner", ..Default::default() },
+                        DrawerTrigger {
+                            children: vec![text("Open inner").into_element()],
+                            ..Default::default()
+                        },
                         DrawerContentProps { label: "Inner Drawer" } => {
                             div() {
                                 DrawerCloseProps { label: "Close inner" },
@@ -27,7 +30,10 @@ fn ScopedDrawers() -> impl IntoElement {
                         },
                     }
                 },
-                DrawerTrigger { label: "Open outer", ..Default::default() },
+                DrawerTrigger {
+                    children: vec![text("Open outer").into_element()],
+                    ..Default::default()
+                },
                 text(format!("Scoped builds: {}", builds.get())),
                 DrawerContentProps { label: "Outer Drawer" } => {{
                     builds.replace(builds.get() + 1);

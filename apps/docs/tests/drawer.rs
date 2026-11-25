@@ -211,13 +211,14 @@ fn code_tabs_copy_the_selected_language_and_can_return_to_preview() {
             .count(&format!("{region} >> role:button[Copy]")),
         Ok(1),
     );
-    assert_highlighted_line(&app, "child: Some(text(\"Move Goal\").into_element()),");
+    assert_highlighted_line(&app, "children: vec![text(\"Move Goal\").into_element()],");
     interact(&mut app, &format!("{region} >> Copy"));
     let source = app.screen().clipboard().unwrap();
     assert!(source.contains("rsx! {"));
     assert!(source.contains("DrawerRootProps { drawer } =>"));
     assert!(source.contains("DrawerTrigger {"));
-    assert!(source.contains("child: Some(text(\"Move Goal\").into_element())"));
+    assert!(source.contains("accessibility_label: \"Move Goal\".into()"));
+    assert!(source.contains("children: vec![text(\"Move Goal\").into_element()]"));
     assert!(source.contains("DrawerContentProps { label: \"Move Goal\" } =>"));
     assert!(source.contains(".style_with(body_style)"));
     interact(&mut app, &format!("{region} >> TSX"));
@@ -244,8 +245,12 @@ fn TriggerChildrenExample() -> impl IntoElement {
         DrawerRootProps { drawer } => {
             view() {
                 DrawerTrigger {
-                    label: "Open settings drawer",
-                    child: Some(text("Settings").into_element()),
+                    accessibility_label: "Open settings drawer".into(),
+                    children: vec![text("Settings").into_element()],
+                },
+                DrawerTrigger {
+                    accessibility_label: "Open drawer without text".into(),
+                    ..Default::default()
                 },
                 DrawerContentProps { label: "Settings drawer" } => {
                     view() { text("Drawer content"), }
@@ -265,7 +270,8 @@ fn named_trigger_renders_its_children_and_opens_the_drawer() {
         Ok(1)
     );
     assert!(!app.shows("Open settings drawer"));
-    interact(&mut app, trigger);
+    assert!(!app.shows("Open drawer without text"));
+    interact(&mut app, "role:button[Open drawer without text]");
     assert!(app.shows("Drawer content"));
 }
 

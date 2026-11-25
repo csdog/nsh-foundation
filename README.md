@@ -56,8 +56,8 @@ fn example() -> impl IntoElement {
         DrawerRootProps { drawer } => {
             div() {
                 DrawerTrigger {
-                    label: "Move Goal",
-                    child: Some(text("Move Goal").into_element()),
+                    accessibility_label: "Move Goal".into(),
+                    children: vec![text("Move Goal").into_element()],
                 },
                 DrawerContentProps { label: "Move Goal" } => {
                     (div().style_with(body_style)) {
@@ -76,9 +76,8 @@ fn example() -> impl IntoElement {
 }
 ```
 
-The trigger's `label` is its accessible name and default visible text. Use
-`DrawerTrigger { label: "Open Drawer", ..Default::default() }` for the default
-button, or set `child` to customize the visible content. Use
+The trigger's `children` supply its visible contents. Set `accessibility_label`
+when those contents do not name the button, such as an icon-only trigger. Use
 `DrawerTrigger::render` or `DrawerClose::render` to use your own
 Native Shell view as the button. `DrawerContent` creates the `DrawerPortal`
 and `DrawerOverlay`, and exposes `swipe_handle` to style its interactive
