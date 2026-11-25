@@ -1,13 +1,18 @@
 //! Native scrolling, snapping and keyboard navigation with Rhea carousel parts.
 
-use std::time::Duration;
+use std::{rc::Rc, time::Duration};
 
 use nsh_base::{carousel, carousel_content, carousel_item, carousel_next, carousel_previous};
 use nsh_core::{
-    element::{LayoutDirection, layout_rtl},
+    PanActivation,
+    element::{LayoutDirection, StyleRefinement, layout_rtl},
     geometry::Axis,
     prelude::*,
+    time::now,
 };
+
+const WHEEL_INTERVAL: Duration = Duration::from_millis(180);
+const DRAG_DISTANCE: f32 = 36.0;
 
 pub struct Carousel {
     label: &'static str,
@@ -74,7 +79,7 @@ impl Carousel {
         self
     }
 
-    /// Receives selections from native swipes, controls and keyboard navigation.
+    /// Receives selections from gestures, the wheel, controls and keyboard navigation.
     pub fn on_change(mut self, handler: impl Fn(u32) + 'static) -> Self {
         self.on_change = Some(Box::new(handler));
         self
@@ -103,10 +108,18 @@ impl Carousel {
             let value = value.min(last);
             if mirrored { last - value } else { value }
         };
-        let change = self.on_change;
+        let select = move |current| {
+            index.set(current);
+            if let Some(handler) = &self.on_change {
+                handler(current);
+            }
+        };
+        let select = Rc::new(select);
+        let on_change = select.clone();
         let hovered = signal(false);
         let focused = signal(false);
         let dragging = signal(false);
+        let panning = signal(false);
         let paused = signal(false);
         if let Some(delay) = self.autoplay.filter(|_| count > 1) {
             effect(move || {
@@ -114,6 +127,7 @@ impl Carousel {
                 if hovered.get()
                     || focused.get()
                     || dragging.get()
+                    || panning.get()
                     || paused.get()
                     || reduce_motion()
                 {
@@ -126,12 +140,70 @@ impl Carousel {
             });
         }
 
+        let looping = self.looping;
+        let mut bases: Vec<_> = self
+            .content
+            .slides
+            .iter()
+            .map(|slide| slide.basis.clone())
+            .collect();
+        if mirrored {
+            bases.reverse();
+        }
+        let last = computed(move || last_snap_index(&bases, looping));
+        let step = move |forward: bool| {
+            let last = last.get_untracked();
+            let current = track_index(index.get_untracked()).min(last);
+            let target = match forward {
+                true if current < last => current + 1,
+                false if current > 0 => current - 1,
+                true if looping => 0,
+                false if looping => last,
+                _ => current,
+            };
+            if target != current {
+                select(track_index(target));
+            }
+        };
+
+        let last_wheel = stored(None);
+        let wheel_step = step.clone();
+        let on_wheel = move |event: &WheelEvent| {
+            let (mut x, mut y) = event.delta.xy();
+            if event.modifiers.shift && x == 0.0 {
+                (x, y) = (y, 0.0);
+            }
+            let delta = if axis == Axis::Horizontal { x } else { y };
+            let across = if axis == Axis::Horizontal { y } else { x };
+            if event.modifiers.ctrl || delta == 0.0 || delta.abs() < across.abs() {
+                return;
+            }
+            let now = now();
+            if last_wheel
+                .get()
+                .is_some_and(|last| now.duration_since(last) < WHEEL_INTERVAL)
+            {
+                return;
+            }
+            last_wheel.replace(Some(now));
+            wheel_step(delta > 0.0);
+        };
+        let on_pan_end = move |event: &PanEvent| {
+            panning.set(false);
+            let distance = match axis {
+                Axis::Horizontal => event.translation.x.0,
+                Axis::Vertical => event.translation.y.0,
+            };
+            if !event.cancelled && distance.abs() >= DRAG_DISTANCE {
+                step(distance < 0.0);
+            }
+        };
         let layout = view()
             .items_center()
             .gap_4()
             .when(axis == Axis::Horizontal, |layout| layout.flex_row())
             .child(self.previous.map(|control| control.surface(axis, rtl)))
-            .child(self.content.surface(axis))
+            .child(self.content.surface(axis, on_wheel, panning, on_pan_end))
             .child(self.next.map(|control| control.surface(axis, rtl)));
         let rotation_control = self.autoplay.filter(|_| count > 1).map(|_| {
             crate::button::Button::new(move || {
@@ -160,13 +232,7 @@ impl Carousel {
                     .axis(axis)
                     .looping(self.looping)
                     .index(move || Some(track_index(index.get())))
-                    .on_change(move |current: &u32| {
-                        let current = track_index(*current);
-                        index.set(current);
-                        if let Some(handler) = &change {
-                            handler(current);
-                        }
-                    })
+                    .on_change(move |current: &u32| on_change(track_index(*current)))
                     .on_focus(move || focused.set(true))
                     .on_blur(move || focused.set(false))
                     .on_drag_start(move || dragging.set(true))
@@ -174,6 +240,33 @@ impl Carousel {
                     .child(layout),
             )
     }
+}
+
+fn slide_fraction(value: f32) -> f32 {
+    if value.is_finite() && value > 0.0 {
+        value.min(1.0)
+    } else {
+        1.0
+    }
+}
+
+fn last_snap_index(bases: &[Reactive<f32>], looping: bool) -> u32 {
+    const EPSILON: f32 = 0.0001;
+    let fraction = |basis: &Reactive<f32>| slide_fraction(basis.get());
+    let total: f32 = bases.iter().map(fraction).sum();
+    if looping && total + EPSILON >= 1.0 + bases.iter().map(fraction).fold(0.0, f32::max) {
+        return bases.len().saturating_sub(1) as u32;
+    }
+    // Slides whose starts fall beyond the available scroll range share the last stop.
+    let end = (total - 1.0).max(0.0);
+    let mut start = 0.0;
+    for (index, basis) in bases.iter().enumerate() {
+        if start + EPSILON >= end {
+            return index as u32;
+        }
+        start += fraction(basis);
+    }
+    bases.len().saturating_sub(1) as u32
 }
 
 impl IntoElement for Carousel {
@@ -219,7 +312,13 @@ impl CarouselContent {
         self
     }
 
-    fn surface(self, axis: Axis) -> impl IntoElement {
+    fn surface(
+        self,
+        axis: Axis,
+        on_wheel: impl Fn(&WheelEvent) + Clone + 'static,
+        panning: Signal<bool>,
+        on_pan_end: impl Fn(&PanEvent) + Clone + 'static,
+    ) -> impl IntoElement {
         let mut viewport = carousel_content()
             .when(axis == Axis::Horizontal, |track| {
                 track.flex_1().min_w(px(0.0))
@@ -228,8 +327,21 @@ impl CarouselContent {
                 track.w_full().h(px(self.height))
             });
         let count = self.slides.len();
+        let threshold = PanActivation::MIN_DISTANCE;
+        let activation = match axis {
+            Axis::Horizontal => PanActivation::horizontal(threshold, threshold),
+            Axis::Vertical => PanActivation::vertical(threshold, threshold),
+        };
         for (index, slide) in self.slides.into_iter().enumerate() {
-            viewport = viewport.child(slide.surface(axis, self.spacing, index, count));
+            viewport = viewport.child(slide.surface(axis, self.spacing, index, count, |body| {
+                body
+                    // A listener inside the native viewport owns wheel input on this axis,
+                    // including at the ends, where the scroll view would hand it to the page.
+                    .pan_activation(activation)
+                    .on_wheel(on_wheel.clone())
+                    .on_pan_start(move |_: &PanEvent| panning.set(true))
+                    .on_pan_end(on_pan_end.clone())
+            }));
         }
         viewport
     }
@@ -254,23 +366,26 @@ impl CarouselItem {
         self
     }
 
-    fn surface(self, axis: Axis, spacing: f32, index: usize, count: usize) -> impl IntoElement {
+    fn surface(
+        self,
+        axis: Axis,
+        spacing: f32,
+        index: usize,
+        count: usize,
+        input: impl FnOnce(View) -> View,
+    ) -> impl IntoElement {
         let gap = px(spacing * 0.5);
         let basis = self.basis;
+        let body = view()
+            .style_with(StyleRefinement::flex_1)
+            .when(axis == Axis::Horizontal, |body| body.px(gap).py_1())
+            .when(axis == Axis::Vertical, |body| body.py(gap).px_1())
+            .child(self.body);
         carousel_item()
             .accessibility_label(format!("Slide {} of {count}", index + 1))
             .flex_shrink_0()
-            .basis(move || {
-                let fraction = basis.get();
-                percentage(if fraction.is_finite() && fraction > 0.0 {
-                    fraction.min(1.0)
-                } else {
-                    1.0
-                })
-            })
-            .when(axis == Axis::Horizontal, |slide| slide.px(gap).py_1())
-            .when(axis == Axis::Vertical, |slide| slide.py(gap).px_1())
-            .child(self.body)
+            .basis(move || percentage(slide_fraction(basis.get())))
+            .child(input(body))
     }
 }
 

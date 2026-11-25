@@ -46,6 +46,96 @@ fn gallery_allows_next_previous_and_touch_scroll() {
     }
     app.wait_for("text:Slide 5 of 5").unwrap();
     assert_eq!(app.screen().enabled(next), Ok(false));
+
+    let last = "role:region[Controlled slides] >> text:5";
+    app.drag(last, point(px(10.0), px(0.0)), Default::default())
+        .unwrap();
+    app.wait_for("text:Slide 5 of 5").unwrap();
+    app.drag(last, point(px(110.0), px(0.0)), Default::default())
+        .unwrap();
+    app.wait_for("text:Slide 4 of 5").unwrap();
+}
+
+#[component]
+fn NestedCarousel() -> impl IntoElement {
+    let index = signal(0);
+    let offset = signal(0);
+    let mut slides = CarouselContent::new().height(140.0);
+    for n in 1..=4 {
+        slides = slides.item(CarouselItem::new(text(format!("Card {n}"))).basis(0.5));
+    }
+    view()
+        .child(text(move || {
+            format!("Active {} / Page {}", index.get() + 1, offset.get())
+        }))
+        .child(
+            scroll()
+                .h(px(300.0))
+                .w(px(300.0))
+                .on_scroll(move |event: &ScrollEvent| offset.set(event.offset.y.0.round() as i32))
+                .child(
+                    Carousel::new("Nested slides")
+                        .orientation(Axis::Vertical)
+                        .index(index)
+                        .content(slides),
+                )
+                .child(view().test_id("outside-track").h(px(100.0)))
+                .child(view().h(px(500.0))),
+        )
+}
+
+#[test]
+fn vertical_wheel_stays_in_the_carousel_at_both_ends() {
+    let mut config = EngineConfig::new(nsh_testing::windowed_root::<NestedCarousel>());
+    config.environment.os = Os::MacOs;
+    config.clock = Clock::manual(UNIX_EPOCH);
+    let mut app = Headless::start(config).unwrap();
+    app.first_render().unwrap();
+    app.wait_for("text:Active 1 / Page 0").unwrap();
+    app.run_for(Duration::from_millis(400)).unwrap();
+    let wheel = |app: &mut Headless, slide, distance| {
+        app.wheel(
+            &format!("role:group[Slide {slide} of 4]"),
+            point(px(0.0), px(distance)),
+        )
+        .unwrap();
+        app.run_for(Duration::from_millis(400)).unwrap();
+    };
+
+    wheel(&mut app, 1, 70.0);
+    app.wait_for("text:Active 2 / Page 0").unwrap();
+    wheel(&mut app, 2, 70.0);
+    assert!(app.shows("Active 3 / Page 0"));
+    wheel(&mut app, 3, 70.0);
+    assert!(app.shows("Active 3 / Page 0"));
+    app.drag("text:Card 3", point(px(0.0), px(75.0)), Default::default())
+        .unwrap();
+    app.wait_for("text:Active 2 / Page 0").unwrap();
+
+    app.wheel("id:outside-track", point(px(0.0), px(45.0)))
+        .unwrap();
+    app.run_for(Duration::from_millis(400)).unwrap();
+    assert!(app.shows("Active 2 / Page 45"));
+    wheel(&mut app, 3, -70.0);
+    assert!(app.shows("Active 1 / Page 45"));
+    // The first slide is partly clipped by the page. Slide 2 is fully visible.
+    wheel(&mut app, 2, -70.0);
+    assert!(app.shows("Active 1 / Page 45"));
+}
+
+#[test]
+fn a_touch_drag_switches_the_vertical_carousel_on_mobile() {
+    let mut config = EngineConfig::new(nsh_testing::windowed_root::<NestedCarousel>());
+    config.viewport = Size::new(px(390.0), px(844.0));
+    config.environment.os = Os::Ios;
+    config.clock = Clock::manual(UNIX_EPOCH);
+    let mut app = Headless::start(config).unwrap();
+    app.first_render().unwrap();
+    app.wait_for("text:Active 1 / Page 0").unwrap();
+
+    app.drag("text:Card 2", point(px(0.0), px(-65.0)), Default::default())
+        .unwrap();
+    app.wait_for("text:Active 2 / Page 0").unwrap();
 }
 
 #[component]
@@ -163,4 +253,7 @@ fn locally_mirrored_carousel_starts_at_the_right_and_left_advances() {
     app.press("Next slide").unwrap();
     app.wait_for("text:RTL position 3").unwrap();
     assert_eq!(app.screen().enabled("Next slide"), Ok(false));
+    app.run_for(Duration::from_millis(400)).unwrap();
+    app.wheel("text:Third", point(px(70.0), px(0.0))).unwrap();
+    app.wait_for("text:RTL position 2").unwrap();
 }

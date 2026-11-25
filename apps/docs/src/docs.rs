@@ -1525,7 +1525,7 @@ fn carousel_page() -> View {
     }
     component_article(
         DocsPage::Carousel,
-        "Browse a series of slides using touch, the keyboard, or navigation buttons.",
+        "Drag or swipe to change slides. You can also scroll along the carousel, use the arrow keys, or press the navigation buttons.",
         "https://ui.shadcn.com/docs/components/base/carousel",
     )
     .child(demo!(demo, "demo", "Carousel demo"))
