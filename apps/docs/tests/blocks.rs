@@ -153,17 +153,21 @@ fn mobile_history_swipes_commit_or_return_to_their_start() {
     let close = "id:chat-history-return";
     app.wait_for(edge).unwrap();
 
-    app.drag(edge, point(px(14.0), px(0.0))).unwrap();
+    app.drag(edge, point(px(14.0), px(0.0)), Default::default())
+        .unwrap();
     assert_eq!(app.screen().count(panel), Ok(0));
 
-    app.drag(edge, point(px(150.0), px(0.0))).unwrap();
+    app.drag(edge, point(px(150.0), px(0.0)), Default::default())
+        .unwrap();
     app.wait_for(panel).unwrap();
     assert_eq!(app.screen().count(close), Ok(1));
 
-    app.drag(close, point(px(-14.0), px(0.0))).unwrap();
+    app.drag(close, point(px(-14.0), px(0.0)), Default::default())
+        .unwrap();
     assert_eq!(app.screen().count(panel), Ok(1));
 
-    app.drag(close, point(px(-150.0), px(0.0))).unwrap();
+    app.drag(close, point(px(-150.0), px(0.0)), Default::default())
+        .unwrap();
     assert_eq!(app.screen().count(panel), Ok(0));
     assert_eq!(app.screen().count(edge), Ok(1));
 }

@@ -204,7 +204,7 @@ pub fn actions() -> View {
                 MessageFooter::new()
                     .child(
                         icon_button("Copy", "▢", ButtonSize::Icon).on_press(move || {
-                            set_clipboard(COPY_TEXT);
+                            let _ = set_clipboard(COPY_TEXT);
                             copied.set(true);
                             announce_for_accessibility("Message copied");
                         }),

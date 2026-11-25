@@ -96,7 +96,11 @@ fn AccessiblePlot() -> impl IntoElement {
 
 #[test]
 fn keyboard_steps_through_the_reversed_plot_and_dismisses_the_tooltip() {
-    let mut app = Headless::start(config(Root::of::<AccessiblePlot>(), 1000.0)).unwrap();
+    let mut app = Headless::start(config(
+        nsh_testing::windowed_root::<AccessiblePlot>(),
+        1000.0,
+    ))
+    .unwrap();
     app.first_render().unwrap();
     assert!(app.shows("Mon"));
     let x = |label| {

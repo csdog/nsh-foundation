@@ -2,7 +2,7 @@ use components::{
     button::Button,
     radio_group::{RadioGroup, RadioGroupItem},
 };
-use nsh_core::{Checked, element::Root, platform::Os, prelude::*};
+use nsh_core::{Checked, platform::Os, prelude::*};
 use nsh_engine::EngineConfig;
 use nsh_testing::Headless;
 
@@ -25,7 +25,7 @@ fn ControlledRadioGroup() -> impl IntoElement {
 
 #[test]
 fn radio_keyboard_skips_disabled_items_and_bound_state_can_be_set_externally() {
-    let mut config = EngineConfig::new(Root::of::<ControlledRadioGroup>());
+    let mut config = EngineConfig::new(nsh_testing::windowed_root::<ControlledRadioGroup>());
     config.environment.os = Os::Linux;
     config.environment.reduce_motion = true;
     let mut app = Headless::start(config).unwrap();

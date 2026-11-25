@@ -31,10 +31,12 @@ fn drag_pushes_neighboring_thumbs_and_commits_once_on_release() {
     cfg.environment.os = Os::Web;
     let mut app = Headless::start(cfg).unwrap();
     app.first_render().unwrap();
-    app.drag("label:Start", point(px(216.0), px(0.0))).unwrap();
+    app.drag("label:Start", point(px(216.0), px(0.0)), Default::default())
+        .unwrap();
     app.wait_for("80, 80, 80").unwrap();
     assert!(app.shows("1 commits"));
-    app.drag("label:End", point(px(60.0), px(0.0))).unwrap();
+    app.drag("label:End", point(px(60.0), px(0.0)), Default::default())
+        .unwrap();
     app.wait_for("80, 80, 100").unwrap();
     assert!(app.shows("2 commits"));
 }
@@ -56,7 +58,7 @@ fn DecimalSlider() -> impl IntoElement {
 
 #[test]
 fn keyboard_mirrors_in_rtl_and_updates_the_bound_decimal_value() {
-    let mut cfg = EngineConfig::new(Root::of::<DecimalSlider>());
+    let mut cfg = EngineConfig::new(nsh_testing::windowed_root::<DecimalSlider>());
     cfg.viewport = Size::new(px(380.0), px(240.0));
     cfg.environment.os = Os::Linux;
     let mut app = Headless::start(cfg).unwrap();

@@ -22,7 +22,7 @@ fn KeyboardExample() -> impl IntoElement {
 
 #[test]
 fn keyboard_navigation_skips_disabled_items_and_activates_focused_trigger() {
-    let mut config = EngineConfig::new(Root::of::<KeyboardExample>());
+    let mut config = EngineConfig::new(nsh_testing::windowed_root::<KeyboardExample>());
     config.environment.os = Os::Linux;
     config.environment.reduce_motion = true;
     let mut app = Headless::start(config).unwrap();
@@ -88,4 +88,62 @@ fn accordion_deep_link_and_history_restore_the_correct_page() {
     assert_eq!(app.browser().url(), Some("https://foundation.test/#drawer"));
     app.browser().back().unwrap();
     assert_eq!(app.screen().count("id:accordion-docs-scroll"), Ok(1));
+}
+
+fn sidebar_row_y(app: &Headless, label: &str) -> f32 {
+    app.screen()
+        .layout_nodes()
+        .into_iter()
+        .find(|node| {
+            node.bounds.origin.x.0 < 216.0
+                && node
+                    .text
+                    .as_ref()
+                    .is_some_and(|text| &*text.text.text == label)
+        })
+        .unwrap()
+        .bounds
+        .origin
+        .y
+        .0
+}
+
+#[test]
+fn desktop_sidebar_keeps_its_offset_and_reveals_the_current_page() {
+    let mut config = EngineConfig::new(Root::of::<App>());
+    config.viewport = Size::new(px(1280.0), px(900.0));
+    let mut app = Headless::start_at_page(config, "https://foundation.test/#typography").unwrap();
+    app.first_render().unwrap();
+    app.wait_for("id:typography-docs-scroll").unwrap();
+    assert!((58.0..900.0).contains(&sidebar_row_y(&app, "Typography")));
+    let sidebar_id = |app: &Headless| {
+        app.screen()
+            .layout_nodes()
+            .into_iter()
+            .find(|node| node.test_id.as_deref() == Some("docs-sidebar"))
+            .unwrap()
+            .id
+    };
+    let sidebar = sidebar_id(&app);
+
+    app.scroll("id:docs-sidebar", px(-180.0)).unwrap();
+    let switch = sidebar_row_y(&app, "Switch");
+    assert!((58.0..900.0).contains(&switch));
+    app.press("id:docs-sidebar >> role:button[Switch]").unwrap();
+    app.wait_for("id:switch-docs-scroll").unwrap();
+    assert_eq!(sidebar_id(&app), sidebar);
+    assert!((sidebar_row_y(&app, "Switch") - switch).abs() < 1.0);
+    let current = app
+        .screen()
+        .accessibility_state("id:docs-sidebar >> role:button[Switch]")
+        .unwrap();
+    assert!(current.selected);
+
+    app.browser().back().unwrap();
+    app.wait_for("id:typography-docs-scroll").unwrap();
+    assert!((58.0..900.0).contains(&sidebar_row_y(&app, "Typography")));
+    app.browser().forward().unwrap();
+    app.wait_for("id:switch-docs-scroll").unwrap();
+    assert_eq!(sidebar_id(&app), sidebar);
+    assert!((58.0..900.0).contains(&sidebar_row_y(&app, "Switch")));
 }

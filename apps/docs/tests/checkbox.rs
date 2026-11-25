@@ -123,7 +123,7 @@ fn KeyboardExample() -> impl IntoElement {
 
 #[test]
 fn space_requests_checked_from_the_mixed_state() {
-    let mut config = EngineConfig::new(Root::of::<KeyboardExample>());
+    let mut config = EngineConfig::new(nsh_testing::windowed_root::<KeyboardExample>());
     config.environment.os = Os::MacOs;
     let mut app = Headless::start(config).unwrap();
     app.first_render().unwrap();

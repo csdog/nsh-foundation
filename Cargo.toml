@@ -8,8 +8,8 @@ edition = "2024"
 
 [workspace.dependencies]
 components = { path = "crates/components" }
-nsh-core = "=0.6.1"
-nsh-base = "=0.6.1"
-nsh-engine = { version = "=0.6.1", default-features = false }
-nsh-testing = { version = "=0.6.1", default-features = false }
+nsh-core = "=0.7.0"
+nsh-base = "=0.7.0"
+nsh-engine = { version = "=0.7.0", default-features = false }
+nsh-testing = { version = "=0.7.0", default-features = false }
 chrono = { version = "=0.4.45", default-features = false, features = ["std", "clock"] }

@@ -1,5 +1,5 @@
 use components::textarea::invalid_textarea;
-use nsh_core::{element::Root, platform::Os, prelude::*};
+use nsh_core::{platform::Os, prelude::*};
 use nsh_engine::EngineConfig;
 use nsh_testing::Headless;
 
@@ -21,7 +21,7 @@ fn MessageForm() -> impl IntoElement {
 
 #[test]
 fn multiline_input_keeps_newlines_and_updates_validation() {
-    let mut config = EngineConfig::new(Root::of::<MessageForm>());
+    let mut config = EngineConfig::new(nsh_testing::windowed_root::<MessageForm>());
     config.environment.os = Os::Linux;
     let mut app = Headless::start(config).unwrap();
     app.first_render().unwrap();

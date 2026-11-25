@@ -5,6 +5,9 @@
   "build": 1,
   "rust": "apps/docs",
   "root": "App",
+  "icon": {
+    "web": "apps/docs/assets/favicon.png"
+  },
   "window": {
     "title": "nsh-foundation · Components"
   },

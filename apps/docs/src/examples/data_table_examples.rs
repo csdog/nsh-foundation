@@ -238,7 +238,7 @@ fn actions(
             .focus(|style| style.bg(theme().accent))
             .on_select(move || {
                 if label == copy_id {
-                    set_clipboard(row.id);
+                    let _ = set_clipboard(row.id);
                 }
                 status.set(format!("{label} · {value}"));
             })

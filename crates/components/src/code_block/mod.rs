@@ -6,7 +6,9 @@ use std::time::Duration;
 
 use nsh_base::theme;
 use nsh_core::{
-    element::{LayoutDirection, idiom, set_clipboard},
+    SvgPaint,
+    canvas::{LineCap, LineJoin},
+    element::{ClipboardWrite, LayoutDirection, announce_for_accessibility, idiom, set_clipboard},
     platform::Idiom,
     prelude::*,
 };
@@ -142,12 +144,15 @@ impl CodeBlock {
                 view()
                     .absolute()
                     .top(px(padding - 4.0))
-                    .when(idiom() == Idiom::Desktop, |actions| {
-                        actions
-                            .opacity(0.0)
-                            .group_hover(|style| style.opacity(1.0))
-                            .group_focus_within(|style| style.opacity(1.0))
-                    })
+                    .when(
+                        idiom() == Idiom::Desktop && !actions.always_visible,
+                        |overlay| {
+                            overlay
+                                .opacity(0.0)
+                                .group_hover(|style| style.opacity(1.0))
+                                .group_focus_within(|style| style.opacity(1.0))
+                        },
+                    )
                     .style_with(move |style| {
                         if self.direction == LayoutDirection::Rtl {
                             style.left(px(padding - 4.0))
@@ -182,7 +187,10 @@ impl CodeBlockTitle {
     }
 }
 
-pub struct CodeBlockActions(View);
+pub struct CodeBlockActions {
+    content: View,
+    always_visible: bool,
+}
 
 impl CodeBlockActions {
     pub fn new() -> Self {
@@ -190,20 +198,30 @@ impl CodeBlockActions {
     }
 
     pub fn child(mut self, child: impl IntoElement) -> Self {
-        self.0 = self.0.child(child);
+        self.content = self.content.child(child);
+        self
+    }
+
+    /// Keeps floating actions visible on devices with a mouse.
+    pub fn always_visible(mut self) -> Self {
+        self.always_visible = true;
         self
     }
 }
 
 impl Default for CodeBlockActions {
     fn default() -> Self {
-        Self(view().flex_row().flex_shrink_0().items_center().gap_1())
+        Self {
+            content: view()
+                .style_with(|style| style.flex_row().flex_shrink_0().items_center().gap_1()),
+            always_visible: false,
+        }
     }
 }
 
 impl IntoElement for CodeBlockActions {
     fn into_element(self) -> AnyElement {
-        self.0.into_element()
+        self.content.into_element()
     }
 }
 
@@ -273,26 +291,40 @@ impl CodeBlockCopyButton {
 impl IntoElement for CodeBlockCopyButton {
     fn into_element(self) -> AnyElement {
         let copied = signal(false);
-        let reset = stored(None::<Spawned<()>>);
-        Button::new("Copy")
+        Button::new(move || if copied.get() { "Copied" } else { "Copy" })
             .variant(ButtonVariant::Ghost)
-            .size(ButtonSize::ExtraSmall)
+            .size(ButtonSize::IconExtraSmall)
             .disabled(self.disabled)
+            .icon_start(dynamic(move || copy_icon(copied.get())))
             .on_press(move || {
-                set_clipboard(self.value.get().to_string());
-                copied.set(true);
-                if let Some(task) = reset.replace(None) {
-                    task.cancel();
-                }
-                reset.replace(Some(set_timeout(Duration::from_secs(2), move || {
-                    copied.set(false)
-                })));
+                let write = set_clipboard(self.value.get().to_string());
+                spawn(async move {
+                    if write.await != ClipboardWrite::Failed && !copied.get_untracked() {
+                        copied.set(true);
+                        announce_for_accessibility("Copied");
+                        let _ = set_timeout(Duration::from_secs(2), move || copied.set(false));
+                    }
+                });
             })
-            .child(when(copied, || {
-                text("Copied").text_xs().role(AccessibilityRole::Summary)
-            }))
             .into_element()
     }
+}
+
+fn copy_icon(copied: bool) -> CanvasView {
+    let path = if copied {
+        "m3.5 8 3 3 6-6"
+    } else {
+        "M5.5 5V3.5A1.5 1.5 0 0 1 7 2h5.5A1.5 1.5 0 0 1 14 3.5V9a1.5 1.5 0 0 1-1.5 1.5H11M3.5 5.5H9A1.5 1.5 0 0 1 10.5 7v5.5A1.5 1.5 0 0 1 9 14H3.5A1.5 1.5 0 0 1 2 12.5V7a1.5 1.5 0 0 1 1.5-1.5Z"
+    };
+    canvas(
+        Painter::new()
+            .stroke_style_from_view(SvgPaint::CurrentColor)
+            .line_width(1.35)
+            .line_cap(LineCap::Round)
+            .line_join(LineJoin::Round)
+            .stroke_svg(path),
+    )
+    .style_with(|style| style.size(px(16.0)))
 }
 
 pub struct CodeBlockLine {

@@ -14,7 +14,8 @@ To consume the components from another project, add `components` as a path depen
 
 ## Run
 
-Use the [Native Shell CLI](https://nsh.dev/docs/installation/) v0.6.1, Rust with the `wasm32-unknown-unknown` target, and Clang for compiling the Web runtime's C dependencies.
+Use the [Native Shell CLI](https://nsh.dev/docs/installation/) v0.7.0, Rust with the `wasm32-unknown-unknown` target, and Clang for compiling the Web runtime's C dependencies.
+If there is no release binary for your platform, install the pinned CLI with `cargo install --locked nsh-cli --version '=0.7.0'`.
 
 ```sh
 rustup target add wasm32-unknown-unknown

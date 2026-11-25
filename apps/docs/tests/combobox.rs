@@ -53,7 +53,11 @@ fn KeyboardChoices() -> impl IntoElement {
 
 #[test]
 fn typing_highlights_the_first_enabled_match_and_clear_resets_the_value() {
-    let mut app = Headless::start(config(Root::of::<KeyboardChoices>(), 390.0)).unwrap();
+    let mut app = Headless::start(config(
+        nsh_testing::windowed_root::<KeyboardChoices>(),
+        390.0,
+    ))
+    .unwrap();
     app.first_render().unwrap();
     app.type_text("role:combobox[Language]", "ru").unwrap();
     app.wait_for("role:option[Rust]").unwrap();

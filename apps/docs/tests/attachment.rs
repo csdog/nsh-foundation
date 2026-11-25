@@ -67,7 +67,7 @@ fn ScrollExample() -> impl IntoElement {
 
 #[test]
 fn focused_group_scrolls_horizontally_with_arrow_keys() {
-    let mut config = EngineConfig::new(Root::of::<ScrollExample>());
+    let mut config = EngineConfig::new(nsh_testing::windowed_root::<ScrollExample>());
     config.environment.os = Os::Linux;
     config.environment.reduce_motion = true;
     let mut app = Headless::start(config).unwrap();

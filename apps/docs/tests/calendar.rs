@@ -105,7 +105,7 @@ fn PersianKeyboard() -> impl IntoElement {
 
 #[test]
 fn persian_grid_left_arrow_advances_one_civil_day() {
-    let mut config = EngineConfig::new(Root::of::<PersianKeyboard>());
+    let mut config = EngineConfig::new(nsh_testing::windowed_root::<PersianKeyboard>());
     config.environment.os = Os::Linux;
     config.environment.reduce_motion = true;
     let mut app = Headless::start(config).unwrap();

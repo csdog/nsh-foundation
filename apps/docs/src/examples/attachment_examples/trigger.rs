@@ -18,7 +18,7 @@ pub fn preview() -> impl IntoElement {
                     .child(AttachmentAction::new("Copy link", "⧉", move || {
                         spawn(async move {
                             if let Some(url) = app_url().await {
-                                set_clipboard(url);
+                                let _ = set_clipboard(url);
                                 copied.set(true);
                             }
                         });

@@ -79,7 +79,7 @@ fn AutoplayDemo() -> impl IntoElement {
 
 #[test]
 fn autoplay_pauses_for_hover_and_keyboard_navigates_vertically() {
-    let mut config = EngineConfig::new(Root::of::<AutoplayDemo>());
+    let mut config = EngineConfig::new(nsh_testing::windowed_root::<AutoplayDemo>());
     config.viewport = Size::new(px(900.0), px(700.0));
     config.environment.os = Os::MacOs;
     config.clock = Clock::manual(UNIX_EPOCH);
@@ -131,7 +131,7 @@ fn locally_mirrored_carousel_starts_at_the_right_and_left_advances() {
     use nsh_core::{Command, MountItem};
     use std::sync::{Arc, Mutex};
 
-    let mut config = EngineConfig::new(Root::of::<LocalRtl>());
+    let mut config = EngineConfig::new(nsh_testing::windowed_root::<LocalRtl>());
     config.environment.os = Os::MacOs;
     config.environment.rtl = false;
     config.clock = Clock::manual(UNIX_EPOCH);

@@ -1,6 +1,7 @@
 use nsh_base::{PopoverEvent, popover, theme};
 use nsh_core::{
-    element::{app_url, next_app_url_change, set_app_url_with, set_clipboard, set_color_scheme},
+    RevealOptions, ScrollAlignment,
+    element::{app_url, next_app_url_change, set_app_url_with, set_color_scheme},
     platform::Appearance,
     prelude::*,
 };
@@ -24,7 +25,9 @@ use crate::examples::{
 };
 use components::{
     button::{Button, ButtonVariant},
+    code_block::{CodeBlock, CodeBlockActions, CodeBlockContent, CodeBlockCopyButton},
     collapsible::{Collapsible, CollapsibleContent, CollapsibleTrigger},
+    drawer::Drawer,
     tabs::{Tabs, TabsContent, TabsList, TabsTrigger},
     toast::Toaster,
     ui::{Variant, button, button_surface, heading, muted},
@@ -48,7 +51,7 @@ const SECTIONS: [&str; 13] = [
     "API Reference",
 ];
 
-const SIMPLE: &str = r#"use components::{
+const DRAWER_RSX: &str = r#"use components::{
     div,
     drawer::{
         Drawer, DrawerCloseProps, DrawerContentProps, DrawerDescriptionProps,
@@ -82,6 +85,35 @@ fn example() -> impl IntoElement {
             }
         }
     }
+}"#;
+
+const DRAWER_RUST: &str = r#"use components::{
+    div,
+    drawer::{
+        Drawer, DrawerCloseProps, DrawerContentProps, DrawerDescriptionProps,
+        DrawerFooter, DrawerHeader, DrawerRootProps, DrawerTitleProps, DrawerTriggerProps,
+    },
+};
+use nsh_core::{element::StyleRefinement, prelude::*};
+
+fn body_style(style: StyleRefinement) -> StyleRefinement {
+    style.flex_1().gap_2()
+}
+
+fn example() -> impl IntoElement {
+    let drawer = Drawer::new(signal(false));
+    DrawerRootProps { drawer }.with_body(move || {
+        div()
+            .child(DrawerTriggerProps { label: "Open Drawer" })
+            .child(DrawerContentProps { label: "Move Goal" }.with_body(|| {
+                div().style_with(body_style)
+                    .child(DrawerHeader::new()
+                        .child(DrawerTitleProps { text: "Move Goal" })
+                        .child(DrawerDescriptionProps { text: "Set your daily activity goal." }))
+                    .child(DrawerFooter::new()
+                        .child(DrawerCloseProps { label: "Done" }))
+            }))
+    })
 }"#;
 
 const SIZED: &str = r#"DrawerContent::new(drawer, "Notification history", move || {
@@ -723,6 +755,7 @@ pub(crate) fn page() -> View {
     use nsh_core::url_scheme::HistoryBehavior;
 
     let page = signal(None::<DocsPage>);
+    let sidebar_offset = stored(Point::<Points>::default());
     spawn(async move {
         let initial = app_url().await;
         page.set(Some(
@@ -748,21 +781,77 @@ pub(crate) fn page() -> View {
         });
     };
 
-    let mut root = view().flex_1().child(when(
-        move || page.get() == Some(DocsPage::Drawer),
-        move || drawer_page(navigate, toggle_theme),
-    ));
-    root = root.child(when(
-        move || page.get() == Some(DocsPage::Blocks),
-        move || crate::blocks::page(move || navigate(DocsPage::Drawer), toggle_theme),
-    ));
+    view()
+        .flex_1()
+        .child(when(
+            move || page.get().is_some_and(|page| page != DocsPage::Blocks),
+            move || docs_layout(page, navigate, toggle_theme, sidebar_offset),
+        ))
+        .child(when(
+            move || page.get() == Some(DocsPage::Blocks),
+            move || crate::blocks::page(move || navigate(DocsPage::Drawer), toggle_theme),
+        ))
+}
+
+fn docs_layout(
+    page: Signal<Option<DocsPage>>,
+    navigate: impl Fn(DocsPage) + Copy + 'static,
+    toggle_theme: impl Fn() + Copy + 'static,
+    sidebar_offset: Stored<Point<Points>>,
+) -> View {
+    let sections = DrawerSections {
+        scroll_ref: element_ref(),
+        locations: stored([0.0; SECTIONS.len()]),
+        selected: signal(None),
+    };
+    let non_modal = Drawer::new(signal(false));
+    let is_drawer = move || page.get() == Some(DocsPage::Drawer);
+    let mut articles = view()
+        .flex_1()
+        .min_h(px(0.0))
+        .min_w(px(0.0))
+        .child(when(is_drawer, move || drawer_page(sections, non_modal)));
     for &(target, _, _, scroll_id, article) in COMPONENTS {
-        root = root.child(when(
+        articles = articles.child(when(
             move || page.get() == Some(target),
-            move || component_page(target, article(), navigate, toggle_theme, scroll_id),
+            move || {
+                scroll()
+                    .flex_1()
+                    .min_w(px(0.0))
+                    .test_id(scroll_id)
+                    .child(article())
+            },
         ));
     }
-    root
+    view()
+        .flex_1()
+        .bg(|| theme().background)
+        .text_color(|| theme().foreground)
+        .child(dynamic(move || {
+            let current = page.get().unwrap_or(DocsPage::Drawer);
+            if current == DocsPage::Drawer {
+                drawer_header(navigate, toggle_theme, sections)
+            } else {
+                docs_header(
+                    move || mobile_navigation(current, navigate, |_| None),
+                    || None,
+                    move || navigate(DocsPage::Drawer),
+                    move || navigate(DocsPage::Blocks),
+                    toggle_theme,
+                )
+            }
+        }))
+        .child(
+            view()
+                .flex_1()
+                .min_h(px(0.0))
+                .flex_row()
+                .child(when(desktop_navigation, move || {
+                    sidebar(page, navigate, sidebar_offset)
+                }))
+                .child(articles),
+        )
+        .child(when(is_drawer, move || drawer::non_modal_panel(non_modal)))
 }
 
 fn component_article(page: DocsPage, description: &'static str, reference: &'static str) -> View {
@@ -1945,7 +2034,7 @@ fn direction_page() -> View {
     .child(muted("Read the nearest provider from a component inside the scope. Without a provider the value follows the Native Shell surface."))
     .child(code_block("let direction = use_direction();\ntext(move || format!(\"Current direction: {}\", direction.get().as_str()))"))
     .child(heading("TSX provider"))
-    .child(code_panel(include_str!("../../../references/direction-tsx/direction.tsx"), true))
+    .child(code_panel(include_str!("../../../references/direction-tsx/direction.tsx"), "tsx", true))
 }
 
 fn dropdown_menu_page() -> View {
@@ -3941,54 +4030,22 @@ fn mobile_navigation(
             )
             .child(local_sections(open))
             .child(component_links(
-                page,
+                move || Some(page),
                 move |target| {
                     open.set(false);
                     navigate(target);
                 },
                 44.0,
+                None,
             ))
     })
 }
 
-fn component_page(
-    page: DocsPage,
-    article: View,
-    navigate: impl Fn(DocsPage) + Copy + 'static,
-    toggle_theme: impl Fn() + 'static,
-    scroll_id: &'static str,
-) -> View {
-    view()
-        .flex_1()
-        .bg(|| theme().background)
-        .text_color(|| theme().foreground)
-        .child(docs_header(
-            move || mobile_navigation(page, navigate, |_| None),
-            || None,
-            move || navigate(DocsPage::Drawer),
-            move || navigate(DocsPage::Blocks),
-            toggle_theme,
-        ))
-        .child(
-            view()
-                .flex_1()
-                .min_h(px(0.0))
-                .flex_row()
-                .child(when(desktop_navigation, move || sidebar(page, navigate)))
-                .child(
-                    scroll()
-                        .flex_1()
-                        .min_w(px(0.0))
-                        .test_id(scroll_id)
-                        .child(article),
-                ),
-        )
-}
-
 fn component_links(
-    page: DocsPage,
+    page: impl Fn() -> Option<DocsPage> + Copy + 'static,
     navigate: impl Fn(DocsPage) + Copy + 'static,
     row_height: f32,
+    sidebar_ready: Option<Signal<bool>>,
 ) -> View {
     let mut links = view()
         .role(AccessibilityRole::Navigation)
@@ -3999,49 +4056,66 @@ fn component_links(
         std::iter::once(target).chain((target == DocsPage::Direction).then_some(DocsPage::Drawer))
     });
     for target in ordered {
-        let current = target == page;
-        links = links.child(
-            button(
-                target.label(),
-                if current {
-                    Variant::Secondary
-                } else {
-                    Variant::Ghost
-                },
-                move || navigate(target),
-            )
+        let current = move || page() == Some(target);
+        let mut link = button(target.label(), Variant::Ghost, move || navigate(target))
             .items_start()
             .h(px(row_height))
-            .accessibility_state(AccessibilityState {
-                selected: current,
+            .style_when(current, |style| style.bg(|| theme().secondary))
+            .accessibility_state(move || AccessibilityState {
+                selected: current(),
                 ..Default::default()
-            }),
-        );
+            });
+        if let Some(ready) = sidebar_ready {
+            let row = element_ref();
+            effect(move || {
+                if ready.get() && current() {
+                    row.reveal(
+                        RevealOptions::default()
+                            .vertical(ScrollAlignment::Nearest)
+                            .animated(false),
+                    );
+                }
+            });
+            link = link.element_ref(&row);
+        }
+        links = links.child(link);
     }
     links
 }
 
-fn drawer_page(
-    navigate: impl Fn(DocsPage) + Copy + 'static,
-    toggle_theme: impl Fn() + Copy + 'static,
-) -> View {
-    let scroll_ref = element_ref();
-    let locations = stored([0.0_f32; SECTIONS.len()]);
-    let selected = signal(None::<usize>);
-    let status = signal(None::<SharedString>);
-    let show_tsx_license = signal(false);
+#[derive(Clone, Copy)]
+struct DrawerSections {
+    scroll_ref: ElementRef,
+    locations: Stored<[f32; SECTIONS.len()]>,
+    selected: Signal<Option<usize>>,
+}
 
-    let go = move |index: usize| {
-        selected.set(Some(index));
-        let y = locations.with(|items| items[index]);
-        scroll_ref.scroll_to(
+impl DrawerSections {
+    fn go(self, index: usize) {
+        self.selected.set(Some(index));
+        let y = self.locations.with(|items| items[index]);
+        self.scroll_ref.scroll_to(
             Point {
                 x: px(0.0),
                 y: px((y - 18.0).max(0.0)),
             },
             false,
         );
-    };
+    }
+}
+
+fn drawer_page(sections: DrawerSections, non_modal: Drawer) -> View {
+    let DrawerSections {
+        scroll_ref,
+        locations,
+        selected,
+    } = sections;
+    locations.replace([0.0; SECTIONS.len()]);
+    selected.set(None);
+    non_modal.close();
+    let status = signal(None::<SharedString>);
+    let show_tsx_license = signal(false);
+    let go = move |index| sections.go(index);
 
     let delivery = drawer::delivery(status);
     let (custom_size, custom_size_panel) = drawer::custom_size();
@@ -4049,7 +4123,7 @@ fn drawer_page(
     let (positions, position_panels) = drawer::positions();
     let (swipe, swipe_panel) = drawer::swipe();
     let (nested, nested_panel) = drawer::nested();
-    let (non_modal, non_modal_panel) = drawer::non_modal();
+    let non_modal = drawer::non_modal_trigger(non_modal);
     let (snap, snap_panel) = drawer::snap();
     let (responsive, responsive_panel) = drawer::responsive(status);
 
@@ -4078,25 +4152,25 @@ fn drawer_page(
                     .child(button("Base UI reference", Variant::Outline, || { let _ = open_url(REFERENCE); }))
                     .child(button("Source", Variant::Ghost, || { let _ = open_url(SOURCE); }))),
         )
-        .child(example("Delivery time", delivery, SIMPLE, TSX_DELIVERY))
+        .child(example_with_rsx("Delivery time", delivery, DRAWER_RUST, TSX_DELIVERY, Some(DRAWER_RSX)))
         .child(
             section("Installation", 0, locations)
                 .child(muted("Build the Native Shell Rust project for the Web target."))
-                .child(code_block("nsh package --target web --out dist")),
+                .child(code_panel("nsh package --target web --out dist", "bash", false)),
         )
         .child(
             section("Usage", 1, locations)
                 .child(muted("Pass the Drawer state to DrawerRootProps once. Use named props for the drawer parts and apply reusable styles with style_with."))
-                .child(code_block(SIMPLE))
+                .child(code_block(DRAWER_RSX))
                 .child(muted("The TSX tabs show React examples for shadcn/ui with Base UI. Use them in a project with the referenced components installed. The delivery example also needs Sonner’s Toaster."))
                 .child(view().items_start().child(button("TSX license", Variant::Outline, move || {
                     show_tsx_license.update(|open| *open = !*open);
                 })))
-                .child(when(show_tsx_license, || code_block(TSX_LICENSE))),
+                .child(when(show_tsx_license, || code_panel(TSX_LICENSE, "md", false))),
         )
         .child(section("Composition", 2, locations)
             .child(muted("The trigger can sit anywhere in the layout. DrawerContent supplies the window layer and backdrop, and mounts its children when the drawer opens."))
-            .child(code_block("DrawerRoot\n├── DrawerTrigger\n└── DrawerContent\n    ├── DrawerPortal + DrawerOverlay\n    ├── DrawerHeader\n    │   ├── DrawerTitle\n    │   └── DrawerDescription\n    └── DrawerFooter\n        └── DrawerClose")))
+            .child(code_panel("DrawerRoot\n├── DrawerTrigger\n└── DrawerContent\n    ├── DrawerPortal + DrawerOverlay\n    ├── DrawerHeader\n    │   ├── DrawerTitle\n    │   └── DrawerDescription\n    └── DrawerFooter\n        └── DrawerClose", "", false)))
         .child(section("Custom Sizes", 3, locations)
             .child(muted("Use height for vertical drawers and width for side drawers. Put long content in a scroll view."))
             .child(example("Custom Sizes", custom_size, SIZED, TSX_SIZED))
@@ -4144,57 +4218,12 @@ fn drawer_page(
 
     view()
         .flex_1()
-        .bg(move || theme().background)
-        .text_color(move || theme().foreground)
-        .child(docs_header(
-            move || {
-                mobile_navigation(DocsPage::Drawer, navigate, move |open| {
-                    Some(
-                        Collapsible::new(
-                            CollapsibleTrigger::render(|_| {
-                                button_surface("On this page", Variant::Ghost)
-                                    .items_start()
-                                    .h(px(44.0))
-                            }),
-                            CollapsibleContent::new(section_links(
-                                move |index| {
-                                    open.set(false);
-                                    go(index);
-                                },
-                                selected,
-                                44.0,
-                            )),
-                        )
-                        .surface(),
-                    )
-                })
-            },
-            move || {
-                (window().width.0 < WIDE_DOCS_WIDTH).then(|| {
-                    docs_menu("On this page", move |open| {
-                        section_links(
-                            move |index| {
-                                open.set(false);
-                                go(index);
-                            },
-                            selected,
-                            44.0,
-                        )
-                    })
-                })
-            },
-            move || go(5),
-            move || navigate(DocsPage::Blocks),
-            toggle_theme,
-        ))
+        .min_h(px(0.0))
         .child(
             view()
                 .flex_1()
                 .min_h(px(0.0))
                 .flex_row()
-                .child(when(desktop_navigation, move || {
-                    sidebar(DocsPage::Drawer, navigate)
-                }))
                 .child(
                     scroll()
                         .flex_1()
@@ -4229,7 +4258,6 @@ fn drawer_page(
                     },
                 )),
         )
-        .child(non_modal_panel)
         .child(when(
             move || status.get().is_some(),
             move || {
@@ -4251,6 +4279,56 @@ fn drawer_page(
                     .child(button("Dismiss", Variant::Ghost, move || status.set(None)))
             },
         ))
+}
+
+fn drawer_header(
+    navigate: impl Fn(DocsPage) + Copy + 'static,
+    toggle_theme: impl Fn() + 'static,
+    sections: DrawerSections,
+) -> View {
+    let selected = sections.selected;
+    let go = move |index| sections.go(index);
+    docs_header(
+        move || {
+            mobile_navigation(DocsPage::Drawer, navigate, move |open| {
+                Some(
+                    Collapsible::new(
+                        CollapsibleTrigger::render(|_| {
+                            button_surface("On this page", Variant::Ghost)
+                                .items_start()
+                                .h(px(44.0))
+                        }),
+                        CollapsibleContent::new(section_links(
+                            move |index| {
+                                open.set(false);
+                                go(index);
+                            },
+                            selected,
+                            44.0,
+                        )),
+                    )
+                    .surface(),
+                )
+            })
+        },
+        move || {
+            (window().width.0 < WIDE_DOCS_WIDTH).then(|| {
+                docs_menu("On this page", move |open| {
+                    section_links(
+                        move |index| {
+                            open.set(false);
+                            go(index);
+                        },
+                        selected,
+                        44.0,
+                    )
+                })
+            })
+        },
+        move || go(5),
+        move || navigate(DocsPage::Blocks),
+        toggle_theme,
+    )
 }
 
 fn section(name: &'static str, index: usize, locations: Stored<[f32; SECTIONS.len()]>) -> View {
@@ -4300,7 +4378,12 @@ fn section_links(
     links
 }
 
-fn sidebar(page: DocsPage, navigate: impl Fn(DocsPage) + Copy + 'static) -> impl IntoElement {
+fn sidebar(
+    page: Signal<Option<DocsPage>>,
+    navigate: impl Fn(DocsPage) + Copy + 'static,
+    offset: Stored<Point<Points>>,
+) -> impl IntoElement {
+    let ready = signal(false);
     scroll()
         .w(px(216.0))
         .flex_shrink_0()
@@ -4308,7 +4391,16 @@ fn sidebar(page: DocsPage, navigate: impl Fn(DocsPage) + Copy + 'static) -> impl
         .border_r(px(1.0))
         .border_color(|| theme().border)
         .test_id("docs-sidebar")
-        .child(component_links(page, navigate, 34.0).px_3().py_5())
+        .content_offset(offset.get())
+        .on_layout(move |_: &Bounds<Points>| ready.set(true))
+        .on_scroll(move |event: &ScrollEvent| {
+            offset.replace(event.offset);
+        })
+        .child(
+            component_links(move || page.get(), navigate, 34.0, Some(ready))
+                .px_3()
+                .py_5(),
+        )
 }
 
 fn example(
@@ -4317,36 +4409,54 @@ fn example(
     rust: &'static str,
     tsx: &'static str,
 ) -> View {
+    example_with_rsx(label, contents, rust, tsx, None)
+}
+
+fn example_with_rsx(
+    label: &'static str,
+    contents: impl IntoElement,
+    rust: &'static str,
+    tsx: &'static str,
+    rsx: Option<&'static str>,
+) -> View {
     let preview = stored(Some(contents.into_element()));
-    let tabs = Tabs::new(
-        TabsList::new(format!("{label} views"))
-            .trigger(TabsTrigger::new("preview", "Preview"))
-            .trigger(TabsTrigger::new("rust", "Rust"))
-            .trigger(TabsTrigger::new("tsx", "TSX")),
-    )
-    .default_value("preview")
-    .content(
-        TabsContent::new("preview", move || {
-            view()
-                .min_h(px(248.0))
-                .p_4()
-                .items_center()
-                .justify_center()
-                .child(preview.replace(None))
-        })
-        .keep_mounted(),
-    )
-    .content(TabsContent::new("rust", move || code_panel(rust, true)))
-    .content(TabsContent::new("tsx", move || {
-        view()
-            .child(
+    let mut list = TabsList::new(format!("{label} views"))
+        .trigger(TabsTrigger::new("preview", "Preview"))
+        .trigger(TabsTrigger::new("rust", "Rust"));
+    if rsx.is_some() {
+        list = list.trigger(TabsTrigger::new("rsx", "RSX"));
+    }
+    let mut tabs = Tabs::new(list.trigger(TabsTrigger::new("tsx", "TSX")))
+        .default_value("preview")
+        .content(
+            TabsContent::new("preview", move || {
                 view()
-                    .px_3()
-                    .py_2()
-                    .child(muted("shadcn/ui · React + Base UI")),
-            )
-            .child(code_panel(tsx, true))
-    }));
+                    .min_h(px(248.0))
+                    .p_4()
+                    .items_center()
+                    .justify_center()
+                    .child(preview.replace(None))
+            })
+            .keep_mounted(),
+        )
+        .content(TabsContent::new("rust", move || {
+            code_panel(rust, "rust", true)
+        }))
+        .content(TabsContent::new("tsx", move || {
+            view()
+                .child(
+                    view()
+                        .px_3()
+                        .py_2()
+                        .child(muted("shadcn/ui · React + Base UI")),
+                )
+                .child(code_panel(tsx, "tsx", true))
+        }));
+    if let Some(rsx) = rsx {
+        tabs = tabs.content(TabsContent::new("rsx", move || {
+            code_panel(rsx, "rust", true)
+        }));
+    }
     view()
         .role(AccessibilityRole::Region)
         .label(label)
@@ -4358,50 +4468,24 @@ fn example(
 }
 
 fn code_block(value: &'static str) -> View {
-    code_panel(value, false)
+    code_panel(value, "rust", false)
 }
 
-fn code_panel(value: &'static str, scrollable: bool) -> View {
-    let copied = signal(false);
-    let reset = stored(None::<Spawned<()>>);
-    view()
-        .p_3()
-        .gap_2()
-        .rounded(px(8.0))
-        .bg(move || theme().muted)
-        .child(
-            view().items_end().child(
-                button("Copy", Variant::Outline, move || {
-                    set_clipboard(value);
-                    copied.set(true);
-                    if let Some(task) = reset.replace(None) {
-                        task.cancel();
-                    }
-                    reset.replace(Some(set_timeout(
-                        std::time::Duration::from_secs(2),
-                        move || copied.set(false),
-                    )));
-                })
-                .child(when(copied, || muted("Copied"))),
-            ),
+fn code_panel(value: &'static str, language: &'static str, scrollable: bool) -> View {
+    let mut content = CodeBlockContent::new(value)
+        .language(language)
+        .wrap(!scrollable)
+        .focusable(scrollable);
+    if scrollable {
+        content = content.max_height(340.0);
+    }
+    CodeBlock::new(content)
+        .actions(
+            CodeBlockActions::new()
+                .always_visible()
+                .child(CodeBlockCopyButton::new(value)),
         )
-        .child(if scrollable {
-            scroll()
-                .max_h(px(340.0))
-                .focusable(true)
-                .label("Source code")
-                .child(code_text(value))
-                .into_element()
-        } else {
-            code_text(value).into_element()
-        })
-}
-
-fn code_text(value: &'static str) -> Text {
-    text(value)
-        .text_sm()
-        .font_family("monospace")
-        .selectable(true)
+        .surface()
 }
 
 fn api_row(name: &'static str, description: &'static str) -> View {

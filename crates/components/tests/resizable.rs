@@ -1,7 +1,7 @@
 use components::resizable::{
     ResizableHandle, ResizableOrientation, ResizablePanel, ResizablePanelGroup,
 };
-use nsh_core::{Size, element::Root, platform::Os, prelude::*};
+use nsh_core::{Size, platform::Os, prelude::*};
 use nsh_engine::EngineConfig;
 use nsh_testing::Headless;
 
@@ -27,7 +27,7 @@ fn ConstrainedSplit() -> impl IntoElement {
 
 #[test]
 fn keyboard_respects_panel_limits_and_only_reports_changed_layouts() {
-    let mut config = EngineConfig::new(Root::of::<ConstrainedSplit>());
+    let mut config = EngineConfig::new(nsh_testing::windowed_root::<ConstrainedSplit>());
     config.environment.os = Os::Linux;
     config.environment.reduce_motion = true;
     config.viewport = Size::new(px(500.0), px(320.0));

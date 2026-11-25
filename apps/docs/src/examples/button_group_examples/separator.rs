@@ -18,7 +18,7 @@ pub fn preview() -> impl IntoElement {
         .child(
             ButtonGroup::new("Clipboard actions")
                 .child(button("Copy").on_press(move || {
-                    set_clipboard("Button Group sample");
+                    let _ = set_clipboard("Button Group sample");
                     copied.set(true);
                     status.set("Sample text copied");
                 }))

@@ -1,5 +1,5 @@
 use components::toggle::Toggle;
-use nsh_core::{Checked, element::Root, platform::Os, prelude::*};
+use nsh_core::{Checked, platform::Os, prelude::*};
 use nsh_engine::EngineConfig;
 use nsh_testing::Headless;
 
@@ -18,7 +18,7 @@ fn Formatting() -> impl IntoElement {
 
 #[test]
 fn keyboard_toggles_local_and_bound_state_and_skips_the_disabled_control() {
-    let mut config = EngineConfig::new(Root::of::<Formatting>());
+    let mut config = EngineConfig::new(nsh_testing::windowed_root::<Formatting>());
     config.environment.os = Os::Linux;
     config.environment.reduce_motion = true;
     let mut app = Headless::start(config).unwrap();

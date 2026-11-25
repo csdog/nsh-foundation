@@ -327,17 +327,17 @@ pub(crate) fn floating() -> (impl IntoElement, impl IntoElement) {
     )
 }
 
-pub(crate) fn non_modal() -> (impl IntoElement, impl IntoElement) {
-    let drawer = Drawer::new(signal(false));
-    (
-        DrawerTrigger::new(drawer, "Non Modal").test_id("non-modal-trigger"),
-        demo_panel(drawer, "Non Modal Drawer", "", || DrawerOptions {
-            direction: Direction::Right,
-            modality: Modality::NonModal,
-            disable_outside_dismissal: true,
-            ..Default::default()
-        }),
-    )
+pub(crate) fn non_modal_trigger(drawer: Drawer) -> impl IntoElement {
+    DrawerTrigger::new(drawer, "Non Modal").test_id("non-modal-trigger")
+}
+
+pub(crate) fn non_modal_panel(drawer: Drawer) -> impl IntoElement {
+    demo_panel(drawer, "Non Modal Drawer", "", || DrawerOptions {
+        direction: Direction::Right,
+        modality: Modality::NonModal,
+        disable_outside_dismissal: true,
+        ..Default::default()
+    })
 }
 
 pub(crate) fn snap() -> (impl IntoElement, impl IntoElement) {

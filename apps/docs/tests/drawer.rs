@@ -117,18 +117,22 @@ fn non_modal_passes_background_presses() {
 fn swipe_and_snap_handle_gestures() {
     let mut app = start(390.0, 844.0);
     interact(&mut app, "id:swipe-trigger");
-    app.drag(HANDLE, point(px(0.0), px(180.0))).unwrap();
+    app.drag(HANDLE, point(px(0.0), px(180.0)), Default::default())
+        .unwrap();
     app.wait(MOTION).unwrap();
     assert_count(&app, 0);
 
     interact(&mut app, "id:snap-trigger");
-    app.drag(HANDLE, point(px(0.0), px(-260.0))).unwrap();
+    app.drag(HANDLE, point(px(0.0), px(-260.0)), Default::default())
+        .unwrap();
     app.wait(MOTION).unwrap();
     assert_count(&app, 1);
-    app.drag(HANDLE, point(px(0.0), px(285.0))).unwrap();
+    app.drag(HANDLE, point(px(0.0), px(285.0)), Default::default())
+        .unwrap();
     app.wait(MOTION).unwrap();
     assert_count(&app, 1);
-    app.drag(HANDLE, point(px(0.0), px(190.0))).unwrap();
+    app.drag(HANDLE, point(px(0.0), px(190.0)), Default::default())
+        .unwrap();
     app.wait(MOTION).unwrap();
     assert_count(&app, 0);
 }
@@ -137,7 +141,8 @@ fn swipe_and_snap_handle_gestures() {
 fn short_swipe_settles_without_dismissing_the_drawer() {
     let mut app = start(390.0, 844.0);
     interact(&mut app, "id:swipe-trigger");
-    app.drag(HANDLE, point(px(0.0), px(48.0))).unwrap();
+    app.drag(HANDLE, point(px(0.0), px(48.0)), Default::default())
+        .unwrap();
     app.wait(MOTION).unwrap();
     assert_count(&app, 1);
     interact(&mut app, "Close");
@@ -185,14 +190,35 @@ fn code_tabs_copy_the_selected_language_and_can_return_to_preview() {
     let mut app = start(1280.0, 900.0);
     let region = "role:region[Delivery time]";
     interact(&mut app, &format!("{region} >> Rust"));
+    assert_highlighted_line(&app, "DrawerRootProps { drawer }.with_body(move || {");
     interact(&mut app, &format!("{region} >> Copy"));
+    assert_eq!(
+        app.screen()
+            .count(&format!("{region} >> role:button[Copied]")),
+        Ok(1),
+    );
     let source = app.screen().clipboard().unwrap();
     assert!(source.contains("DrawerTriggerProps {"));
     assert!(source.contains("DrawerContentProps {"));
     assert!(source.contains("DrawerTitleProps {"));
+    assert!(source.contains("DrawerRootProps { drawer }.with_body("));
+    assert!(!source.contains("rsx!"));
+    assert!(source.contains(".style_with(body_style)"));
+    interact(&mut app, &format!("{region} >> RSX"));
+    assert_eq!(
+        app.screen()
+            .count(&format!("{region} >> role:button[Copy]")),
+        Ok(1),
+    );
+    assert_highlighted_line(&app, "DrawerTriggerProps { label: \"Open Drawer\" },");
+    interact(&mut app, &format!("{region} >> Copy"));
+    let source = app.screen().clipboard().unwrap();
+    assert!(source.contains("rsx! {"));
     assert!(source.contains("DrawerRootProps { drawer } =>"));
+    assert!(source.contains("DrawerContentProps { label: \"Move Goal\" } =>"));
     assert!(source.contains(".style_with(body_style)"));
     interact(&mut app, &format!("{region} >> TSX"));
+    assert_highlighted_line(&app, "import * as React from \"react\"");
     assert!(app.shows("shadcn/ui · React + Base UI"));
     interact(&mut app, &format!("{region} >> Copy"));
     let source = app.screen().clipboard().unwrap();
@@ -204,6 +230,24 @@ fn code_tabs_copy_the_selected_language_and_can_return_to_preview() {
     interact(&mut app, &format!("{region} >> Preview"));
     interact(&mut app, "id:delivery-trigger");
     assert!(app.shows("Pick a delivery time"));
+}
+
+fn assert_highlighted_line(app: &Headless, expected: &str) {
+    assert!(
+        app.screen()
+            .layout_nodes()
+            .into_iter()
+            .filter_map(|node| node.text)
+            .any(|line| {
+                line.text.text.trim() == expected
+                    && line
+                        .text
+                        .spans
+                        .windows(2)
+                        .any(|pair| pair[0].style.color != pair[1].style.color)
+            }),
+        "expected syntax colors on {expected:?}",
+    );
 }
 
 #[test]

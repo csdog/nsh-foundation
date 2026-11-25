@@ -1,5 +1,5 @@
 use components::tabs::{Tabs, TabsContent, TabsList, TabsTrigger};
-use nsh_core::{element::Root, platform::Os, prelude::*};
+use nsh_core::{platform::Os, prelude::*};
 use nsh_engine::EngineConfig;
 use nsh_testing::Headless;
 
@@ -18,7 +18,7 @@ fn ControlledTabs() -> impl IntoElement {
 
 #[test]
 fn automatic_activation_skips_disabled_tabs_and_updates_the_visible_panel() {
-    let mut config = EngineConfig::new(Root::of::<ControlledTabs>());
+    let mut config = EngineConfig::new(nsh_testing::windowed_root::<ControlledTabs>());
     config.environment.os = Os::Linux;
     config.environment.reduce_motion = true;
     let mut app = Headless::start(config).unwrap();

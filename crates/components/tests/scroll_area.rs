@@ -2,7 +2,7 @@ use components::{
     direction::{Direction, DirectionProvider},
     scroll_area::{ScrollArea, ScrollAreaOrientation, ScrollBar},
 };
-use nsh_core::{Size, element::Root, platform::Os, prelude::*};
+use nsh_core::{Size, platform::Os, prelude::*};
 use nsh_engine::EngineConfig;
 use nsh_testing::Headless;
 
@@ -27,7 +27,7 @@ fn RightToLeftStrip() -> impl IntoElement {
 
 #[test]
 fn horizontal_rtl_home_and_end_move_to_the_logical_boundaries() {
-    let mut config = EngineConfig::new(Root::of::<RightToLeftStrip>());
+    let mut config = EngineConfig::new(nsh_testing::windowed_root::<RightToLeftStrip>());
     config.environment.os = Os::Linux;
     config.environment.reduce_motion = true;
     config.viewport = Size::new(px(420.0), px(220.0));

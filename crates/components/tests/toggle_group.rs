@@ -2,7 +2,7 @@ use components::{
     toggle::ToggleVariant,
     toggle_group::{ToggleGroup, ToggleGroupItem},
 };
-use nsh_core::{Checked, element::Root, platform::Os, prelude::*};
+use nsh_core::{Checked, platform::Os, prelude::*};
 use nsh_engine::EngineConfig;
 use nsh_testing::Headless;
 
@@ -21,7 +21,7 @@ fn CallFilter() -> impl IntoElement {
 
 #[test]
 fn arrows_skip_disabled_items_and_activation_replaces_the_single_selection() {
-    let mut config = EngineConfig::new(Root::of::<CallFilter>());
+    let mut config = EngineConfig::new(nsh_testing::windowed_root::<CallFilter>());
     config.environment.os = Os::Linux;
     config.environment.reduce_motion = true;
     let mut app = Headless::start(config).unwrap();

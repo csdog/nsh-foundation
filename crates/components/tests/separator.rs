@@ -1,5 +1,5 @@
 use components::separator::{Separator, SeparatorOrientation};
-use nsh_core::{Size, element::Root, platform::Os, prelude::*};
+use nsh_core::{Size, platform::Os, prelude::*};
 use nsh_engine::EngineConfig;
 use nsh_testing::Headless;
 
@@ -32,7 +32,7 @@ fn Lines() -> impl IntoElement {
 
 #[test]
 fn named_and_decorative_lines_stretch_on_their_own_axes() {
-    let mut config = EngineConfig::new(Root::of::<Lines>());
+    let mut config = EngineConfig::new(nsh_testing::windowed_root::<Lines>());
     config.viewport = Size::new(px(400.0), px(220.0));
     config.environment.os = Os::Linux;
     let mut app = Headless::start(config).unwrap();

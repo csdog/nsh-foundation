@@ -101,7 +101,7 @@ fn KeyboardDisclosure() -> impl IntoElement {
 
 #[test]
 fn keyboard_toggles_the_disclosure_and_a_disabled_trigger_cannot_open() {
-    let mut config = EngineConfig::new(Root::of::<KeyboardDisclosure>());
+    let mut config = EngineConfig::new(nsh_testing::windowed_root::<KeyboardDisclosure>());
     config.environment.os = Os::MacOs;
     let mut app = Headless::start(config).unwrap();
     app.first_render().unwrap();

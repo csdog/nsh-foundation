@@ -1055,7 +1055,7 @@ fn message_view(message: Message) -> View {
                     icon(if copied.get() { CHECK_ICON } else { COPY_ICON }, false)
                 }))
                 .on_press(move || {
-                    set_clipboard(body.with(|text| text.clone()));
+                    let _ = set_clipboard(body.with(|text| text.clone()));
                     copied.set(true);
                 })
                 .size(px(42.0))

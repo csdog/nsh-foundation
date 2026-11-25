@@ -57,8 +57,18 @@ fn gallery_copies_source_with_blank_lines_and_keeps_ansi_off_the_clipboard() {
         Some(Checked::True)
     );
     app.press(&format!("{demo} >> role:button[Copy]")).unwrap();
-    let copied = app.screen().clipboard().unwrap();
+    let copied = app.screen().clipboard().unwrap().to_owned();
     assert!(copied.starts_with("import { streamText } from \"ai\"\n\n"));
+    let success = format!("{demo} >> role:button[Copied]");
+    assert_eq!(app.screen().count(&success), Ok(1));
+    app.run_for(Duration::from_millis(1100)).unwrap();
+    app.press(&success).unwrap();
+    assert_eq!(app.screen().clipboard().as_deref(), Some(copied.as_str()));
+    app.run_for(Duration::from_secs(1)).unwrap();
+    assert_eq!(
+        app.screen().count(&format!("{demo} >> role:button[Copy]")),
+        Ok(1),
+    );
     app.press("role:region[Terminal Output] >> role:button[Copy]")
         .unwrap();
     let terminal = app.screen().clipboard().unwrap();

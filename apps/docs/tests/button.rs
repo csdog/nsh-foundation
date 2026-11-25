@@ -28,7 +28,7 @@ fn ButtonStates() -> impl IntoElement {
 
 #[test]
 fn loading_and_disabled_buttons_do_not_activate() {
-    let mut config = EngineConfig::new(Root::of::<ButtonStates>());
+    let mut config = EngineConfig::new(nsh_testing::windowed_root::<ButtonStates>());
     config.environment.os = Os::Linux;
     config.environment.reduce_motion = true;
     let mut app = Headless::start(config).unwrap();

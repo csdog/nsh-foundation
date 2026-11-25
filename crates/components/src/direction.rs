@@ -89,7 +89,7 @@ pub fn use_direction() -> Reactive<Direction> {
 
 #[cfg(test)]
 mod tests {
-    use nsh_core::{Size, element::Root, platform::Os};
+    use nsh_core::{Size, platform::Os};
     use nsh_engine::EngineConfig;
     use nsh_testing::Headless;
 
@@ -133,7 +133,7 @@ mod tests {
 
     #[test]
     fn providers_are_reactive_and_nested_overrides_do_not_leak() {
-        let mut config = EngineConfig::new(Root::of::<DirectionScopes>());
+        let mut config = EngineConfig::new(nsh_testing::windowed_root::<DirectionScopes>());
         config.viewport = Size::new(px(600.0), px(500.0));
         config.environment.os = Os::Linux;
         let mut app = Headless::start(config).unwrap();

@@ -114,10 +114,9 @@ pub fn block_start() -> impl IntoElement {
                     Addon::new(BlockStart)
                         .separator()
                         .child(copy_text("script.js").font_family("monospace").flex_1())
-                        .action(
-                            icon_button("Copy code", "▣")
-                                .on_press(move || set_clipboard(code.get())),
-                        ),
+                        .action(icon_button("Copy code", "▣").on_press(move || {
+                            let _ = set_clipboard(code.get());
+                        })),
                 ),
                 "Header positioned above the textarea.",
             )),
@@ -299,7 +298,7 @@ pub fn buttons() -> impl IntoElement {
                 InputGroup::new(entry("Profile URL", url).readonly(true)).addon(
                     Addon::new(InlineEnd).action(icon_button("Copy profile URL", "▣").on_press(
                         move || {
-                            set_clipboard(url);
+                            let _ = set_clipboard(url);
                             copied.set(true);
                         },
                     )),
@@ -364,7 +363,7 @@ pub fn dropdown() -> impl IntoElement {
     for name in ["Settings", "Copy path", "Open location"] {
         menu = menu.child(DropdownMenuItem::new(name).on_select(move || {
             if name == "Copy path" && !file.with(String::is_empty) {
-                set_clipboard(file.get());
+                let _ = set_clipboard(file.get());
             }
             status.set(format!("Selected · {name}"));
         }));
@@ -486,7 +485,7 @@ pub fn textarea() -> impl IntoElement {
                             status.set("");
                         }))
                         .action(icon_button("Copy script", "▣").on_press(move || {
-                            set_clipboard(code.get());
+                            let _ = set_clipboard(code.get());
                             status.set("Script copied.");
                         })),
                 ),

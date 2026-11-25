@@ -93,7 +93,7 @@ fn Groups() -> impl IntoElement {
 
 #[test]
 fn orientations_preserve_layout_order_and_tab_activation() {
-    let mut config = EngineConfig::new(Root::of::<Groups>());
+    let mut config = EngineConfig::new(nsh_testing::windowed_root::<Groups>());
     config.environment.os = Os::Linux;
     let mut app = Headless::start(config).unwrap();
     app.first_render().unwrap();

@@ -11,7 +11,7 @@ fn UncontrolledSwitch() -> impl IntoElement {
 
 #[test]
 fn default_state_toggles_with_space() {
-    let mut cfg = EngineConfig::new(Root::of::<UncontrolledSwitch>());
+    let mut cfg = EngineConfig::new(nsh_testing::windowed_root::<UncontrolledSwitch>());
     cfg.environment.os = Os::Linux;
     cfg.environment.reduce_motion = true;
     let mut app = Headless::start(cfg).unwrap();
