@@ -135,6 +135,6 @@ Preserve typed slots for compound components such as Card and Carousel.
 
 Keep each documented Rust builder example and its RSX counterpart in sync
 with the preview. The composition examples for
-[Button, Badge, Card, and Carousel](apps/docs/src/examples/composition) show
+[Button, Badge, Card, Carousel, and Switch](apps/docs/src/examples/composition) show
 how to do this. Label Native Shell TSX examples as **TSX** and upstream
 React examples as **shadcn/ui**.

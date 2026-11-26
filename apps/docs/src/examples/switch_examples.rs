@@ -3,7 +3,7 @@ use components::{
     direction::{Direction, DirectionProvider},
     field::{Field, FieldContent, FieldDescription, FieldOrientation, FieldTitle},
     label::Label,
-    switch::{Switch, SwitchSize},
+    switch::{Switch, SwitchSize, switch},
 };
 use nsh_base::theme;
 use nsh_core::prelude::*;
@@ -36,7 +36,8 @@ impl Setting {
     }
 
     fn control(self, label: impl IntoReactive<SharedString>) -> Switch {
-        Switch::new(label)
+        switch()
+            .accessibility_label(label)
             .checked(self.checked)
             .control_ref(self.target)
             .on_change(move |checked| self.checked.set(checked))

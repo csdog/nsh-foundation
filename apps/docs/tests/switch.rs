@@ -50,3 +50,56 @@ fn labels_and_choice_cards_toggle_the_bound_switch_once() {
     app.press(notifications).unwrap();
     assert_eq!(checked(&app, notifications), Some(Checked::True));
 }
+
+#[path = "../src/examples/composition/switch_rust.rs"]
+mod switch_rust;
+
+#[component]
+fn DocumentedRustSwitch() -> impl IntoElement {
+    switch_rust::example()
+}
+
+#[test]
+fn documented_rust_switch_updates_the_bound_value() {
+    let mut app = Headless::start(EngineConfig::new(Root::of::<DocumentedRustSwitch>())).unwrap();
+    app.first_render().unwrap();
+    assert!(app.shows("Off"));
+    app.press("role:switch[Notifications]").unwrap();
+    assert!(app.shows("On"));
+}
+
+#[test]
+fn switch_composition_toggles_and_copies_all_three_examples() {
+    let mut cfg = EngineConfig::new(Root::of::<App>());
+    cfg.environment.os = Os::Web;
+    cfg.viewport = Size::new(px(390.0), px(844.0));
+    let mut app = Headless::start_at_page(cfg, "https://foundation.test/#switch").unwrap();
+    app.first_render().unwrap();
+    let region = "role:region[Switch composition]";
+    let control = format!("{region} >> role:switch[Notifications]");
+    let checked = |app: &Headless| app.screen().accessibility_state(&control).unwrap().checked;
+    assert_eq!(checked(&app), Some(Checked::False));
+    app.press(&control).unwrap();
+    assert_eq!(checked(&app), Some(Checked::True));
+    app.press(&control).unwrap();
+    assert_eq!(checked(&app), Some(Checked::False));
+
+    for (tab, source) in [
+        (
+            "Rust",
+            include_str!("../src/examples/composition/switch_rust.rs"),
+        ),
+        (
+            "RSX",
+            include_str!("../src/examples/composition/switch_rsx.rs"),
+        ),
+        (
+            "TSX",
+            include_str!("../src/examples/composition/switch.tsx"),
+        ),
+    ] {
+        app.press(&format!("{region} >> {tab}")).unwrap();
+        app.press(&format!("{region} >> Copy")).unwrap();
+        assert_eq!(app.screen().clipboard().unwrap(), source);
+    }
+}

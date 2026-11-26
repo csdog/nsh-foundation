@@ -1,6 +1,6 @@
 # nsh-foundation
 
-A Native Shell component library written in Rust. Its responsive Web gallery includes component previews, Rust sources, and shadcn/ui references. Drawer, Button, Badge, Card, and Carousel also have Rust RSX examples. Drawer, Button, and Badge have Native Shell TSX examples. Follow the [component plan](PLAN.md) and [release progress](PROGRESS.md).
+A Native Shell component library written in Rust. Its responsive Web gallery includes component previews, Rust sources, and shadcn/ui references. Drawer, Button, Badge, Card, Carousel, and Switch also have Rust RSX examples. Drawer, Button, Badge, and Switch have Native Shell TSX examples. Follow the [component plan](PLAN.md) and [release progress](PROGRESS.md).
 
 ## Workspace
 

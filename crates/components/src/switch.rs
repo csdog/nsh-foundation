@@ -5,7 +5,9 @@ use nsh_core::{Checked, geometry::Edges, prelude::*};
 
 use crate::direction::{Direction, use_direction};
 
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub mod tsx;
+
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, PropEnum)]
 pub enum SwitchSize {
     Small,
     #[default]
@@ -13,7 +15,7 @@ pub enum SwitchSize {
 }
 
 pub struct Switch {
-    label: Reactive<SharedString>,
+    label: Option<Reactive<SharedString>>,
     description: Option<Reactive<SharedString>>,
     controlled: Option<Reactive<bool>>,
     initial: bool,
@@ -26,8 +28,18 @@ pub struct Switch {
 
 impl Switch {
     pub fn new(label: impl IntoReactive<SharedString>) -> Self {
+        switch().accessibility_label(label)
+    }
+
+    /// Names the setting toggled by the switch for assistive technology.
+    pub fn accessibility_label(mut self, label: impl IntoReactive<SharedString>) -> Self {
+        self.label = Some(label.into_reactive());
+        self
+    }
+
+    fn empty() -> Self {
         Self {
-            label: label.into_reactive(),
+            label: None,
             description: None,
             controlled: None,
             initial: false,
@@ -129,7 +141,6 @@ impl Switch {
 
         let control = view()
             .role(AccessibilityRole::Switch)
-            .label(self.label)
             .focusable(move || !disabled.get())
             .disabled(disabled)
             .on_press(move || {
@@ -209,6 +220,10 @@ impl Switch {
             .disabled_style(|style| style.opacity(0.5).cursor(Cursor::NotAllowed))
             .test_id("switch-control")
             .child(thumb);
+        let control = match self.label {
+            Some(label) => control.label(label),
+            None => control,
+        };
         let control = match self.description {
             Some(description) => control.accessibility_description(description),
             None => control,
@@ -218,6 +233,11 @@ impl Switch {
             None => control,
         }
     }
+}
+
+/// Builds a switch that is off by default.
+pub fn switch() -> Switch {
+    Switch::empty()
 }
 
 impl IntoElement for Switch {

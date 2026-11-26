@@ -143,6 +143,7 @@ impl Emitter {
             "Text" => quote!(#core::text("")),
             "Button" => quote!(#library::button::button()),
             "Badge" => quote!(#library::badge::badge()),
+            "Switch" => quote!(#library::switch::switch()),
             "Card" | "CardHeader" => quote!(#library::card::#name::new()),
             "CardTitle" | "CardDescription" => {
                 let label = text_content(&element.children, name)?;
@@ -164,7 +165,7 @@ impl Emitter {
             | "DrawerTitle" | "DrawerDescription" => quote!(#drawer::#builder()),
             _ => quote!(#builder()),
         };
-        let mut button_surface = Tokens::new();
+        let mut surface = Tokens::new();
         let mut button_action = None;
         for attr in element.attributes() {
             let (key, value) = attribute(attr)?;
@@ -185,8 +186,8 @@ impl Emitter {
                         ));
                     }
                 }
-                ("Button", "app_class" | "test_id") => {
-                    button_surface.extend(quote!(.#method(#value)));
+                ("Button" | "Switch", "app_class" | "test_id") | ("Switch", "style_with") => {
+                    surface.extend(quote!(.#method(#value)));
                 }
                 _ => parent.extend(quote!(.#method(#value))),
             }
@@ -201,13 +202,28 @@ impl Emitter {
             "Card" | "CardHeader" | "Carousel" | "CarouselContent" => {
                 self.slots(parent, tag, &element.children)
             }
+            "Switch" => {
+                if let Some(child) = element
+                    .children
+                    .iter()
+                    .find(|node| !matches!(node, Node::Comment(_)))
+                {
+                    return Err(syn::Error::new_spanned(
+                        child,
+                        "use a separate element for the visible Switch label",
+                    ));
+                }
+                if surface.is_empty() {
+                    Ok(parent)
+                } else {
+                    Ok(quote!(#parent.surface() #surface))
+                }
+            }
             "Button" => {
                 let parent = self.children(parent, &element.children)?;
                 match button_action {
-                    Some(action) => Ok(quote!(#parent #action #button_surface)),
-                    None if !button_surface.is_empty() => {
-                        Ok(quote!(#parent.surface() #button_surface))
-                    }
+                    Some(action) => Ok(quote!(#parent #action #surface)),
+                    None if !surface.is_empty() => Ok(quote!(#parent.surface() #surface)),
                     None => Ok(parent),
                 }
             }

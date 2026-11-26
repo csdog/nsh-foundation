@@ -3456,12 +3456,15 @@ fn switch_page() -> View {
     )
     .child(demo!(demo, "demo", "Switch demo"))
     .child(heading("Usage"))
-    .child(code_block(r#"Switch::new("Airplane Mode").default_checked(false)
-
-let shared = signal(false);
-Switch::new("Share across devices")
-    .checked(shared)
-    .on_change(move |checked| shared.set(checked))"#))
+    .child(muted("Use switch().accessibility_label(...) to name the setting. For Rust-owned state, use default_checked. When you bind checked, update it from on_change in Rust or onChange in Native Shell TSX."))
+    .child(example_with_rsx(
+        "Switch composition",
+        composition::switch_rsx::example(),
+        include_str!("examples/composition/switch_rust.rs"),
+        TsxExample::native(include_str!("examples/composition/switch.tsx")),
+        Some(include_str!("examples/composition/switch_rsx.rs")),
+    ))
+    .child(muted("To use the TSX example, call components::switch::tsx::register in your nsh-foundation/native module."))
     .child(heading("Description"))
     .child(demo!(description, "description", "Description"))
     .child(heading("Choice Card"))
