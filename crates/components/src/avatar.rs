@@ -54,6 +54,11 @@ impl Avatar {
         self
     }
 
+    /// Sets the picture source.
+    pub fn src(self, src: impl Into<ImageSrc>) -> Self {
+        self.image(AvatarImage::new(src))
+    }
+
     pub fn image(mut self, image: AvatarImage) -> Self {
         self.image = Some(image);
         self
@@ -83,7 +88,7 @@ impl Avatar {
 impl IntoElement for Avatar {
     fn into_element(self) -> AnyElement {
         let size = self.size;
-        let label = match self.badge.as_ref().and_then(|badge| badge.status) {
+        let label = match self.badge.as_ref().and_then(|badge| badge.status.as_ref()) {
             Some(status) => SharedString::from(format!("{}, {status}", self.name)),
             None => self.name.clone(),
         };
@@ -137,17 +142,20 @@ impl AvatarFallback {
 
 #[derive(Default)]
 pub struct AvatarBadge {
-    status: Option<&'static str>,
+    status: Option<SharedString>,
     icon: Option<AnyElement>,
     color: Option<AdaptiveColor>,
 }
 
 impl AvatarBadge {
-    pub fn new(status: &'static str) -> Self {
-        Self {
-            status: Some(status),
-            ..Self::default()
-        }
+    pub fn new(status: impl Into<SharedString>) -> Self {
+        Self::default().status(status)
+    }
+
+    /// Adds the badge status to the avatar's accessible name.
+    pub fn status(mut self, status: impl Into<SharedString>) -> Self {
+        self.status = Some(status.into());
+        self
     }
 
     pub fn icon(mut self, icon: impl IntoElement) -> Self {
@@ -215,14 +223,17 @@ impl AvatarGroup {
     }
 }
 
+fn group_row() -> View {
+    view()
+        .role(AccessibilityRole::Group)
+        .label("Avatars")
+        .flex_row()
+        .items_center()
+}
+
 impl IntoElement for AvatarGroup {
     fn into_element(self) -> AnyElement {
-        let mut row = view()
-            .role(AccessibilityRole::Group)
-            .label("Avatars")
-            .direction(self.direction)
-            .flex_row()
-            .items_center();
+        let mut row = group_row().direction(self.direction);
         let size = self
             .items
             .iter()
@@ -249,14 +260,14 @@ impl IntoElement for AvatarGroup {
 }
 
 pub struct AvatarGroupCount {
-    label: &'static str,
+    label: SharedString,
     visual: AnyElement,
 }
 
 impl AvatarGroupCount {
-    pub fn new(label: &'static str, visual: impl IntoElement) -> Self {
+    pub fn new(label: impl Into<SharedString>, visual: impl IntoElement) -> Self {
         Self {
-            label,
+            label: label.into(),
             visual: visual.into_element(),
         }
     }

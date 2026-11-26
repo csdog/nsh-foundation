@@ -152,6 +152,8 @@ impl Emitter {
             "Calendar" => quote!(#library::calendar::Calendar::new()),
             "Separator" => quote!(#library::separator::Separator::new()),
             "Spinner" => quote!(#library::spinner::Spinner::new()),
+            "AvatarGroup" => quote!(#library::avatar::AvatarGroup::new()),
+            "AvatarBadge" => quote!(#library::avatar::AvatarBadge::default()),
             "Avatar" => quote!(#library::avatar::Avatar::new("")),
             "AvatarFallback" => {
                 let initials = text_content(&element.children, name)?;
@@ -216,10 +218,10 @@ impl Emitter {
         }
         match tag {
             "CardTitle" | "CardDescription" | "CardAction" | "CardContent" | "CardFooter"
-            | "CarouselItem" | "AvatarFallback" | "AlertTitle" | "AlertDescription" => Ok(parent),
-            "Alert" | "Avatar" | "Card" | "CardHeader" | "Carousel" | "CarouselContent" => {
-                self.slots(parent, tag, &element.children)
-            }
+            | "CarouselItem" | "AvatarBadge" | "AvatarFallback" | "AlertTitle"
+            | "AlertDescription" => Ok(parent),
+            "Alert" | "Avatar" | "AvatarGroup" | "Card" | "CardHeader" | "Carousel"
+            | "CarouselContent" => self.slots(parent, tag, &element.children),
             "Switch" => {
                 if let Some(child) = element
                     .children
@@ -261,6 +263,8 @@ impl Emitter {
             let method = match (tag, child_name.as_str()) {
                 ("Alert", "AlertTitle") => "title",
                 ("Alert", "AlertDescription") => "description",
+                ("AvatarGroup", "Avatar") => "child",
+                ("Avatar", "AvatarBadge") => "badge",
                 ("Avatar", "AvatarFallback") => "fallback",
                 ("Card", "CardHeader") => "header",
                 ("Card", "CardContent") | ("Carousel", "CarouselContent") => "content",

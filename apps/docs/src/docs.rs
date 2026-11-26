@@ -988,20 +988,17 @@ fn attachment_page() -> View {
 
 fn avatar_page() -> View {
     macro_rules! demo {
-        ($module:ident, $name:literal, $title:literal) => {
-            example(
+        ($rust:ident, $rsx:ident, $title:literal) => {
+            example_with_rsx(
                 $title,
-                avatar_examples::$module::preview(),
-                include_str!(concat!(
-                    "examples/avatar_examples/",
-                    stringify!($module),
-                    ".rs"
-                )),
-                include_str!(concat!(
-                    "../../../references/avatar-tsx/avatar-",
-                    $name,
+                avatar_examples::$rust::example(),
+                avatar_examples::$rust::CODE,
+                Some(TsxExample::native(include_str!(concat!(
+                    "examples/avatar_examples/tsx/",
+                    stringify!($rsx),
                     ".tsx"
-                )),
+                )))),
+                Some(avatar_examples::$rsx::CODE),
             )
         };
     }
@@ -1017,27 +1014,27 @@ fn avatar_page() -> View {
         Some(TsxExample::native(include_str!("examples/rsx/avatar.tsx"))),
         Some(avatar_rsx::CODE),
     ))
-    .child(demo!(demo, "demo", "Avatar group preview"))
+    .child(demo!(demo_rust, demo, "Avatar group preview"))
     .child(heading("Usage"))
     .child(muted("Compose AvatarImage and AvatarFallback inside Avatar. Set the accessible name on Avatar and add an optional AvatarBadge."))
     .child(heading("Basic"))
-    .child(demo!(basic, "basic", "Basic"))
+    .child(demo!(basic_rust, basic, "Basic"))
     .child(heading("Badge"))
-    .child(demo!(badge, "badge", "Badge"))
+    .child(demo!(badge_rust, badge, "Badge"))
     .child(heading("Badge with Icon"))
-    .child(demo!(badge_icon, "badge-icon", "Badge with Icon"))
+    .child(demo!(badge_icon_rust, badge_icon, "Badge with Icon"))
     .child(heading("Avatar Group"))
-    .child(demo!(group, "group", "Avatar Group"))
+    .child(demo!(group_rust, group, "Avatar Group"))
     .child(heading("Avatar Group Count"))
-    .child(demo!(group_count, "group-count", "Avatar Group Count"))
+    .child(demo!(group_count_rust, group_count, "Avatar Group Count"))
     .child(heading("Avatar Group with Icon"))
-    .child(demo!(group_count_icon, "group-count-icon", "Avatar Group with Icon"))
+    .child(demo!(group_count_icon_rust, group_count_icon, "Avatar Group with Icon"))
     .child(heading("Sizes"))
-    .child(demo!(size, "size", "Sizes"))
+    .child(demo!(size_rust, size, "Sizes"))
     .child(heading("Dropdown"))
-    .child(demo!(dropdown, "dropdown", "Dropdown"))
+    .child(demo!(dropdown_rust, dropdown, "Dropdown"))
     .child(heading("RTL"))
-    .child(demo!(rtl, "rtl", "RTL"))
+    .child(demo!(rtl_rust, rtl, "RTL"))
     .child(heading("API Reference"))
     .child(api_row("Avatar", "Use a name with an optional image, fallback, and status badge."))
     .child(api_row("AvatarGroup", "Overlap avatars and supply an accessible count or icon for additional members."))

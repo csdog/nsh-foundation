@@ -17,12 +17,15 @@ impl DemoSource {
 /// Declares a standalone example file with an `example()` entry point.
 macro_rules! documented_example {
     ($name:ident, $path:literal) => {
+        documented_example!($name, $path, example);
+    };
+    ($name:ident, $path:literal, $entry:ident) => {
         pub(crate) mod $name {
             mod source {
                 include!($path);
             }
 
-            pub(crate) use source::example;
+            pub(crate) use source::$entry as example;
 
             pub(crate) const CODE: $crate::demo_source::DemoSource =
                 $crate::demo_source::DemoSource {

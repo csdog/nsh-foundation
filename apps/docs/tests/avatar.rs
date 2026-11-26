@@ -95,3 +95,59 @@ fn avatar_demo_shows_and_copies_the_actual_rsx_component() {
         include_str!("../src/examples/rsx/avatar.tsx"),
     );
 }
+
+#[test]
+fn avatar_variants_offer_their_own_runnable_rsx_and_native_tsx() {
+    macro_rules! source {
+        ($file:literal, $label:literal) => {
+            (
+                $label,
+                include_str!(concat!(
+                    "../src/examples/avatar_examples/rsx/",
+                    $file,
+                    ".rs"
+                )),
+                include_str!(concat!(
+                    "../src/examples/avatar_examples/tsx/",
+                    $file,
+                    ".tsx"
+                )),
+            )
+        };
+    }
+
+    let mut config = EngineConfig::new(Root::of::<App>());
+    config.viewport = Size::new(px(390.0), px(844.0));
+    let mut app = Headless::start_at_page(config, "https://foundation.test/#avatar").unwrap();
+    app.first_render().unwrap();
+
+    for (label, rsx, tsx) in [
+        source!("demo", "Avatar group preview"),
+        source!("basic", "Basic"),
+        source!("badge", "Badge"),
+        source!("badge_icon", "Badge with Icon"),
+        source!("group", "Avatar Group"),
+        source!("group_count", "Avatar Group Count"),
+        source!("group_count_icon", "Avatar Group with Icon"),
+        source!("size", "Sizes"),
+        source!("dropdown", "Dropdown"),
+        source!("rtl", "RTL"),
+    ] {
+        let region = format!("role:region[{label}]");
+        for (tab, code) in [("RSX", rsx), ("TSX", tsx)] {
+            app.press(&format!("{region} >> {tab}")).unwrap();
+            app.press(&format!("{region} >> Copy")).unwrap();
+            assert_eq!(app.screen().clipboard().unwrap(), code, "{label} {tab}");
+            if tab == "RSX" {
+                app.press(&format!("{region} >> Run example")).unwrap();
+                if label == "Dropdown" {
+                    app.press(&format!("{region} >> role:button[Account menu]"))
+                        .unwrap();
+                    app.press("role:menuitem[Billing]").unwrap();
+                    app.wait_for("Selected in this preview: Billing").unwrap();
+                }
+                app.press(&format!("{region} >> Hide example")).unwrap();
+            }
+        }
+    }
+}
