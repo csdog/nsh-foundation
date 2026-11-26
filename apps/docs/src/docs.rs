@@ -4173,7 +4173,7 @@ fn drawer_page(sections: DrawerSections, non_modal: Drawer) -> View {
         .child(
             section("Usage", 1, locations)
                 .child(muted("Pass the Drawer state to DrawerRoot once. In Rust, compose the parts with .child(...). Pass the drawer_content body as a closure so it builds when the drawer opens."))
-                .child(code_block(DRAWER_RSX))
+                .child(code_block(DRAWER_RUST))
                 .child(muted("The TSX example imports Drawer parts from this app’s Native Shell module. The shadcn/ui tabs show the upstream React examples for reference."))
                 .child(view().items_start().child(button("shadcn/ui example license", Variant::Outline, move || {
                     show_tsx_license.update(|open| *open = !*open);
