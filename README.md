@@ -1,7 +1,7 @@
 # nsh-foundation
 
 A Native Shell component library written in Rust. Every component page
-includes Rust, Rust RSX, and Native Shell TSX examples. The **shadcn/ui**
+opens with a demo that includes Rust, Rust RSX, and Native Shell TSX examples. The **shadcn/ui**
 tab shows the upstream React reference where available.
 
 The [gallery example exports](apps/docs/src/native_examples.rs) let RSX and

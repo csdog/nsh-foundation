@@ -137,7 +137,7 @@ Keep each documented Rust builder example and its RSX counterpart in sync
 with the preview. The composition examples for
 [Button, Badge, Card, Carousel, and Switch](apps/docs/src/examples/composition) show
 how to do this. Label Native Shell TSX examples as **TSX** and upstream
-React examples as **shadcn/ui**. Every gallery component page must offer
+React examples as **shadcn/ui**. The first demo on every gallery component page must offer
 Rust, RSX, and Native Shell TSX code. Use the
 [gallery example exports](apps/docs/src/native_examples.rs) to share a
 runnable Rust demo with RSX and TSX when the native module exposes the demo

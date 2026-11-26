@@ -1156,17 +1156,18 @@ fn badge_page() -> View {
         "A compact label for a status, category, or link.",
         "https://ui.shadcn.com/docs/components/base/badge",
     )
-    .child(demo!(demo, "demo", "Badge demo"))
-    .child(heading("Usage"))
-    .child(muted("Use badge().child(...) to supply visible content. Set the variant or add an optional leading or trailing icon."))
-    .child(example_with_rsx(
+    .child(example_with_sources(
         "Badge composition",
         composition::badge_rsx::example(),
         include_str!("examples/composition/badge_rust.rs"),
         TsxExample::native(include_str!("examples/composition/badge.tsx")),
         Some(include_str!("examples/composition/badge_rsx.rs")),
+        Some(include_str!("../../../references/badge-tsx/badge-demo.tsx")),
     ))
+    .child(heading("Usage"))
+    .child(muted("Use badge().child(...) to supply visible content. Set the variant or add an optional leading or trailing icon."))
     .child(muted("To use this TSX example, call components::badge::tsx::register in your nsh-foundation/native module."))
+    .child(demo!(demo, "demo", "Badge demo"))
     .child(heading("Variants"))
     .child(demo!(variants, "variants", "Variants"))
     .child(heading("With Icon"))
@@ -1299,17 +1300,18 @@ fn button_page() -> View {
         "A control that runs an action or opens a destination.",
         "https://ui.shadcn.com/docs/components/base/button",
     )
-    .child(demo!(demo, "demo", "Button demo"))
-    .child(heading("Usage"))
-    .child(muted("Use button().child(...) for visible content. Set accessibility_label for icon-only buttons. Apply style_with before attaching an on_press callback or href."))
-    .child(example_with_rsx(
+    .child(example_with_sources(
         "Button composition",
         composition::button_rsx::example(),
         include_str!("examples/composition/button_rust.rs"),
         TsxExample::native(include_str!("examples/composition/button.tsx")),
         Some(include_str!("examples/composition/button_rsx.rs")),
+        Some(include_str!("../../../references/button-tsx/button-demo.tsx")),
     ))
+    .child(heading("Usage"))
+    .child(muted("Use button().child(...) for visible content. Set accessibility_label for icon-only buttons. Apply style_with before attaching an on_press callback or href."))
     .child(muted("To use this TSX example, call components::button::tsx::register in your nsh-foundation/native module."))
+    .child(demo!(demo, "demo", "Button demo"))
     .child(heading("Cursor"))
     .child(muted("Buttons use the default cursor. Call pointer_cursor to show a pointer on hover."))
     .child(heading("Size"))
@@ -1478,9 +1480,6 @@ fn card_page() -> View {
         "Group a title, description, content, and actions in a surface.",
         "https://ui.shadcn.com/docs/components/base/card",
     )
-    .child(demo!(login, preview, "demo", "Card demo"))
-    .child(heading("Composition"))
-    .child(muted("Use CardHeader for CardTitle, CardDescription, and CardAction. Put the main body in CardContent and the actions in CardFooter."))
     .child(example_with_sources(
         "Card composition",
         composition::card_rsx::example(),
@@ -1489,6 +1488,9 @@ fn card_page() -> View {
         Some(include_str!("examples/composition/card_rsx.rs")),
         Some(include_str!("../../../references/card-tsx/card-demo.tsx")),
     ))
+    .child(heading("Composition"))
+    .child(muted("Use CardHeader for CardTitle, CardDescription, and CardAction. Put the main body in CardContent and the actions in CardFooter."))
+    .child(demo!(login, preview, "demo", "Card demo"))
     .child(heading("Size"))
     .child(demo!(small, preview, "small", "Small"))
     .child(heading("Spacing"))
@@ -1525,9 +1527,6 @@ fn carousel_page() -> View {
         "Drag or swipe to change slides. You can also scroll along the carousel, use the arrow keys, or press the navigation buttons.",
         "https://ui.shadcn.com/docs/components/base/carousel",
     )
-    .child(demo!(demo, "demo", "Carousel demo"))
-    .child(heading("Composition"))
-    .child(muted("Use carousel_root().accessibility_label(...) to name the carousel. Add CarouselItem slides to CarouselContent, and place CarouselPrevious and CarouselNext around the viewport."))
     .child(example_with_sources(
         "Carousel composition",
         view().max_w(px(360.0)).w_full().child(composition::carousel_rsx::example()),
@@ -1536,6 +1535,9 @@ fn carousel_page() -> View {
         Some(include_str!("examples/composition/carousel_rsx.rs")),
         Some(include_str!("../../../references/carousel-tsx/carousel-demo.tsx")),
     ))
+    .child(heading("Composition"))
+    .child(muted("Use carousel_root().accessibility_label(...) to name the carousel. Add CarouselItem slides to CarouselContent, and place CarouselPrevious and CarouselNext around the viewport."))
+    .child(demo!(demo, "demo", "Carousel demo"))
     .child(heading("Sizes"))
     .child(demo!(sizes, "size", "Sizes"))
     .child(heading("Spacing"))
@@ -3456,17 +3458,18 @@ fn switch_page() -> View {
         "Turn a setting on or off.",
         "https://ui.shadcn.com/docs/components/base/switch",
     )
-    .child(demo!(demo, "demo", "Switch demo"))
-    .child(heading("Usage"))
-    .child(muted("Use switch().accessibility_label(...) to name the setting. For Rust-owned state, use default_checked. When you bind checked, update it from on_change in Rust or onChange in Native Shell TSX."))
-    .child(example_with_rsx(
+    .child(example_with_sources(
         "Switch composition",
         composition::switch_rsx::example(),
         include_str!("examples/composition/switch_rust.rs"),
         TsxExample::native(include_str!("examples/composition/switch.tsx")),
         Some(include_str!("examples/composition/switch_rsx.rs")),
+        Some(include_str!("../../../references/switch-tsx/switch-demo.tsx")),
     ))
+    .child(heading("Usage"))
+    .child(muted("Use switch().accessibility_label(...) to name the setting. For Rust-owned state, use default_checked. When you bind checked, update it from on_change in Rust or onChange in Native Shell TSX."))
     .child(muted("To use the TSX example, call components::switch::tsx::register in your nsh-foundation/native module."))
+    .child(demo!(demo, "demo", "Switch demo"))
     .child(heading("Description"))
     .child(demo!(description, "description", "Description"))
     .child(heading("Choice Card"))
@@ -4587,19 +4590,30 @@ mod language_coverage {
     use nsh_testing::Headless;
 
     #[test]
-    fn every_component_page_offers_rust_rsx_and_native_tsx() {
+    fn every_component_pages_first_example_offers_rust_rsx_and_native_tsx() {
         for route in std::iter::once("#drawer").chain(COMPONENTS.iter().map(|route| route.2)) {
-            let config = EngineConfig::new(Root::of::<crate::App>());
+            let mut config = EngineConfig::new(Root::of::<crate::App>());
+            config.viewport = Size::new(px(390.0), px(844.0));
             let mut app =
                 Headless::start_at_page(config, &format!("https://foundation.test/{route}"))
                     .unwrap();
             app.first_render().unwrap();
-            for tab in ["Rust", "RSX", "TSX"] {
-                assert!(
-                    app.screen().count(&format!("role:tab[{tab}]")).unwrap() > 0,
-                    "{route} is missing {tab}"
-                );
-            }
+            let tree = app.screen().accessibility(None).unwrap().unwrap();
+            let mut nodes = vec![&tree];
+            let tabs = loop {
+                let node = nodes
+                    .pop()
+                    .unwrap_or_else(|| panic!("{route} has no example tabs"));
+                if node.role == Some(AccessibilityRole::Tablist) {
+                    break node;
+                }
+                nodes.extend(node.children.iter().rev());
+            };
+            let first_tabs: Vec<_> = tabs.children.iter().map(|tab| tab.name.as_str()).collect();
+            assert!(
+                first_tabs.starts_with(&["Preview", "Rust", "RSX", "TSX"]),
+                "{route} first example tabs: {first_tabs:?}"
+            );
         }
     }
 }
