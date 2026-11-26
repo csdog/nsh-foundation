@@ -19,6 +19,7 @@ pub(super) mod code_block_examples;
 pub(super) mod collapsible_examples;
 pub(super) mod combobox_examples;
 pub(super) mod command_examples;
+pub(super) mod composition;
 pub(super) mod context_menu_examples;
 pub(super) mod data_table_examples;
 pub(super) mod date_picker_examples;

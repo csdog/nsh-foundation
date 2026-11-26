@@ -1,6 +1,6 @@
 # nsh-foundation
 
-A Native Shell component library written in Rust. Its responsive Web gallery includes component previews with Rust and TSX tabs. Follow the [component plan](PLAN.md) and [release progress](PROGRESS.md).
+A Native Shell component library written in Rust. Its responsive Web gallery includes component previews, Rust sources, and shadcn/ui references. Drawer, Button, Badge, Card, and Carousel also have Rust RSX examples. Drawer, Button, and Badge have Native Shell TSX examples. Follow the [component plan](PLAN.md) and [release progress](PROGRESS.md).
 
 ## Workspace
 
@@ -61,8 +61,8 @@ pub fn example() -> impl IntoElement {
 }
 ```
 
-Inline style objects accept numeric `padding`, `gap`, `fontSize`, `width`,
-`height`, and `borderRadius` values. Use `style={body_style}` to apply a Rust
+Inline style objects accept numeric `padding`, `paddingHorizontal`,
+`paddingVertical`, `gap`, `fontSize`, `width`, `height`, and `borderRadius` values. Use `style={body_style}` to apply a Rust
 `StyleRefinement` function for other styles.
 
 In plain Rust, use `drawer_trigger().child(text("Open Drawer"))` inside

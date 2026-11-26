@@ -47,7 +47,7 @@ fn expand(input: TokenStream) -> Result<Tokens> {
     }
     let emitter = Emitter {
         core: core.clone(),
-        drawer: quote!(::#library_ident::drawer),
+        library: quote!(::#library_ident),
     };
     let tree = match nodes.as_slice() {
         [node] => emitter.node(node)?.unwrap_or_else(|| quote!(#core::view())),
@@ -62,7 +62,7 @@ fn expand(input: TokenStream) -> Result<Tokens> {
 
 struct Emitter {
     core: Tokens,
-    drawer: Tokens,
+    library: Tokens,
 }
 
 impl Emitter {
@@ -120,7 +120,8 @@ impl Emitter {
         let name_string = name.to_string();
         let tag = name_string.as_str();
         let core = &self.core;
-        let drawer = &self.drawer;
+        let library = &self.library;
+        let drawer = quote!(#library::drawer);
         if tag == "DrawerRoot" {
             let mut state = quote!(#drawer::Drawer::new(#core::signal(false)));
             for attr in element.attributes() {
@@ -140,10 +141,31 @@ impl Emitter {
         let mut parent = match tag {
             "View" => quote!(#core::view()),
             "Text" => quote!(#core::text("")),
+            "Button" => quote!(#library::button::button()),
+            "Badge" => quote!(#library::badge::badge()),
+            "Card" | "CardHeader" => quote!(#library::card::#name::new()),
+            "CardTitle" | "CardDescription" => {
+                let label = text_content(&element.children, name)?;
+                quote!(#library::card::#name::new(#label))
+            }
+            "CardAction" | "CardContent" | "CardFooter" => {
+                let body = self.view(&element.children)?;
+                quote!(#library::card::#name::new(#body))
+            }
+            "Carousel" => quote!(#library::carousel::carousel_root()),
+            "CarouselContent" | "CarouselPrevious" | "CarouselNext" => {
+                quote!(#library::carousel::#name::new())
+            }
+            "CarouselItem" => {
+                let body = self.view(&element.children)?;
+                quote!(#library::carousel::CarouselItem::new(#body))
+            }
             "DrawerTrigger" | "DrawerContent" | "DrawerClose" | "DrawerHeader" | "DrawerFooter"
             | "DrawerTitle" | "DrawerDescription" => quote!(#drawer::#builder()),
             _ => quote!(#builder()),
         };
+        let mut button_surface = Tokens::new();
+        let mut button_action = None;
         for attr in element.attributes() {
             let (key, value) = attribute(attr)?;
             let method = match key.to_string().as_str() {
@@ -154,13 +176,91 @@ impl Emitter {
                 key => key.to_snake_case(),
             };
             let method = format_ident!("{method}", span = key.span());
-            parent.extend(quote!(.#method(#value)));
+            match (tag, method.to_string().as_str()) {
+                ("Button", "on_press" | "href") => {
+                    if button_action.replace(quote!(.#method(#value))).is_some() {
+                        return Err(syn::Error::new_spanned(
+                            key,
+                            "expected only one Button action",
+                        ));
+                    }
+                }
+                ("Button", "app_class" | "test_id") => {
+                    button_surface.extend(quote!(.#method(#value)));
+                }
+                _ => parent.extend(quote!(.#method(#value))),
+            }
         }
         if tag == "DrawerContent" {
             let body = self.view(&element.children)?;
             return Ok(quote!(#parent.child(move || #body)));
         }
-        self.children(parent, &element.children)
+        match tag {
+            "CardTitle" | "CardDescription" | "CardAction" | "CardContent" | "CardFooter"
+            | "CarouselItem" => Ok(parent),
+            "Card" | "CardHeader" | "Carousel" | "CarouselContent" => {
+                self.slots(parent, tag, &element.children)
+            }
+            "Button" => {
+                let parent = self.children(parent, &element.children)?;
+                match button_action {
+                    Some(action) => Ok(quote!(#parent #action #button_surface)),
+                    None if !button_surface.is_empty() => {
+                        Ok(quote!(#parent.surface() #button_surface))
+                    }
+                    None => Ok(parent),
+                }
+            }
+            _ => self.children(parent, &element.children),
+        }
+    }
+
+    fn slots(&self, mut parent: Tokens, tag: &str, children: &[Node]) -> Result<Tokens> {
+        for child in children {
+            if matches!(child, Node::Comment(_)) {
+                continue;
+            }
+            let child_name = match child {
+                Node::Element(element) => element.name().to_token_stream().to_string(),
+                _ => String::new(),
+            };
+            let method = match (tag, child_name.as_str()) {
+                ("Card", "CardHeader") => "header",
+                ("Card", "CardContent") | ("Carousel", "CarouselContent") => "content",
+                ("Card", "CardFooter") => "footer",
+                ("CardHeader", "CardTitle") => "title",
+                ("CardHeader", "CardDescription") => "description",
+                ("CardHeader", "CardAction") => "action",
+                ("Carousel", "CarouselPrevious") => "previous",
+                ("Carousel", "CarouselNext") => "next",
+                ("CarouselContent", "CarouselItem" | "") => "item",
+                _ => {
+                    return Err(syn::Error::new_spanned(
+                        child,
+                        format!("unsupported child of {tag}"),
+                    ));
+                }
+            };
+            let method = format_ident!("{method}");
+            let child = self.node(child)?;
+            parent.extend(quote!(.#method(#child)));
+        }
+        Ok(parent)
+    }
+}
+
+fn text_content(children: &[Node], name: &Ident) -> Result<Tokens> {
+    match children {
+        [Node::Text(text)] => Ok(text.value.to_token_stream()),
+        [Node::RawText(text)] => {
+            let text = text.to_string_best();
+            Ok(quote!(#text))
+        }
+        [Node::Block(block)] => Ok(block.to_token_stream()),
+        _ => Err(syn::Error::new_spanned(
+            name,
+            "expected text or a Rust text expression",
+        )),
     }
 }
 
@@ -229,6 +329,8 @@ fn style_object(input: ParseStream, library: &str) -> Result<Option<Tokens>> {
     for StyleField { key, value } in fields {
         let method = match key.to_string().as_str() {
             "padding" => "p",
+            "paddingHorizontal" => "px",
+            "paddingVertical" => "py",
             "gap" => "gap",
             "fontSize" => "text_size",
             "width" => "w",

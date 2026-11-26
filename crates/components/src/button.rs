@@ -1,9 +1,11 @@
 //! Rhea button surfaces with text, icons, and native input semantics.
 
 use nsh_base::theme;
-use nsh_core::prelude::*;
+use nsh_core::{element::StyleRefinement, prelude::*};
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub mod tsx;
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PropEnum)]
 pub enum ButtonVariant {
     #[default]
     Default,
@@ -14,7 +16,7 @@ pub enum ButtonVariant {
     Link,
 }
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PropEnum)]
 pub enum ButtonSize {
     ExtraSmall,
     Small,
@@ -42,8 +44,13 @@ impl ButtonSize {
     }
 }
 
+type ButtonStyle = Box<dyn Fn(StyleRefinement) -> StyleRefinement>;
+
 pub struct Button {
-    label: Reactive<SharedString>,
+    label: Option<Reactive<SharedString>>,
+    accessibility_label: Option<Reactive<SharedString>>,
+    children: Vec<AnyElement>,
+    styles: Vec<ButtonStyle>,
     variant: ButtonVariant,
     size: ButtonSize,
     radius: f32,
@@ -56,8 +63,41 @@ pub struct Button {
 
 impl Button {
     pub fn new(label: impl IntoReactive<SharedString>) -> Self {
+        let label = label.into_reactive();
         Self {
-            label: label.into_reactive(),
+            label: Some(label.clone()),
+            accessibility_label: Some(label),
+            ..button()
+        }
+    }
+
+    /// Sets the spoken name when the button's children do not provide one.
+    pub fn accessibility_label(mut self, label: impl IntoReactive<SharedString>) -> Self {
+        self.accessibility_label = Some(label.into_reactive());
+        self
+    }
+
+    /// Adds visible button content.
+    pub fn child(mut self, child: impl IntoElement) -> Self {
+        self.children.push(child.into_element());
+        self
+    }
+
+    /// Refines the styled button surface.
+    pub fn style_with(
+        mut self,
+        style: impl Fn(StyleRefinement) -> StyleRefinement + 'static,
+    ) -> Self {
+        self.styles.push(Box::new(style));
+        self
+    }
+
+    fn empty() -> Self {
+        Self {
+            label: None,
+            accessibility_label: None,
+            children: Vec::new(),
+            styles: Vec::new(),
             variant: ButtonVariant::Default,
             size: ButtonSize::Default,
             radius: 16.0,
@@ -136,7 +176,6 @@ impl Button {
         let mut surface = view()
             .role(AccessibilityRole::Button)
             .focusable(true)
-            .label(self.label.clone())
             .flex_row()
             .items_center()
             .justify_center()
@@ -181,6 +220,9 @@ impl Button {
             })
             .focus_visible(|style| style.ring(px(3.0)).ring_color(theme().ring.opacity(0.3)))
             .child(when(loading.clone(), move || spinner(variant)));
+        if let Some(label) = self.accessibility_label {
+            surface = surface.label(label);
+        }
         if let Some(icon) = self.start {
             let loading = loading.clone();
             surface = surface.child(
@@ -190,20 +232,29 @@ impl Button {
                     .child(icon),
             );
         }
-        if !icon_only {
+        if !icon_only && let Some(label) = self.label {
             surface = surface.child(
-                text(self.label)
+                text(label)
                     .truncate()
                     .font_weight(FontWeight::MEDIUM)
                     .when(small_text, |label| label.text_xs())
                     .when(!small_text, |label| label.text_sm()),
             );
         }
+        surface = surface.children(self.children);
         if let Some(icon) = self.end {
             surface = surface.child(view().accessibility_elements_hidden(true).child(icon));
         }
+        for style in self.styles {
+            surface = surface.style_with(style);
+        }
         surface
     }
+}
+
+/// Builds a styled button whose visible content comes from its children.
+pub fn button() -> Button {
+    Button::empty()
 }
 
 impl IntoElement for Button {

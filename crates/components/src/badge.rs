@@ -3,7 +3,9 @@
 use nsh_base::theme;
 use nsh_core::prelude::*;
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub mod tsx;
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PropEnum)]
 pub enum BadgeVariant {
     #[default]
     Default,
@@ -15,7 +17,8 @@ pub enum BadgeVariant {
 }
 
 pub struct Badge {
-    label: Reactive<SharedString>,
+    label: Option<Reactive<SharedString>>,
+    children: Vec<AnyElement>,
     variant: BadgeVariant,
     colors: Option<(AdaptiveColor, AdaptiveColor)>,
     start: Option<AnyElement>,
@@ -26,7 +29,21 @@ pub struct Badge {
 impl Badge {
     pub fn new(label: impl IntoReactive<SharedString>) -> Self {
         Self {
-            label: label.into_reactive(),
+            label: Some(label.into_reactive()),
+            ..badge()
+        }
+    }
+
+    /// Adds visible badge content.
+    pub fn child(mut self, child: impl IntoElement) -> Self {
+        self.children.push(child.into_element());
+        self
+    }
+
+    fn empty() -> Self {
+        Self {
+            label: None,
+            children: Vec::new(),
             variant: BadgeVariant::Default,
             colors: None,
             start: None,
@@ -109,7 +126,6 @@ impl IntoElement for Badge {
         if let Some(href) = self.href {
             pill = pill
                 .role(AccessibilityRole::Link)
-                .label(label.clone())
                 .cursor_pointer()
                 .focus_visible(|s| s.ring(px(2.0)).ring_color(theme().ring))
                 .hover(move |s| match variant {
@@ -121,11 +137,17 @@ impl IntoElement for Badge {
                 .on_press(move || {
                     let _ = open_url(href);
                 });
+            if let Some(label) = &label {
+                pill = pill.label(label.clone());
+            }
         }
         if let Some(icon) = self.start {
             pill = pill.pl(px(6.0)).child(icon_frame(icon));
         }
-        pill = pill.child(text(label).text_xs().font_weight(FontWeight::MEDIUM));
+        if let Some(label) = label {
+            pill = pill.child(text(label).text_xs().font_weight(FontWeight::MEDIUM));
+        }
+        pill = pill.children(self.children);
         if let Some(icon) = self.end {
             pill = pill.pr(px(6.0)).child(icon_frame(icon));
         }
@@ -142,4 +164,9 @@ fn icon_frame(icon: AnyElement) -> View {
         .justify_center()
         .accessibility_elements_hidden(true)
         .child(icon)
+}
+
+/// Builds a badge with content supplied by its children.
+pub fn badge() -> Badge {
+    Badge::empty()
 }

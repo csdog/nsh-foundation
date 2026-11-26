@@ -29,8 +29,18 @@ pub struct Carousel {
 
 impl Carousel {
     pub fn new(label: &'static str) -> Self {
+        carousel_root().accessibility_label(label)
+    }
+
+    /// Names the carousel for assistive technology.
+    pub fn accessibility_label(mut self, label: &'static str) -> Self {
+        self.label = label;
+        self
+    }
+
+    fn empty() -> Self {
         Self {
-            label,
+            label: "Carousel",
             content: CarouselContent::new(),
             index: None,
             on_change: None,
@@ -267,6 +277,11 @@ fn last_snap_index(bases: &[Reactive<f32>], looping: bool) -> u32 {
         start += fraction(basis);
     }
     bases.len().saturating_sub(1) as u32
+}
+
+/// Builds a carousel with the default accessible name.
+pub fn carousel_root() -> Carousel {
+    Carousel::empty()
 }
 
 impl IntoElement for Carousel {

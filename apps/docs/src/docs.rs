@@ -11,7 +11,7 @@ use crate::examples::{
     attachment_examples, avatar_examples, badge_examples, breadcrumb_examples, bubble_examples,
     button_examples, button_group_examples, calendar_examples, card_examples, carousel_examples,
     chart_examples, chart_trends, checkbox_examples, code_block_examples, collapsible_examples,
-    combobox_examples, command_examples, context_menu_examples, data_table_examples,
+    combobox_examples, command_examples, composition, context_menu_examples, data_table_examples,
     date_picker_examples, dialog_examples, drawer, dropdown_menu_examples, empty_examples,
     field_examples, hover_card_examples, input_examples, input_group_examples, input_otp_examples,
     item_examples, kbd_examples, label_examples, marker_examples, menubar_examples,
@@ -1158,7 +1158,15 @@ fn badge_page() -> View {
     )
     .child(demo!(demo, "demo", "Badge demo"))
     .child(heading("Usage"))
-    .child(muted("Create a badge with a label. Set its variant or add an optional leading or trailing icon."))
+    .child(muted("Use badge().child(...) to supply visible content. Set the variant or add an optional leading or trailing icon."))
+    .child(example_with_rsx(
+        "Badge composition",
+        composition::badge_rsx::example(),
+        include_str!("examples/composition/badge_rust.rs"),
+        TsxExample::native(include_str!("examples/composition/badge.tsx")),
+        Some(include_str!("examples/composition/badge_rsx.rs")),
+    ))
+    .child(muted("To use this TSX example, call components::badge::tsx::register in your nsh-foundation/native module."))
     .child(heading("Variants"))
     .child(demo!(variants, "variants", "Variants"))
     .child(heading("With Icon"))
@@ -1293,7 +1301,15 @@ fn button_page() -> View {
     )
     .child(demo!(demo, "demo", "Button demo"))
     .child(heading("Usage"))
-    .child(muted("Use Button::new with a label, then attach a callback with on_press or a destination with href."))
+    .child(muted("Use button().child(...) for visible content. Set accessibility_label for icon-only buttons. Apply style_with before attaching an on_press callback or href."))
+    .child(example_with_rsx(
+        "Button composition",
+        composition::button_rsx::example(),
+        include_str!("examples/composition/button_rust.rs"),
+        TsxExample::native(include_str!("examples/composition/button.tsx")),
+        Some(include_str!("examples/composition/button_rsx.rs")),
+    ))
+    .child(muted("To use this TSX example, call components::button::tsx::register in your nsh-foundation/native module."))
     .child(heading("Cursor"))
     .child(muted("Buttons use the default cursor. Call pointer_cursor to show a pointer on hover."))
     .child(heading("Size"))
@@ -1465,6 +1481,13 @@ fn card_page() -> View {
     .child(demo!(login, preview, "demo", "Card demo"))
     .child(heading("Composition"))
     .child(muted("Use CardHeader for CardTitle, CardDescription, and CardAction. Put the main body in CardContent and the actions in CardFooter."))
+    .child(example_with_rsx(
+        "Card composition",
+        composition::card_rsx::example(),
+        include_str!("examples/composition/card_rust.rs"),
+        TsxExample::shadcn(include_str!("../../../references/card-tsx/card-demo.tsx")),
+        Some(include_str!("examples/composition/card_rsx.rs")),
+    ))
     .child(heading("Size"))
     .child(demo!(small, preview, "small", "Small"))
     .child(heading("Spacing"))
@@ -1503,7 +1526,14 @@ fn carousel_page() -> View {
     )
     .child(demo!(demo, "demo", "Carousel demo"))
     .child(heading("Composition"))
-    .child(muted("Add CarouselItem slides to CarouselContent. Place CarouselPrevious and CarouselNext around the viewport."))
+    .child(muted("Use carousel_root().accessibility_label(...) to name the carousel. Add CarouselItem slides to CarouselContent, and place CarouselPrevious and CarouselNext around the viewport."))
+    .child(example_with_rsx(
+        "Carousel composition",
+        view().max_w(px(360.0)).w_full().child(composition::carousel_rsx::example()),
+        include_str!("examples/composition/carousel_rust.rs"),
+        TsxExample::shadcn(include_str!("../../../references/carousel-tsx/carousel-demo.tsx")),
+        Some(include_str!("examples/composition/carousel_rsx.rs")),
+    ))
     .child(heading("Sizes"))
     .child(demo!(sizes, "size", "Sizes"))
     .child(heading("Spacing"))
@@ -4384,7 +4414,7 @@ fn example(
     rust: &'static str,
     tsx: &'static str,
 ) -> View {
-    example_with_rsx(label, contents, rust, TsxExample::shadcn(tsx, "TSX"), None)
+    example_with_rsx(label, contents, rust, TsxExample::shadcn(tsx), None)
 }
 
 fn drawer_reference(
@@ -4393,13 +4423,7 @@ fn drawer_reference(
     rust: &'static str,
     tsx: &'static str,
 ) -> View {
-    example_with_rsx(
-        label,
-        contents,
-        rust,
-        TsxExample::shadcn(tsx, "shadcn/ui"),
-        None,
-    )
+    example_with_rsx(label, contents, rust, TsxExample::shadcn(tsx), None)
 }
 
 struct TsxExample {
@@ -4409,11 +4433,19 @@ struct TsxExample {
 }
 
 impl TsxExample {
-    fn shadcn(source: &'static str, label: &'static str) -> Self {
+    fn shadcn(source: &'static str) -> Self {
         Self {
             source,
-            label,
+            label: "shadcn/ui",
             byline: "shadcn/ui · React + Base UI",
+        }
+    }
+
+    fn native(source: &'static str) -> Self {
+        Self {
+            source,
+            label: "TSX",
+            byline: "Native Shell",
         }
     }
 }
