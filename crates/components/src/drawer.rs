@@ -1025,6 +1025,11 @@ impl Default for DrawerHeader {
 
 impl ParentElement for DrawerHeader {}
 
+/// Builds a header for the drawer's title and description.
+pub fn drawer_header() -> DrawerHeader {
+    DrawerHeader::new()
+}
+
 impl DrawerTitle {
     pub fn new(title: impl IntoReactive<SharedString>) -> Self {
         Self(heading(title))
@@ -1085,6 +1090,11 @@ impl Default for DrawerFooter {
 }
 
 impl ParentElement for DrawerFooter {}
+
+/// Builds a footer for actions at the end of the drawer.
+pub fn drawer_footer() -> DrawerFooter {
+    DrawerFooter::new()
+}
 
 #[deprecated(note = "Use DrawerTrigger::new")]
 pub fn trigger(drawer: Drawer, label: &'static str) -> View {

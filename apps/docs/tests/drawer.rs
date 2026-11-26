@@ -206,6 +206,8 @@ fn code_tabs_copy_the_selected_language_and_can_return_to_preview() {
     assert!(source.contains("drawer_trigger().child(text(\"Open Drawer\"))"));
     assert!(source.contains("drawer_content()"));
     assert!(source.contains(".accessibility_label(\"Move Goal\")"));
+    assert!(source.contains(".child(drawer_header()"));
+    assert!(source.contains(".child(drawer_footer()"));
     assert!(source.contains("drawer_title().child(text(\"Move Goal\"))"));
     assert!(source.contains("drawer_description().child(text("));
     assert!(source.contains("drawer_close().child(text(\"Done\"))"));

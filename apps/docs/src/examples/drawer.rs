@@ -6,7 +6,8 @@ use components::{
     drawer::{
         Direction, Drawer, DrawerClose, DrawerContent, DrawerDescriptionProps, DrawerFooter,
         DrawerHeader, DrawerOptions, DrawerRoot, DrawerTitleProps, DrawerTrigger, Modality,
-        SnapPoint, drawer_close, drawer_content, drawer_description, drawer_title, drawer_trigger,
+        SnapPoint, drawer_close, drawer_content, drawer_description, drawer_footer, drawer_header,
+        drawer_title, drawer_trigger,
     },
     rsx,
     ui::{Variant, button, button_surface, muted},
@@ -49,7 +50,7 @@ pub(crate) fn delivery(status: Signal<Option<SharedString>>) -> impl IntoElement
                 div()
                     .style_with(StyleRefinement::flex_1)
                     .child(
-                        DrawerHeader::new()
+                        drawer_header()
                             .child(drawer_title().child(text("Pick a delivery time")))
                             .child(
                                 drawer_description()
@@ -58,7 +59,7 @@ pub(crate) fn delivery(status: Signal<Option<SharedString>>) -> impl IntoElement
                     )
                     .child(delivery_choices(selection))
                     .child(
-                        DrawerFooter::new()
+                        drawer_footer()
                             .child(button(
                                 "Confirm Delivery Time",
                                 Variant::Primary,
@@ -268,7 +269,7 @@ fn nested_level(drawer: Drawer, level: usize) -> View {
     ];
     view().child(
         DrawerContent::new(drawer, titles[level], move || {
-            let mut actions = DrawerFooter::new();
+            let mut actions = drawer_footer();
             if level + 1 < titles.len() {
                 let next = Drawer::nested(drawer);
                 let labels = [
@@ -335,7 +336,7 @@ pub(crate) fn custom_size() -> (impl IntoElement, impl IntoElement) {
                     .test_id("drawer-notifications")
                     .child(items),
             )
-            .child(DrawerFooter::new().child(DrawerClose::new(drawer, "Done")))
+            .child(drawer_footer().child(DrawerClose::new(drawer, "Done")))
     })
     .options(|| DrawerOptions {
         height: Some(360.0),
@@ -395,7 +396,7 @@ pub(crate) fn snap() -> (impl IntoElement, impl IntoElement) {
                 "Drag the drawer to snap between a compact peek and a near full-height view.",
             ))
             .child(placeholder(200.0))
-            .child(DrawerFooter::new().child(DrawerClose::new(drawer, "Close")))
+            .child(drawer_footer().child(DrawerClose::new(drawer, "Close")))
     })
     .options(|| DrawerOptions {
         show_swipe_handle: true,
@@ -488,7 +489,7 @@ fn demo_panel(
 }
 
 fn example_header(title: &'static str, description: &'static str) -> DrawerHeader {
-    let header = DrawerHeader::new().child(DrawerTitleProps { text: title });
+    let header = drawer_header().child(DrawerTitleProps { text: title });
     if description.is_empty() {
         header
     } else {

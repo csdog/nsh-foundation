@@ -95,8 +95,8 @@ fn example() -> impl IntoElement {
 const DRAWER_RUST: &str = r#"use components::{
     div,
     drawer::{
-        Drawer, DrawerFooter, DrawerHeader, DrawerRoot, drawer_close,
-        drawer_content, drawer_description, drawer_title, drawer_trigger,
+        Drawer, DrawerRoot, drawer_close, drawer_content, drawer_description,
+        drawer_footer, drawer_header, drawer_title, drawer_trigger,
     },
 };
 use nsh_core::{element::StyleRefinement, prelude::*};
@@ -115,10 +115,10 @@ fn example() -> impl IntoElement {
                     .accessibility_label("Move Goal")
                     .child(|| {
                         div().style_with(body_style)
-                            .child(DrawerHeader::new()
+                            .child(drawer_header()
                                 .child(drawer_title().child(text("Move Goal")))
                                 .child(drawer_description().child(text("Set your daily activity goal."))))
-                            .child(DrawerFooter::new()
+                            .child(drawer_footer()
                                 .child(drawer_close().child(text("Done"))))
                     }),
             )
@@ -127,10 +127,10 @@ fn example() -> impl IntoElement {
 
 const SIZED: &str = r#"drawer_content().accessibility_label("Notification history").child(|| {
     view().flex_1().min_h(px(0.0))
-        .child(DrawerHeader::new()
+        .child(drawer_header()
             .child(drawer_title().child(text("Notification history"))))
         .child(scroll().flex_1().min_h(px(0.0)).p_4().child(text("Order confirmed")))
-        .child(DrawerFooter::new().child(drawer_close().child(text("Done"))))
+        .child(drawer_footer().child(drawer_close().child(text("Done"))))
 })
 .options(|| DrawerOptions {
     height: Some(360.0),
@@ -163,7 +163,7 @@ const NESTED: &str = r#"drawer_content().accessibility_label("Parent").child(mov
         view()
             .child(drawer_trigger().child(text("Open Nested Drawer")))
             .child(drawer_content().accessibility_label("Nested Drawer").child(|| {
-                view().child(DrawerFooter::new().child(drawer_close().child(text("Close"))))
+                view().child(drawer_footer().child(drawer_close().child(text("Close"))))
             }))
     }))
 })"#;
@@ -4219,7 +4219,7 @@ fn drawer_page(sections: DrawerSections, non_modal: Drawer) -> View {
             .child(muted("Use Drawer::new with an open signal. Drawer::nested links a child to a parent that remains mounted."))
             .child(api_row("DrawerTrigger / DrawerClose", "Use drawer_trigger().child(...) and drawer_close().child(...) in Rust. Use render to attach drawer behavior to your own control."))
             .child(api_row("DrawerContent", "Use drawer_content().child(|| ...) to build the panel when it opens. Set placement, size, and behavior with options."))
-            .child(api_row("DrawerHeader / DrawerTitle / DrawerDescription / DrawerFooter", "Compose the visible content with ordinary Native Shell children and styles."))
+            .child(api_row("DrawerHeader / DrawerTitle / DrawerDescription / DrawerFooter", "Compose the heading with drawer_header().child(...) and group actions with drawer_footer().child(...)."))
             .child(api_row("DrawerPortal / DrawerOverlay / DrawerSwipeHandle", "Customize the window layer or backdrop, or style the generated drag handle."))
             .child(api_row("direction", "Edge of the viewport. Defaults to Down."))
             .child(api_row("modality", "Modal traps focus. NonModal leaves the page interactive."))
