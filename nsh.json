@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "build": 1,
   "rust": "apps/docs",
-  "root": "App",
+  "entry": "App.tsx",
   "icon": {
     "web": "apps/docs/assets/favicon.png"
   },

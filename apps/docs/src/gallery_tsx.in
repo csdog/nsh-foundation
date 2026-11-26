@@ -1,0 +1,10 @@
+macro_rules! gallery_tsx {
+    ($component:ident) => {
+        concat!(
+            "import { ", stringify!($component), " } from \"nsh-foundation/native\";\n\n",
+            "export function Example() {\n",
+            "  return <", stringify!($component), " />;\n",
+            "}\n",
+        )
+    };
+}

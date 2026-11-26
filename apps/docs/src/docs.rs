@@ -1,3 +1,4 @@
+use crate::tsx_examples::{self, TsxExample};
 use nsh_base::{PopoverEvent, popover, theme};
 use nsh_core::{
     RevealOptions, ScrollAlignment,
@@ -57,7 +58,6 @@ const SECTIONS: [&str; 13] = [
 
 const DRAWER_SOURCE: &str = include_str!("examples/drawer.rs");
 
-const TSX_DELIVERY: &str = include_str!("examples/drawer.tsx");
 const TSX_SIZED: &str = include_str!("../../../references/drawer-tsx/drawer-custom-size.tsx");
 const TSX_FLOATING: &str = include_str!("../../../references/drawer-tsx/drawer-floating.tsx");
 const TSX_POSITION: &str = include_str!("../../../references/drawer-tsx/drawer-sides.tsx");
@@ -988,16 +988,12 @@ fn attachment_page() -> View {
 
 fn avatar_page() -> View {
     macro_rules! demo {
-        ($rust:ident, $rsx:ident, $title:literal) => {
+        ($rust:ident, $rsx:ident, $tsx:ident, $title:literal) => {
             example_with_rsx(
                 $title,
                 avatar_examples::$rust::example(),
                 avatar_examples::$rust::CODE,
-                Some(TsxExample::native(include_str!(concat!(
-                    "examples/avatar_examples/tsx/",
-                    stringify!($rsx),
-                    ".tsx"
-                )))),
+                Some(tsx_examples::$tsx::EXAMPLE),
                 Some(avatar_examples::$rsx::CODE),
             )
         };
@@ -1011,30 +1007,30 @@ fn avatar_page() -> View {
         "Avatar demo",
         avatar_rsx::example(),
         avatar_rust::CODE,
-        Some(TsxExample::native(include_str!("examples/rsx/avatar.tsx"))),
+        Some(tsx_examples::avatar::EXAMPLE),
         Some(avatar_rsx::CODE),
     ))
-    .child(demo!(demo_rust, demo, "Avatar group preview"))
+    .child(demo!(demo_rust, demo, avatar_demo, "Avatar group preview"))
     .child(heading("Usage"))
     .child(muted("Compose AvatarImage and AvatarFallback inside Avatar. Set the accessible name on Avatar and add an optional AvatarBadge."))
     .child(heading("Basic"))
-    .child(demo!(basic_rust, basic, "Basic"))
+    .child(demo!(basic_rust, basic, avatar_basic, "Basic"))
     .child(heading("Badge"))
-    .child(demo!(badge_rust, badge, "Badge"))
+    .child(demo!(badge_rust, badge, avatar_badge, "Badge"))
     .child(heading("Badge with Icon"))
-    .child(demo!(badge_icon_rust, badge_icon, "Badge with Icon"))
+    .child(demo!(badge_icon_rust, badge_icon, avatar_badge_icon, "Badge with Icon"))
     .child(heading("Avatar Group"))
-    .child(demo!(group_rust, group, "Avatar Group"))
+    .child(demo!(group_rust, group, avatar_group, "Avatar Group"))
     .child(heading("Avatar Group Count"))
-    .child(demo!(group_count_rust, group_count, "Avatar Group Count"))
+    .child(demo!(group_count_rust, group_count, avatar_group_count, "Avatar Group Count"))
     .child(heading("Avatar Group with Icon"))
-    .child(demo!(group_count_icon_rust, group_count_icon, "Avatar Group with Icon"))
+    .child(demo!(group_count_icon_rust, group_count_icon, avatar_group_count_icon, "Avatar Group with Icon"))
     .child(heading("Sizes"))
-    .child(demo!(size_rust, size, "Sizes"))
+    .child(demo!(size_rust, size, avatar_size, "Sizes"))
     .child(heading("Dropdown"))
-    .child(demo!(dropdown_rust, dropdown, "Dropdown"))
+    .child(demo!(dropdown_rust, dropdown, avatar_dropdown, "Dropdown"))
     .child(heading("RTL"))
-    .child(demo!(rtl_rust, rtl, "RTL"))
+    .child(demo!(rtl_rust, rtl, avatar_rtl, "RTL"))
     .child(heading("API Reference"))
     .child(api_row("Avatar", "Use a name with an optional image, fallback, and status badge."))
     .child(api_row("AvatarGroup", "Overlap avatars and supply an accessible count or icon for additional members."))
@@ -1068,7 +1064,7 @@ fn badge_page() -> View {
         "Badge composition",
         composition::badge_rsx::example(),
         composition::badge_rust::CODE,
-        Some(TsxExample::native(include_str!("examples/composition/badge.tsx"))),
+        Some(tsx_examples::badge::EXAMPLE),
         Some(composition::badge_rsx::CODE),
     ))
     .child(heading("Usage"))
@@ -1211,7 +1207,7 @@ fn button_page() -> View {
         "Button composition",
         composition::button_rsx::example(),
         composition::button_rust::CODE,
-        Some(TsxExample::native(include_str!("examples/composition/button.tsx"))),
+        Some(tsx_examples::button::EXAMPLE),
         Some(composition::button_rsx::CODE),
     ))
     .child(heading("Usage"))
@@ -1390,7 +1386,7 @@ fn card_page() -> View {
         "Card composition",
         composition::card_rsx::example(),
         composition::card_rust::CODE,
-        Some(TsxExample::gallery(crate::native_examples::source("Card composition").unwrap().tsx)),
+        Some(crate::native_examples::source("Card composition").unwrap().tsx),
         Some(composition::card_rsx::CODE),
     ))
     .child(heading("Composition"))
@@ -1436,7 +1432,7 @@ fn carousel_page() -> View {
         "Carousel composition",
         view().max_w(px(360.0)).w_full().child(composition::carousel_rsx::example()),
         composition::carousel_rust::CODE,
-        Some(TsxExample::gallery(crate::native_examples::source("Carousel composition").unwrap().tsx)),
+        Some(crate::native_examples::source("Carousel composition").unwrap().tsx),
         Some(composition::carousel_rsx::CODE),
     ))
     .child(heading("Composition"))
@@ -3364,7 +3360,7 @@ fn switch_page() -> View {
         "Switch composition",
         composition::switch_rsx::example(),
         composition::switch_rust::CODE,
-        Some(TsxExample::native(include_str!("examples/composition/switch.tsx"))),
+        Some(tsx_examples::switch::EXAMPLE),
         Some(composition::switch_rsx::CODE),
     ))
     .child(heading("Usage"))
@@ -4063,7 +4059,7 @@ fn drawer_page(sections: DrawerSections, non_modal: Drawer) -> View {
                     .child(button("Base UI reference", Variant::Outline, || { let _ = open_url(REFERENCE); }))
                     .child(button("Source", Variant::Ghost, || { let _ = open_url(SOURCE); }))),
         )
-        .child(example_with_rsx("Delivery time", delivery, DemoSource::text(DRAWER_SOURCE), Some(TsxExample::native(TSX_DELIVERY)), Some(drawer_rsx::CODE)))
+        .child(example_with_rsx("Delivery time", delivery, DemoSource::text(DRAWER_SOURCE), Some(tsx_examples::drawer::EXAMPLE), Some(drawer_rsx::CODE)))
         .child(
             section("Installation", 0, locations)
                 .child(muted("Build the Native Shell Rust project for the Web target."))
@@ -4322,32 +4318,9 @@ fn example(
         label,
         contents,
         DemoSource::text(rust),
-        source
-            .as_ref()
-            .map(|source| TsxExample::gallery(source.tsx)),
+        source.as_ref().map(|source| source.tsx),
         source.map(|source| source.rsx),
     )
-}
-
-struct TsxExample {
-    source: &'static str,
-    byline: &'static str,
-}
-
-impl TsxExample {
-    fn gallery(source: &'static str) -> Self {
-        Self {
-            source,
-            byline: "Native Shell · renders the Rust gallery example",
-        }
-    }
-
-    fn native(source: &'static str) -> Self {
-        Self {
-            source,
-            byline: "Native Shell",
-        }
-    }
 }
 
 fn example_with_rsx(
@@ -4382,11 +4355,7 @@ fn example_with_rsx(
         )
         .content(TabsContent::new("rust", move || runnable_code_panel(rust)));
     if let Some(tsx) = tsx {
-        tabs = tabs.content(TabsContent::new("tsx", move || {
-            view()
-                .child(view().px_3().py_2().child(muted(tsx.byline)))
-                .child(code_panel(tsx.source, "tsx", true))
-        }));
+        tabs = tabs.content(TabsContent::new("tsx", move || tsx_code_panel(tsx)));
     }
     if let Some(rsx) = rsx {
         tabs = tabs.content(TabsContent::new("rsx", move || runnable_code_panel(rsx)));
@@ -4399,6 +4368,45 @@ fn example_with_rsx(
         .rounded(px(12.0))
         .overflow_hidden()
         .child(tabs.surface().p_2())
+}
+
+fn tsx_code_panel(example: TsxExample) -> View {
+    let panel = view()
+        .gap_2()
+        .child(view().px_3().py_2().child(muted(example.byline)))
+        .child(code_panel(example.source, "tsx", true));
+    let Some(runner) = use_context::<tsx_examples::TsxRunner>() else {
+        return panel;
+    };
+    let selected = runner.selected;
+    let running = move || selected.get() == Some(example.id);
+    panel
+        .child(
+            view().items_start().child(
+                Button::new(move || {
+                    if running() {
+                        "Hide example"
+                    } else {
+                        "Run example"
+                    }
+                })
+                .variant(ButtonVariant::Outline)
+                .on_press(move || {
+                    let next = (selected.get_untracked() != Some(example.id)).then_some(example.id);
+                    selected.set(next);
+                    runner
+                        .scope
+                        .emit(crate::WebGalleryEvent::RunTsx(next.unwrap_or("").into()));
+                }),
+            ),
+        )
+        .child(when(running, move || {
+            view()
+                .min_h(px(80.0))
+                .p_4()
+                .items_center()
+                .child(runner.slot.place(|slot| slot))
+        }))
 }
 
 fn runnable_code_panel(source: DemoSource) -> View {

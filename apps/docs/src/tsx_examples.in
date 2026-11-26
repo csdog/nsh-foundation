@@ -1,0 +1,17 @@
+tsx_examples! {
+    avatar => "examples/rsx/avatar.tsx", AvatarExample;
+    avatar_demo => "examples/avatar_examples/tsx/demo.tsx", Example;
+    avatar_basic => "examples/avatar_examples/tsx/basic.tsx", Example;
+    avatar_badge => "examples/avatar_examples/tsx/badge.tsx", Example;
+    avatar_badge_icon => "examples/avatar_examples/tsx/badge_icon.tsx", Example;
+    avatar_size => "examples/avatar_examples/tsx/size.tsx", Example;
+    avatar_group => "examples/avatar_examples/tsx/group.tsx", Example;
+    avatar_group_count => "examples/avatar_examples/tsx/group_count.tsx", Example;
+    avatar_group_count_icon => "examples/avatar_examples/tsx/group_count_icon.tsx", Example;
+    avatar_dropdown => "examples/avatar_examples/tsx/dropdown.tsx", Example;
+    avatar_rtl => "examples/avatar_examples/tsx/rtl.tsx", Example;
+    badge => "examples/composition/badge.tsx", BadgeExample;
+    button => "examples/composition/button.tsx", ButtonExample;
+    drawer => "examples/drawer.tsx", DrawerExample;
+    switch => "examples/composition/switch.tsx", SwitchExample;
+}

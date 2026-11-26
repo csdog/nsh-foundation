@@ -8,7 +8,7 @@
 - Put the Web entry point, gallery layout, preview examples, and demonstration assets in `apps/docs`. Keep upstream sources and design references in `references`.
 - Put tests that start the gallery in `apps/docs/tests` and standalone component tests in `crates/components/tests`.
 - Use the upstream Base UI Drawer docs and pinned source listed in `references/README.md` as the behavior baseline.
-- From the workspace root, verify changes with `cargo fmt --all --check`, `cargo test --workspace`, and `nsh package --target web --out dist`. For interaction changes, exercise applicable examples in a browser at desktop and mobile widths.
+- From the workspace root, verify changes with `cargo fmt --all --check`, `cargo test --workspace`, and `scripts/docs-web.sh`. For interaction changes, exercise applicable examples in a browser at desktop and mobile widths.
 - Keep downloaded upstream checkouts and generated builds out of Git.
 
 ## Drawer examples
@@ -146,6 +146,14 @@ the compiler and code tab read the same file. Use the generated `CODE`
 in the tab and use its **Run example** control to verify the copied code.
 For larger gallery demos, display the actual implementation file.
 
+Declare standalone TSX examples in
+[`tsx_examples.in`](apps/docs/src/tsx_examples.in) and use the generated
+`EXAMPLE` descriptor in the card. It supplies the source shown and copied
+by the tab. `scripts/docs-web.sh` generates the Native Shell imports for
+**Run example** from the same table. Examples that wrap an exported Rust
+demo use [`gallery_examples.in`](apps/docs/src/gallery_examples.in) and
+generate the displayed and compiled TSX from the same template.
+
 The first demo on every component page must offer Preview, Rust, RSX,
 and Native Shell TSX. Link to upstream React examples through Base UI
 reference. Label TSX demo exports as such when the native module exposes
@@ -178,8 +186,10 @@ the Rust demo as a whole.
   know what it renders.
 - Open the first card and copy each source tab. Compare the clipboard with
   the intended source, compile the Rust and RSX samples, and type-check the
-  TSX with its required native module registered. Exercise the behavior
-  described in the example and make sure the initial preview illustrates it.
+  TSX with `scripts/docs-web.sh check`. Run the TSX from its own tab and
+  exercise its behavior. Check that hiding it and switching between demos
+  place the right example in the right card. Make sure the initial preview
+  illustrates the documented behavior.
 
 ### 3. Verify UI and animation frame by frame
 

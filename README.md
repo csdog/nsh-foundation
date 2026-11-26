@@ -23,7 +23,7 @@ The original rollout is archived. [Component plan](archive/PLAN.md) · [Release 
 | [apps/docs](apps/docs) | Native Shell `App` entry point, gallery layout, previews, demo assets, and gallery tests. |
 | [references](references) | Upstream TSX samples and design references. |
 
-To consume the components from another project, add `components` as a path dependency pointing to `crates/components`. Import components through `components`. The gallery entry point is `docs::App`, selected by [nsh.json](nsh.json).
+To consume the components from another project, add `components` as a path dependency pointing to `crates/components`. Import components through `components`. The gallery entry point is [App.tsx](App.tsx), which hosts the Rust gallery and runs the examples in its TSX tabs.
 
 ## Run
 
@@ -32,10 +32,10 @@ If there is no release binary for your platform, install the pinned CLI with `ca
 
 ```sh
 rustup target add wasm32-unknown-unknown
-nsh package --target web --out dist
+scripts/docs-web.sh
 ```
 
-The CLI prints the packaged site's directory under `dist`. Use `nsh package --target web --run` to build and serve it locally, or deploy the generated directory as a static site.
+The script generates the TSX imports from the gallery's example tables and packages the site under `dist`. Use `scripts/docs-web.sh package --target web --run` to build and serve it locally or `scripts/docs-web.sh check` to type-check the gallery and its TSX examples.
 
 Open `/#blocks` for Relay, the responsive chat block. Create and switch conversations, add files with the native picker, and send with Enter or the Send button. Shift+Enter starts a new line. Messages and attachment metadata stay in the current demo session.
 
