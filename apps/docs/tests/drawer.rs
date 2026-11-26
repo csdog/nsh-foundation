@@ -190,7 +190,7 @@ fn code_tabs_copy_the_selected_language_and_can_return_to_preview() {
     let mut app = start(1280.0, 900.0);
     let region = "role:region[Delivery time]";
     interact(&mut app, &format!("{region} >> Rust"));
-    assert_highlighted_line(&app, "DrawerRootProps { drawer }.with_body(move || {");
+    assert_highlighted_line(&app, "DrawerRoot::new(drawer, move || {");
     interact(&mut app, &format!("{region} >> Copy"));
     assert_eq!(
         app.screen()
@@ -198,11 +198,10 @@ fn code_tabs_copy_the_selected_language_and_can_return_to_preview() {
         Ok(1),
     );
     let source = app.screen().clipboard().unwrap();
-    assert!(source.contains("DrawerTrigger {"));
-    assert!(source.contains("..Default::default()"));
+    assert!(source.contains("drawer_trigger().child(text(\"Open Drawer\"))"));
     assert!(source.contains("DrawerContentProps {"));
     assert!(source.contains("DrawerTitleProps {"));
-    assert!(source.contains("DrawerRootProps { drawer }.with_body("));
+    assert!(source.contains("DrawerRoot::new(drawer, move || {"));
     assert!(!source.contains("rsx!"));
     assert!(source.contains(".style_with(body_style)"));
     interact(&mut app, &format!("{region} >> RSX"));
@@ -215,21 +214,18 @@ fn code_tabs_copy_the_selected_language_and_can_return_to_preview() {
     interact(&mut app, &format!("{region} >> Copy"));
     let source = app.screen().clipboard().unwrap();
     assert!(source.contains("rsx! {"));
-    assert!(source.contains("DrawerRootProps { drawer } =>"));
+    assert!(source.contains("DrawerRoot::new(drawer) =>"));
     assert!(source.contains("DrawerTrigger {"));
     assert!(source.contains("accessibility_label: \"Move Goal\".into()"));
     assert!(source.contains("children: vec![text(\"Move Goal\").into_element()]"));
     assert!(source.contains("DrawerContentProps { label: \"Move Goal\" } =>"));
     assert!(source.contains(".style_with(body_style)"));
     interact(&mut app, &format!("{region} >> TSX"));
-    assert_highlighted_line(&app, "import * as React from \"react\"");
-    assert!(app.shows("shadcn/ui · React + Base UI"));
+    assert_highlighted_line(&app, "import { Text, View } from \"nsh\";");
+    assert!(app.shows("Native Shell"));
     interact(&mut app, &format!("{region} >> Copy"));
     let source = app.screen().clipboard().unwrap();
-    assert_eq!(
-        source,
-        include_str!("../../../references/drawer-tsx/drawer-demo.tsx")
-    );
+    assert_eq!(source, include_str!("../src/examples/drawer.tsx"));
     assert!(source.contains("<DrawerTrigger"));
     interact(&mut app, &format!("{region} >> Preview"));
     interact(&mut app, "id:delivery-trigger");
@@ -238,20 +234,19 @@ fn code_tabs_copy_the_selected_language_and_can_return_to_preview() {
 
 #[component]
 fn TriggerChildrenExample() -> impl IntoElement {
-    use components::drawer::{Drawer, DrawerContentProps, DrawerRootProps, DrawerTrigger};
+    use components::drawer::{
+        Drawer, DrawerContentProps, DrawerRoot, DrawerTrigger, drawer_trigger,
+    };
 
     let drawer = Drawer::new(signal(false));
     components::rsx! {
-        DrawerRootProps { drawer } => {
+        DrawerRoot::new(drawer) => {
             view() {
                 DrawerTrigger {
                     accessibility_label: "Open settings drawer".into(),
                     children: vec![text("Settings").into_element()],
                 },
-                DrawerTrigger {
-                    accessibility_label: "Open drawer without text".into(),
-                    ..Default::default()
-                },
+                drawer_trigger().accessibility_label("Open drawer without text"),
                 DrawerContentProps { label: "Settings drawer" } => {
                     view() { text("Drawer content"), }
                 },

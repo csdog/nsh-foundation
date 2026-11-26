@@ -57,7 +57,7 @@ const DRAWER_RSX: &str = r#"use components::{
     div,
     drawer::{
         Drawer, DrawerCloseProps, DrawerContentProps, DrawerDescriptionProps,
-        DrawerFooter, DrawerHeader, DrawerRootProps, DrawerTitleProps, DrawerTrigger,
+        DrawerFooter, DrawerHeader, DrawerRoot, DrawerTitleProps, DrawerTrigger,
     },
     rsx,
 };
@@ -70,7 +70,7 @@ fn body_style(style: StyleRefinement) -> StyleRefinement {
 fn example() -> impl IntoElement {
     let drawer = Drawer::new(signal(false));
     rsx! {
-        DrawerRootProps { drawer } => {
+        DrawerRoot::new(drawer) => {
             div() {
                 DrawerTrigger {
                     accessibility_label: "Move Goal".into(),
@@ -96,7 +96,7 @@ const DRAWER_RUST: &str = r#"use components::{
     div,
     drawer::{
         Drawer, DrawerCloseProps, DrawerContentProps, DrawerDescriptionProps,
-        DrawerFooter, DrawerHeader, DrawerRootProps, DrawerTitleProps, DrawerTrigger,
+        DrawerFooter, DrawerHeader, DrawerRoot, DrawerTitleProps, drawer_trigger,
     },
 };
 use nsh_core::{element::StyleRefinement, prelude::*};
@@ -107,12 +107,9 @@ fn body_style(style: StyleRefinement) -> StyleRefinement {
 
 fn example() -> impl IntoElement {
     let drawer = Drawer::new(signal(false));
-    DrawerRootProps { drawer }.with_body(move || {
+    DrawerRoot::new(drawer, move || {
         div()
-            .child(DrawerTrigger {
-                children: vec![text("Open Drawer").into_element()],
-                ..Default::default()
-            })
+            .child(drawer_trigger().child(text("Open Drawer")))
             .child(DrawerContentProps { label: "Move Goal" }.with_body(|| {
                 div().style_with(body_style)
                     .child(DrawerHeader::new()
@@ -187,7 +184,7 @@ const RESPONSIVE: &str = r#"DrawerContent::new(drawer, "Edit profile", profile_f
         ..Default::default()
     })"#;
 
-const TSX_DELIVERY: &str = include_str!("../../../references/drawer-tsx/drawer-demo.tsx");
+const TSX_DELIVERY: &str = include_str!("examples/drawer.tsx");
 const TSX_SIZED: &str = include_str!("../../../references/drawer-tsx/drawer-custom-size.tsx");
 const TSX_FLOATING: &str = include_str!("../../../references/drawer-tsx/drawer-floating.tsx");
 const TSX_POSITION: &str = include_str!("../../../references/drawer-tsx/drawer-sides.tsx");
@@ -4160,7 +4157,9 @@ fn drawer_page(sections: DrawerSections, non_modal: Drawer) -> View {
                     .child(button("Base UI reference", Variant::Outline, || { let _ = open_url(REFERENCE); }))
                     .child(button("Source", Variant::Ghost, || { let _ = open_url(SOURCE); }))),
         )
-        .child(example_with_rsx("Delivery time", delivery, DRAWER_RUST, TSX_DELIVERY, Some(DRAWER_RSX)))
+        .child(example_with_rsx("Delivery time", delivery, DRAWER_RUST, TsxExample {
+            source: TSX_DELIVERY, label: "TSX", byline: "Native Shell",
+        }, Some(DRAWER_RSX)))
         .child(
             section("Installation", 0, locations)
                 .child(muted("Build the Native Shell Rust project for the Web target."))
@@ -4168,10 +4167,10 @@ fn drawer_page(sections: DrawerSections, non_modal: Drawer) -> View {
         )
         .child(
             section("Usage", 1, locations)
-                .child(muted("Pass the Drawer state to DrawerRootProps once. Set children for the visible button content. Set accessibility_label when the content alone does not name the button."))
+                .child(muted("Pass the Drawer state to DrawerRoot once. In Rust, use drawer_trigger().child(...) for visible content. Set accessibility_label when the content alone does not name the button."))
                 .child(code_block(DRAWER_RSX))
-                .child(muted("The TSX tabs show React examples for shadcn/ui with Base UI. Use them in a project with the referenced components installed. The delivery example also needs Sonner’s Toaster."))
-                .child(view().items_start().child(button("TSX license", Variant::Outline, move || {
+                .child(muted("The TSX example imports Drawer parts from this app’s Native Shell module. The shadcn/ui tabs show the upstream React examples for reference."))
+                .child(view().items_start().child(button("shadcn/ui example license", Variant::Outline, move || {
                     show_tsx_license.update(|open| *open = !*open);
                 })))
                 .child(when(show_tsx_license, || code_panel(TSX_LICENSE, "md", false))),
@@ -4181,39 +4180,39 @@ fn drawer_page(sections: DrawerSections, non_modal: Drawer) -> View {
             .child(code_panel("DrawerRoot\n├── DrawerTrigger\n└── DrawerContent\n    ├── DrawerPortal + DrawerOverlay\n    ├── DrawerHeader\n    │   ├── DrawerTitle\n    │   └── DrawerDescription\n    └── DrawerFooter\n        └── DrawerClose", "", false)))
         .child(section("Custom Sizes", 3, locations)
             .child(muted("Use height for vertical drawers and width for side drawers. Put long content in a scroll view."))
-            .child(example("Custom Sizes", custom_size, SIZED, TSX_SIZED))
+            .child(drawer_reference("Custom Sizes", custom_size, SIZED, TSX_SIZED))
             .child(custom_size_panel))
         .child(section("Styling", 4, locations)
             .child(muted("Edge drawers sit 8 points from the viewport by default. Set inset to override the gap. The header and footer add 16 points of padding at the panel edges. Use p_4() on the body for matching spacing or set its own padding for edge-to-edge content."))
-            .child(example("Styling", floating, FLOATING, TSX_FLOATING))
+            .child(drawer_reference("Styling", floating, FLOATING, TSX_FLOATING))
             .child(floating_panel))
         .child(section("Examples", 5, locations))
         .child(section("Position", 6, locations)
             .child(muted("Open the drawer from any of the four screen edges."))
-            .child(example("Position", positions, POSITION, TSX_POSITION))
+            .child(drawer_reference("Position", positions, POSITION, TSX_POSITION))
             .child(position_panels))
         .child(section("Swipe Handle", 7, locations)
             .child(muted("Drag the handle toward the edge to dismiss the drawer."))
-            .child(example("Swipe Handle", swipe, HANDLE, TSX_HANDLE))
+            .child(drawer_reference("Swipe Handle", swipe, HANDLE, TSX_HANDLE))
             .child(swipe_panel))
         .child(section("Nested", 8, locations)
             .child(muted("Open up to four drawers. Close the topmost drawer to return to the previous one."))
-            .child(example("Nested", nested, NESTED, TSX_NESTED))
+            .child(drawer_reference("Nested", nested, NESTED, TSX_NESTED))
             .child(nested_panel))
         .child(section("Non Modal", 9, locations)
             .child(muted("Scroll and interact with this page while the drawer stays open."))
-            .child(example("Non Modal", non_modal, NON_MODAL, TSX_NON_MODAL)))
+            .child(drawer_reference("Non Modal", non_modal, NON_MODAL, TSX_NON_MODAL)))
         .child(section("Snap Points", 10, locations)
             .child(muted("Drag the drawer between a compact peek and its full height."))
-            .child(example("Snap Points", snap, SNAP, TSX_SNAP))
+            .child(drawer_reference("Snap Points", snap, SNAP, TSX_SNAP))
             .child(snap_panel))
         .child(section("Responsive", 11, locations)
             .child(muted("Edit the profile in a desktop dialog or a mobile drawer."))
-            .child(example("Responsive", responsive, RESPONSIVE, TSX_RESPONSIVE))
+            .child(drawer_reference("Responsive", responsive, RESPONSIVE, TSX_RESPONSIVE))
             .child(responsive_panel))
         .child(section("API Reference", 12, locations)
             .child(muted("Use Drawer::new with an open signal. Drawer::nested links a child to a parent that remains mounted."))
-            .child(api_row("DrawerTrigger / DrawerClose", "DrawerTrigger takes children and an optional accessibility_label. Use render to attach drawer behavior to your own control."))
+            .child(api_row("DrawerTrigger / DrawerClose", "Use drawer_trigger().child(...) in Rust or DrawerTrigger with named fields in RSX. Use render to attach drawer behavior to your own control."))
             .child(api_row("DrawerContent", "Creates the window layer and backdrop. Set placement, size, and behavior with options."))
             .child(api_row("DrawerHeader / DrawerTitle / DrawerDescription / DrawerFooter", "Compose the visible content with ordinary Native Shell children and styles."))
             .child(api_row("DrawerPortal / DrawerOverlay / DrawerSwipeHandle", "Customize the window layer or backdrop, or style the generated drag handle."))
@@ -4417,14 +4416,45 @@ fn example(
     rust: &'static str,
     tsx: &'static str,
 ) -> View {
-    example_with_rsx(label, contents, rust, tsx, None)
+    example_with_rsx(label, contents, rust, TsxExample::shadcn(tsx, "TSX"), None)
+}
+
+fn drawer_reference(
+    label: &'static str,
+    contents: impl IntoElement,
+    rust: &'static str,
+    tsx: &'static str,
+) -> View {
+    example_with_rsx(
+        label,
+        contents,
+        rust,
+        TsxExample::shadcn(tsx, "shadcn/ui"),
+        None,
+    )
+}
+
+struct TsxExample {
+    source: &'static str,
+    label: &'static str,
+    byline: &'static str,
+}
+
+impl TsxExample {
+    fn shadcn(source: &'static str, label: &'static str) -> Self {
+        Self {
+            source,
+            label,
+            byline: "shadcn/ui · React + Base UI",
+        }
+    }
 }
 
 fn example_with_rsx(
     label: &'static str,
     contents: impl IntoElement,
     rust: &'static str,
-    tsx: &'static str,
+    tsx: TsxExample,
     rsx: Option<&'static str>,
 ) -> View {
     let preview = stored(Some(contents.into_element()));
@@ -4434,7 +4464,7 @@ fn example_with_rsx(
     if rsx.is_some() {
         list = list.trigger(TabsTrigger::new("rsx", "RSX"));
     }
-    let mut tabs = Tabs::new(list.trigger(TabsTrigger::new("tsx", "TSX")))
+    let mut tabs = Tabs::new(list.trigger(TabsTrigger::new("tsx", tsx.label)))
         .default_value("preview")
         .content(
             TabsContent::new("preview", move || {
@@ -4452,13 +4482,8 @@ fn example_with_rsx(
         }))
         .content(TabsContent::new("tsx", move || {
             view()
-                .child(
-                    view()
-                        .px_3()
-                        .py_2()
-                        .child(muted("shadcn/ui · React + Base UI")),
-                )
-                .child(code_panel(tsx, "tsx", true))
+                .child(view().px_3().py_2().child(muted(tsx.byline)))
+                .child(code_panel(tsx.source, "tsx", true))
         }));
     if let Some(rsx) = rsx {
         tabs = tabs.content(TabsContent::new("rsx", move || {

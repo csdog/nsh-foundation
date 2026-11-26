@@ -5,8 +5,8 @@ use components::{
     div,
     drawer::{
         Direction, Drawer, DrawerClose, DrawerCloseProps, DrawerContent, DrawerContentProps,
-        DrawerDescriptionProps, DrawerFooter, DrawerHeader, DrawerOptions, DrawerRootProps,
-        DrawerTitleProps, DrawerTrigger, Modality, SnapPoint,
+        DrawerDescriptionProps, DrawerFooter, DrawerHeader, DrawerOptions, DrawerRoot,
+        DrawerTitleProps, DrawerTrigger, Modality, SnapPoint, drawer_trigger,
     },
     rsx,
     ui::{Variant, button, button_surface, muted},
@@ -38,8 +38,10 @@ const DELIVERY: [(&str, &str); 5] = [
 pub(crate) fn delivery(status: Signal<Option<SharedString>>) -> impl IntoElement {
     let drawer = Drawer::new(signal(false));
     let selection = signal(0_usize);
-    DrawerRootProps { drawer }.with_body(move || {
-        let trigger = DrawerTrigger::render(drawer, button_surface("Open Drawer", Variant::Secondary))
+    DrawerRoot::new(drawer, move || {
+        let trigger = drawer_trigger()
+            .style_with(delivery_trigger_style)
+            .child(text("Open Drawer").style_with(delivery_trigger_text_style))
             .test_id("delivery-trigger");
         let content = (rsx! {
             DrawerContentProps { label: "Pick a delivery time" } => {
@@ -63,6 +65,19 @@ pub(crate) fn delivery(status: Signal<Option<SharedString>>) -> impl IntoElement
         .options(adaptive);
         [trigger.into_element(), content.into_element()]
     })
+}
+
+fn delivery_trigger_style(style: StyleRefinement) -> StyleRefinement {
+    style
+        .bg(theme().secondary)
+        .border_color(hsla(0.0, 0.0, 0.0, 0.0))
+}
+
+fn delivery_trigger_text_style(style: StyleRefinement) -> StyleRefinement {
+    style
+        .text_sm()
+        .font_weight(FontWeight::MEDIUM)
+        .text_color(theme().foreground)
 }
 
 fn delivery_choices(selection: Signal<usize>) -> impl IntoElement {

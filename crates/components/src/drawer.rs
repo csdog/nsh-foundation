@@ -12,6 +12,8 @@ use nsh_core::{
 
 use crate::ui::{Variant, button_container, button_surface, heading, muted};
 
+pub mod tsx;
+
 const OPEN_MS: f32 = 450.0;
 const CLOSE_MS: f32 = 320.0;
 const OPEN_EASING: Easing = Easing::Bezier(0.22, 1.0, 0.36, 1.0);
@@ -189,7 +191,8 @@ where
     }
 }
 
-/// Named properties for a scope shared by the drawer parts.
+// Keep the previous entry point available for existing callers.
+#[doc(hidden)]
 pub struct DrawerRootProps {
     pub drawer: Drawer,
 }
@@ -219,17 +222,21 @@ impl DrawerContentProps {
 /// drawer opens and released after it exits.
 pub struct DrawerContent {
     drawer: Drawer,
-    label: &'static str,
+    label: Reactive<SharedString>,
     options: DrawerConfiguration,
     body: DrawerBody,
     handle_style: Option<SwipeHandleStyle>,
 }
 
 impl DrawerContent {
-    pub fn new(drawer: Drawer, label: &'static str, body: impl Fn() -> View + 'static) -> Self {
+    pub fn new(
+        drawer: Drawer,
+        label: impl IntoReactive<SharedString>,
+        body: impl Fn() -> View + 'static,
+    ) -> Self {
         Self {
             drawer,
-            label,
+            label: label.into_reactive(),
             options: Box::new(DrawerOptions::default),
             body: Box::new(body),
             handle_style: None,
@@ -237,7 +244,10 @@ impl DrawerContent {
     }
 
     /// Uses the nearest [`DrawerRoot`]. Call inside its children closure.
-    pub fn from_root(label: &'static str, body: impl Fn() -> View + 'static) -> Self {
+    pub fn from_root(
+        label: impl IntoReactive<SharedString>,
+        body: impl Fn() -> View + 'static,
+    ) -> Self {
         Self::new(drawer_from_root(), label, body)
     }
 
@@ -275,14 +285,14 @@ impl IntoElement for DrawerContent {
             let close_ms = stored(CLOSE_MS);
             let (surface, swipe_visibility) = drawer.surface(
                 options,
-                self.label,
+                self.label.clone(),
                 (self.body)(),
                 self.handle_style.as_deref(),
                 ready,
                 close_ms,
                 move || mounted.set(false),
             );
-            DrawerPortal::new(drawer, self.label, options.modality)
+            DrawerPortal::new(drawer, self.label.clone(), options.modality)
                 .child(DrawerOverlay::with_motion(
                     drawer,
                     options,
@@ -299,16 +309,16 @@ impl IntoElement for DrawerContent {
 /// The window layer used by DrawerContent. Mount it only while its contents are visible.
 pub struct DrawerPortal {
     drawer: Drawer,
-    label: &'static str,
+    label: Reactive<SharedString>,
     modality: Modality,
     children: Vec<AnyElement>,
 }
 
 impl DrawerPortal {
-    pub fn new(drawer: Drawer, label: &'static str, modality: Modality) -> Self {
+    pub fn new(drawer: Drawer, label: impl IntoReactive<SharedString>, modality: Modality) -> Self {
         Self {
             drawer,
-            label,
+            label: label.into_reactive(),
             modality,
             children: Vec::new(),
         }
@@ -413,7 +423,7 @@ impl Drawer {
     fn surface(
         self,
         options: DrawerOptions,
-        title: &'static str,
+        title: impl IntoReactive<SharedString>,
         children: View,
         handle_style: Option<&dyn Fn(DrawerSwipeHandle) -> DrawerSwipeHandle>,
         ready: Signal<bool>,
@@ -903,12 +913,23 @@ impl DrawerTrigger {
 }
 
 impl DrawerTriggerElement {
+    /// Sets the accessible name when the children do not convey it.
+    pub fn accessibility_label(self, label: impl Into<Prop<Option<SharedString>>>) -> Self {
+        Self(self.0.optional_label(label.into()))
+    }
+
     pub fn test_id(self, id: &str) -> Self {
         Self(self.0.test_id(id))
     }
 }
 
 impl ParentElement for DrawerTriggerElement {}
+
+/// Builds a trigger for the nearest [`DrawerRoot`]. Add its visible content
+/// with `.child(...)` inside the root's children closure.
+pub fn drawer_trigger() -> DrawerTriggerElement {
+    DrawerTrigger::default().with_variant(Variant::Outline)
+}
 
 impl IntoElement for DrawerTrigger {
     fn into_element(self) -> AnyElement {

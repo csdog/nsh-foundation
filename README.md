@@ -30,7 +30,7 @@ If the CLI reports a stale generated package name after a crate rename, move asi
 
 ## Compose a Drawer
 
-Pass the shared state to `DrawerRootProps` once. Set component inputs with
+Pass the shared state to `DrawerRoot::new` once. Set component inputs with
 named fields and apply reusable style functions with `style_with`.
 In `rsx!`, `=> { ... }` supplies a closure so the drawer body is built
 only when it opens.
@@ -40,7 +40,7 @@ use components::{
     div,
     drawer::{
         Drawer, DrawerCloseProps, DrawerContentProps, DrawerDescriptionProps,
-        DrawerFooter, DrawerHeader, DrawerRootProps, DrawerTitleProps, DrawerTrigger,
+        DrawerFooter, DrawerHeader, DrawerRoot, DrawerTitleProps, DrawerTrigger,
     },
     rsx,
 };
@@ -53,7 +53,7 @@ fn body_style(style: StyleRefinement) -> StyleRefinement {
 fn example() -> impl IntoElement {
     let drawer = Drawer::new(signal(false));
     rsx! {
-        DrawerRootProps { drawer } => {
+        DrawerRoot::new(drawer) => {
             div() {
                 DrawerTrigger {
                     accessibility_label: "Move Goal".into(),
@@ -76,7 +76,8 @@ fn example() -> impl IntoElement {
 }
 ```
 
-The trigger's `children` supply its visible contents. Set `accessibility_label`
+In plain Rust, use `drawer_trigger().child(text("Open Drawer"))` inside
+the `DrawerRoot::new` closure. Set `accessibility_label`
 when those contents do not name the button, such as an icon-only trigger. Use
 `DrawerTrigger::render` or `DrawerClose::render` to use your own
 Native Shell view as the button. `DrawerContent` creates the `DrawerPortal`
