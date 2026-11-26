@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use components::{
     div,
-    drawer::{Drawer, DrawerCloseProps, DrawerContentProps, DrawerRoot, drawer_trigger},
+    drawer::{Drawer, DrawerCloseProps, DrawerContent, DrawerRoot, drawer_trigger},
     rsx,
 };
 use nsh_core::{element::Root, prelude::*};
@@ -20,7 +20,7 @@ fn ScopedDrawers() -> impl IntoElement {
                 DrawerRoot::new(inner) => {
                     div() {
                         drawer_trigger().child(text("Open inner")),
-                        DrawerContentProps { label: "Inner Drawer" } => {
+                        DrawerContent { label: "Inner Drawer" } => {
                             div() {
                                 DrawerCloseProps { label: "Close inner" },
                             }
@@ -29,7 +29,7 @@ fn ScopedDrawers() -> impl IntoElement {
                 },
                 drawer_trigger().child(text("Open outer")),
                 text(format!("Scoped builds: {}", builds.get())),
-                DrawerContentProps { label: "Outer Drawer" } => {{
+                DrawerContent { label: "Outer Drawer" } => {{
                     builds.replace(builds.get() + 1);
                     rsx! {
                         div() {

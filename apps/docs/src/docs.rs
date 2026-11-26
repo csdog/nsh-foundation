@@ -56,7 +56,7 @@ const SECTIONS: [&str; 13] = [
 const DRAWER_RSX: &str = r#"use components::{
     div,
     drawer::{
-        Drawer, DrawerCloseProps, DrawerContentProps, DrawerDescriptionProps,
+        Drawer, DrawerCloseProps, DrawerContent, DrawerDescriptionProps,
         DrawerFooter, DrawerHeader, DrawerRoot, DrawerTitleProps, DrawerTrigger,
     },
     rsx,
@@ -76,7 +76,7 @@ fn example() -> impl IntoElement {
                     accessibility_label: "Move Goal".into(),
                     children: vec![text("Move Goal").into_element()],
                 },
-                DrawerContentProps { label: "Move Goal" } => {
+                DrawerContent { label: "Move Goal" } => {
                     (div().style_with(body_style)) {
                         DrawerHeader::new() {
                             DrawerTitleProps { text: "Move Goal" },

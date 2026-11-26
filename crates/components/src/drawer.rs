@@ -207,34 +207,26 @@ type DrawerBody = Box<dyn Fn() -> View>;
 type DrawerConfiguration = Box<dyn Fn() -> DrawerOptions>;
 type SwipeHandleStyle = Box<dyn Fn(DrawerSwipeHandle) -> DrawerSwipeHandle>;
 
-/// Named properties for content built inside a [`DrawerRoot`].
-pub struct DrawerContentProps {
+/// Named inputs for a panel built inside a [`DrawerRoot`].
+pub struct DrawerContent {
     pub label: &'static str,
 }
 
-impl DrawerContentProps {
-    pub fn with_body(self, body: impl Fn() -> View + 'static) -> DrawerContent {
-        DrawerContent::from_root(self.label, body)
-    }
-}
-
-/// The popup gives its body 16 points of padding. The body is built when the
-/// drawer opens and released after it exits.
-pub struct DrawerContent {
-    drawer: Drawer,
-    label: Reactive<SharedString>,
-    options: DrawerConfiguration,
-    body: DrawerBody,
-    handle_style: Option<SwipeHandleStyle>,
-}
+#[doc(hidden)]
+pub type DrawerContentProps = DrawerContent;
 
 impl DrawerContent {
+    /// Sets the panel body, which is built when the drawer opens.
+    pub fn with_body(self, body: impl Fn() -> View + 'static) -> DrawerContentElement {
+        Self::from_root(self.label, body)
+    }
+
     pub fn new(
         drawer: Drawer,
         label: impl IntoReactive<SharedString>,
         body: impl Fn() -> View + 'static,
-    ) -> Self {
-        Self {
+    ) -> DrawerContentElement {
+        DrawerContentElement {
             drawer,
             label: label.into_reactive(),
             options: Box::new(DrawerOptions::default),
@@ -247,10 +239,22 @@ impl DrawerContent {
     pub fn from_root(
         label: impl IntoReactive<SharedString>,
         body: impl Fn() -> View + 'static,
-    ) -> Self {
+    ) -> DrawerContentElement {
         Self::new(drawer_from_root(), label, body)
     }
+}
 
+/// The popup gives its body 16 points of padding. The body is built when the
+/// drawer opens and released after it exits.
+pub struct DrawerContentElement {
+    drawer: Drawer,
+    label: Reactive<SharedString>,
+    options: DrawerConfiguration,
+    body: DrawerBody,
+    handle_style: Option<SwipeHandleStyle>,
+}
+
+impl DrawerContentElement {
     /// Sets the accessible name of the drawer panel.
     pub fn accessibility_label(mut self, label: impl IntoReactive<SharedString>) -> Self {
         self.label = label.into_reactive();
@@ -280,11 +284,11 @@ impl DrawerContent {
 }
 
 /// Builds content for the nearest [`DrawerRoot`].
-pub fn drawer_content() -> DrawerContent {
+pub fn drawer_content() -> DrawerContentElement {
     DrawerContent::from_root("", view)
 }
 
-impl IntoElement for DrawerContent {
+impl IntoElement for DrawerContentElement {
     fn into_element(self) -> AnyElement {
         let drawer = self.drawer;
         let mounted = signal(false);

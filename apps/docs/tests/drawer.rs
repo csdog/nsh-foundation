@@ -229,7 +229,7 @@ fn code_tabs_copy_the_selected_language_and_can_return_to_preview() {
     assert!(source.contains("DrawerTrigger {"));
     assert!(source.contains("accessibility_label: \"Move Goal\".into()"));
     assert!(source.contains("children: vec![text(\"Move Goal\").into_element()]"));
-    assert!(source.contains("DrawerContentProps { label: \"Move Goal\" } =>"));
+    assert!(source.contains("DrawerContent { label: \"Move Goal\" } =>"));
     assert!(source.contains(".style_with(body_style)"));
     interact(&mut app, &format!("{region} >> TSX"));
     assert_highlighted_line(&app, "import { Text, View } from \"nsh\";");
@@ -245,9 +245,7 @@ fn code_tabs_copy_the_selected_language_and_can_return_to_preview() {
 
 #[component]
 fn TriggerChildrenExample() -> impl IntoElement {
-    use components::drawer::{
-        Drawer, DrawerContentProps, DrawerRoot, DrawerTrigger, drawer_trigger,
-    };
+    use components::drawer::{Drawer, DrawerContent, DrawerRoot, DrawerTrigger, drawer_trigger};
 
     let drawer = Drawer::new(signal(false));
     components::rsx! {
@@ -258,7 +256,7 @@ fn TriggerChildrenExample() -> impl IntoElement {
                     children: vec![text("Settings").into_element()],
                 },
                 drawer_trigger().accessibility_label("Open drawer without text"),
-                DrawerContentProps { label: "Settings drawer" } => {
+                DrawerContent { label: "Settings drawer" } => {
                     view() { text("Drawer content"), }
                 },
             }
