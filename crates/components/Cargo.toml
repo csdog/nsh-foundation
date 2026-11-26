@@ -5,6 +5,7 @@ edition.workspace = true
 publish = false
 
 [dependencies]
+components-rsx-macro = { path = "../rsx-macro" }
 nsh-core.workspace = true
 nsh-base.workspace = true
 chrono.workspace = true

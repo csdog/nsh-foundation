@@ -1,0 +1,16 @@
+[package]
+name = "components-rsx-macro"
+version.workspace = true
+edition.workspace = true
+publish = false
+
+[lib]
+proc-macro = true
+
+[dependencies]
+heck = "0.5"
+proc-macro-crate = "3"
+proc-macro2 = "1"
+quote = "1"
+rstml = { version = "0.12.1", features = ["rawtext-stable-hack"] }
+syn = { version = "2", features = ["full"] }

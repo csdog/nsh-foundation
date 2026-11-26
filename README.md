@@ -7,6 +7,7 @@ A Native Shell component library written in Rust. Its responsive Web gallery inc
 | Path | Responsibility |
 | --- | --- |
 | [crates/components](crates/components) | Reusable Rust components and standalone component tests. |
+| [crates/rsx-macro](crates/rsx-macro) | TSX-style `rsx!` procedural macro. |
 | [apps/docs](apps/docs) | Native Shell `App` entry point, gallery layout, previews, demo assets, and gallery tests. |
 | [references](references) | Upstream TSX samples and design references. |
 
@@ -30,51 +31,39 @@ If the CLI reports a stale generated package name after a crate rename, move asi
 
 ## Compose a Drawer
 
-Pass the shared state to `DrawerRoot::new` once. Set component inputs with
-named fields and apply reusable style functions with `style_with`.
-In `rsx!`, `=> { ... }` supplies a closure so the drawer body is built
-only when it opens.
+Use `components::rsx!` with the same tag and attribute spelling as the
+Native Shell TSX example. Use `{expression}` to embed Rust values.
+`DrawerRoot` creates the open state by default, and `DrawerContent` builds
+its children when the drawer opens. Pass `drawer={drawer}` to share explicit
+open state with Rust code.
 
 ```rust
-use components::{
-    div,
-    drawer::{
-        Drawer, DrawerCloseProps, DrawerContent, DrawerDescriptionProps,
-        DrawerFooter, DrawerHeader, DrawerRoot, DrawerTitleProps, DrawerTrigger,
-    },
-    rsx,
-};
-use nsh_core::{element::StyleRefinement, prelude::*};
+use components::rsx;
+use nsh_core::prelude::IntoElement;
 
-fn body_style(style: StyleRefinement) -> StyleRefinement {
-    style.flex_1().gap_2()
-}
-
-fn example() -> impl IntoElement {
-    let drawer = Drawer::new(signal(false));
+pub fn example() -> impl IntoElement {
     rsx! {
-        DrawerRoot::new(drawer) => {
-            div() {
-                DrawerTrigger {
-                    accessibility_label: "Move Goal".into(),
-                    children: vec![text("Move Goal").into_element()],
-                },
-                DrawerContent { label: "Move Goal" } => {
-                    (div().style_with(body_style)) {
-                        DrawerHeader::new() {
-                            DrawerTitleProps { text: "Move Goal" },
-                            DrawerDescriptionProps { text: "Set your daily activity goal." },
-                        },
-                        DrawerFooter::new() {
-                            DrawerCloseProps { label: "Done" },
-                        },
-                    }
-                },
-            }
-        }
+        <DrawerRoot>
+            <DrawerTrigger>
+                <Text>Open Drawer</Text>
+            </DrawerTrigger>
+            <DrawerContent accessibilityLabel="Move Goal">
+                <View style={{ padding: 16, gap: 8 }}>
+                    <Text style={{ fontSize: 20 }}>Move Goal</Text>
+                    <Text>Set your daily activity goal.</Text>
+                    <DrawerClose>
+                        <Text class="text-primary-foreground">Done</Text>
+                    </DrawerClose>
+                </View>
+            </DrawerContent>
+        </DrawerRoot>
     }
 }
 ```
+
+Inline style objects accept numeric `padding`, `gap`, `fontSize`, `width`,
+`height`, and `borderRadius` values. Use `style={body_style}` to apply a Rust
+`StyleRefinement` function for other styles.
 
 In plain Rust, use `drawer_trigger().child(text("Open Drawer"))` inside
 the `DrawerRoot::new` closure. Use `drawer_content().child(|| ...)` for

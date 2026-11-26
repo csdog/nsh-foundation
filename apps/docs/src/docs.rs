@@ -53,44 +53,7 @@ const SECTIONS: [&str; 13] = [
     "API Reference",
 ];
 
-const DRAWER_RSX: &str = r#"use components::{
-    div,
-    drawer::{
-        Drawer, DrawerCloseProps, DrawerContent, DrawerDescriptionProps,
-        DrawerFooter, DrawerHeader, DrawerRoot, DrawerTitleProps, DrawerTrigger,
-    },
-    rsx,
-};
-use nsh_core::{element::StyleRefinement, prelude::*};
-
-fn body_style(style: StyleRefinement) -> StyleRefinement {
-    style.flex_1().gap_2()
-}
-
-fn example() -> impl IntoElement {
-    let drawer = Drawer::new(signal(false));
-    rsx! {
-        DrawerRoot::new(drawer) => {
-            div() {
-                DrawerTrigger {
-                    accessibility_label: "Move Goal".into(),
-                    children: vec![text("Move Goal").into_element()],
-                },
-                DrawerContent { label: "Move Goal" } => {
-                    (div().style_with(body_style)) {
-                        DrawerHeader::new() {
-                            DrawerTitleProps { text: "Move Goal" },
-                            DrawerDescriptionProps { text: "Set your daily activity goal." },
-                        },
-                        DrawerFooter::new() {
-                            DrawerCloseProps { label: "Done" },
-                        },
-                    }
-                },
-            }
-        }
-    }
-}"#;
+const DRAWER_RSX: &str = include_str!("examples/drawer_rsx.rs");
 
 const DRAWER_RUST: &str = r#"use components::{
     div,

@@ -1,10 +1,6 @@
 use std::time::Duration;
 
-use components::{
-    div,
-    drawer::{Drawer, DrawerCloseProps, DrawerContent, DrawerRoot, drawer_trigger},
-    rsx,
-};
+use components::{drawer::Drawer, rsx};
 use nsh_core::{element::Root, prelude::*};
 use nsh_engine::EngineConfig;
 use nsh_testing::Headless;
@@ -15,31 +11,23 @@ fn ScopedDrawers() -> impl IntoElement {
     let inner = Drawer::new(signal(false));
     let builds = stored(0);
     rsx! {
-        DrawerRoot::new(outer) => {
-            div() {
-                DrawerRoot::new(inner) => {
-                    div() {
-                        drawer_trigger().child(text("Open inner")),
-                        DrawerContent { label: "Inner Drawer" } => {
-                            div() {
-                                DrawerCloseProps { label: "Close inner" },
-                            }
-                        },
-                    }
-                },
-                drawer_trigger().child(text("Open outer")),
-                text(format!("Scoped builds: {}", builds.get())),
-                DrawerContent { label: "Outer Drawer" } => {{
+        <DrawerRoot drawer={outer}>
+            <DrawerRoot drawer={inner}>
+                <DrawerTrigger><Text>Open inner</Text></DrawerTrigger>
+                <DrawerContent accessibilityLabel="Inner Drawer">
+                    <DrawerClose><Text>Close inner</Text></DrawerClose>
+                </DrawerContent>
+            </DrawerRoot>
+            <DrawerTrigger><Text>Open outer</Text></DrawerTrigger>
+            <Text>{format!("Scoped builds: {}", builds.get())}</Text>
+            <DrawerContent accessibilityLabel="Outer Drawer">
+                {
                     builds.replace(builds.get() + 1);
-                    rsx! {
-                        div() {
-                            text(format!("Scoped body {}", builds.get())),
-                            DrawerCloseProps { label: "Close outer" },
-                        }
-                    }
-                }},
-            }
-        }
+                    text(format!("Scoped body {}", builds.get()))
+                }
+                <DrawerClose><Text>Close outer</Text></DrawerClose>
+            </DrawerContent>
+        </DrawerRoot>
     }
 }
 

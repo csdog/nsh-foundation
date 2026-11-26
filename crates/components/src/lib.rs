@@ -3,6 +3,13 @@
 /// An alias for Native Shell's generic view container.
 pub use nsh_core::prelude::view as div;
 
+extern crate self as components;
+
+/// Constructs Native Shell elements using TSX-style markup.
+pub use components_rsx_macro::rsx;
+#[doc(hidden)]
+pub use nsh_core as __nsh_core;
+
 pub mod accordion;
 pub mod alert;
 pub mod alert_dialog;
@@ -52,7 +59,6 @@ pub mod progress;
 pub mod questionnaire;
 pub mod radio_group;
 pub mod resizable;
-mod rsx;
 pub mod scroll_area;
 pub mod select;
 pub mod separator;

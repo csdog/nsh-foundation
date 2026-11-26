@@ -4,9 +4,9 @@ use nsh_core::{AccessibilityState, Checked, element::StyleRefinement, prelude::*
 use components::{
     div,
     drawer::{
-        Direction, Drawer, DrawerClose, DrawerContent, DrawerDescriptionProps, DrawerFooter,
-        DrawerHeader, DrawerOptions, DrawerRoot, DrawerTitleProps, DrawerTrigger, Modality,
-        SnapPoint, drawer_close, drawer_content, drawer_description, drawer_footer, drawer_header,
+        Direction, Drawer, DrawerClose, DrawerContent, DrawerDescriptionProps, DrawerHeader,
+        DrawerOptions, DrawerRoot, DrawerTitleProps, DrawerTrigger, Modality, SnapPoint,
+        drawer_close, drawer_content, drawer_description, drawer_footer, drawer_header,
         drawer_title, drawer_trigger,
     },
     rsx,
@@ -474,17 +474,15 @@ fn demo_panel(
     description: &'static str,
     options: impl Fn() -> DrawerOptions + 'static,
 ) -> impl IntoElement {
-    rsx! {
-        DrawerContent::new(drawer, title) => {
-            (div().style_with(StyleRefinement::flex_1)) {
-                example_header(title, description),
-                placeholder(240.0),
-                DrawerFooter::new() {
-                    DrawerClose::new(drawer, "Close"),
-                },
-            }
+    DrawerContent::new(drawer, title, move || {
+        rsx! {
+            <View style={StyleRefinement::flex_1}>
+                {example_header(title, description)}
+                {placeholder(240.0)}
+                <DrawerFooter>{DrawerClose::new(drawer, "Close")}</DrawerFooter>
+            </View>
         }
-    }
+    })
     .options(options)
 }
 

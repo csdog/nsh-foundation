@@ -221,16 +221,12 @@ fn code_tabs_copy_the_selected_language_and_can_return_to_preview() {
             .count(&format!("{region} >> role:button[Copy]")),
         Ok(1),
     );
-    assert_highlighted_line(&app, "children: vec![text(\"Move Goal\").into_element()],");
+    assert_highlighted_line(&app, "use components::rsx;");
     interact(&mut app, &format!("{region} >> Copy"));
     let source = app.screen().clipboard().unwrap();
-    assert!(source.contains("rsx! {"));
-    assert!(source.contains("DrawerRoot::new(drawer) =>"));
-    assert!(source.contains("DrawerTrigger {"));
-    assert!(source.contains("accessibility_label: \"Move Goal\".into()"));
-    assert!(source.contains("children: vec![text(\"Move Goal\").into_element()]"));
-    assert!(source.contains("DrawerContent { label: \"Move Goal\" } =>"));
-    assert!(source.contains(".style_with(body_style)"));
+    assert_eq!(source, include_str!("../src/examples/drawer_rsx.rs"));
+    assert!(source.contains("<DrawerContent accessibilityLabel=\"Move Goal\">"));
+    assert!(source.contains("<View style={{ padding: 16, gap: 8 }}>"));
     interact(&mut app, &format!("{region} >> TSX"));
     assert_highlighted_line(&app, "import { Text, View } from \"nsh\";");
     assert!(app.shows("Native Shell"));
@@ -245,22 +241,16 @@ fn code_tabs_copy_the_selected_language_and_can_return_to_preview() {
 
 #[component]
 fn TriggerChildrenExample() -> impl IntoElement {
-    use components::drawer::{Drawer, DrawerContent, DrawerRoot, DrawerTrigger, drawer_trigger};
-
-    let drawer = Drawer::new(signal(false));
     components::rsx! {
-        DrawerRoot::new(drawer) => {
-            view() {
-                DrawerTrigger {
-                    accessibility_label: "Open settings drawer".into(),
-                    children: vec![text("Settings").into_element()],
-                },
-                drawer_trigger().accessibility_label("Open drawer without text"),
-                DrawerContent { label: "Settings drawer" } => {
-                    view() { text("Drawer content"), }
-                },
-            }
-        }
+        <DrawerRoot>
+            <DrawerTrigger accessibilityLabel="Open settings drawer">
+                <Text>Settings</Text>
+            </DrawerTrigger>
+            <DrawerTrigger accessibilityLabel="Open drawer without text" />
+            <DrawerContent accessibilityLabel="Settings drawer">
+                <Text>Drawer content</Text>
+            </DrawerContent>
+        </DrawerRoot>
     }
 }
 
@@ -322,49 +312,52 @@ fn PartsExample() -> impl IntoElement {
 
     let drawer = Drawer::new(signal(false));
     let builds = stored(0);
-    components::rsx! {
-        view() {
+    view()
+        .child(
             DrawerTrigger::render(
                 drawer,
                 view().p_4().label("Custom opener").child(text("Open")),
             )
             .test_id("parts-trigger"),
-            text(move || format!("Body builds: {}", builds.get())),
-            DrawerContent::new(drawer, "Compound Drawer") => {{
-                builds.replace(builds.get() + 1);
-                components::rsx! {
-                    view() {
-                        DrawerHeader::new() {
+        )
+        .child(text(move || format!("Body builds: {}", builds.get())))
+        .child(DrawerContent::new(drawer, "Compound Drawer", move || {
+            builds.replace(builds.get() + 1);
+            view()
+                .child(
+                    DrawerHeader::new()
+                        .child(
                             view()
                                 .test_id("parts-title")
                                 .child(DrawerTitle::new("Compound Drawer")),
-                            DrawerDescription::new("Only mounted while the drawer is visible."),
-                        },
-                        view().py_4().child(
-                            view()
-                                .test_id("parts-body")
-                                .label("Reopen during exit")
-                                .on_press(move || {
-                                    drawer.close();
-                                    set_timeout(Duration::from_millis(100), move || drawer.open());
-                                })
-                                .child(text(format!("Body build {}", builds.get()))),
-                        ),
-                        DrawerFooter::new() {
-                            DrawerClose::render(
-                                drawer,
-                                view()
-                                    .p_4()
-                                    .label("Custom closer")
-                                    .test_id("parts-close")
-                                    .child(text("Done")),
-                            ),
-                        },
-                    }
-                }
-            }},
-        }
-    }
+                        )
+                        .child(DrawerDescription::new(
+                            "Only mounted while the drawer is visible.",
+                        )),
+                )
+                .child(
+                    view().py_4().child(
+                        view()
+                            .test_id("parts-body")
+                            .label("Reopen during exit")
+                            .on_press(move || {
+                                drawer.close();
+                                set_timeout(Duration::from_millis(100), move || drawer.open());
+                            })
+                            .child(text(format!("Body build {}", builds.get()))),
+                    ),
+                )
+                .child(
+                    DrawerFooter::new().child(DrawerClose::render(
+                        drawer,
+                        view()
+                            .p_4()
+                            .label("Custom closer")
+                            .test_id("parts-close")
+                            .child(text("Done")),
+                    )),
+                )
+        }))
 }
 
 #[test]
@@ -400,4 +393,35 @@ fn independently_styled_trigger_and_close_compose_with_lazy_content() {
     assert!(!app.shows(description));
     interact(&mut app, "id:parts-trigger");
     assert!(app.shows("Body build 2"));
+}
+
+#[path = "../src/examples/drawer_rsx.rs"]
+mod drawer_rsx;
+
+#[component]
+fn PublishedRsxExample() -> impl IntoElement {
+    drawer_rsx::example()
+}
+
+#[test]
+fn published_rsx_example_builds_and_opens_the_drawer() {
+    let mut app = Headless::start(EngineConfig::new(Root::of::<PublishedRsxExample>())).unwrap();
+    app.first_render().unwrap();
+    assert_count(&app, 0);
+
+    interact(&mut app, "Open Drawer");
+    assert_count(&app, 1);
+    assert!(app.shows("Set your daily activity goal."));
+    assert!(app.screen().layout_nodes().into_iter().any(|node| {
+        node.text.is_some_and(|line| {
+            line.text.text == "Move Goal"
+                && line
+                    .text
+                    .spans
+                    .iter()
+                    .any(|span| span.style.font_size == px(20.0))
+        })
+    }));
+    interact(&mut app, "Done");
+    assert_count(&app, 0);
 }
