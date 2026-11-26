@@ -27,7 +27,7 @@ use crate::examples::{
     trace_examples, typography_examples,
 };
 use components::{
-    button::{Button, ButtonVariant},
+    button::{Button, ButtonSize, ButtonVariant},
     code_block::{
         CodeBlock, CodeBlockActions, CodeBlockContent, CodeBlockCopyButton, CodeBlockHeader,
     },
@@ -3815,6 +3815,7 @@ fn desktop_navigation() -> bool {
 
 const DOCS_HEADER_HEIGHT: f32 = 58.0;
 const WIDE_DOCS_WIDTH: f32 = 1220.0;
+const THEME_ICON: &str = "M8 1.5v1.25M8 13.25v1.25M1.5 8h1.25M13.25 8h1.25M3.4 3.4l.9.9m7.4 7.4.9.9m0-9.2-.9.9m-7.4 7.4-.9.9M11 8a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z";
 
 fn docs_header(
     mobile_menu: impl Fn() -> AnyElement + Copy + 'static,
@@ -3829,7 +3830,7 @@ fn docs_header(
         .justify_between()
         .flex_shrink_0()
         .h(px(DOCS_HEADER_HEIGHT))
-        .px_3()
+        .px(|| px(if desktop_navigation() { 24.0 } else { 12.0 }))
         .gap_1()
         .border_b(px(1.0))
         .border_color(|| theme().border)
@@ -3857,9 +3858,30 @@ fn docs_header(
             view()
                 .flex_row()
                 .items_center()
+                .flex_shrink_0()
                 .gap_1()
                 .child(when(desktop_navigation, move || dynamic(desktop_sections)))
-                .child(button("Theme", Variant::Ghost, toggle_theme).h(px(44.0))),
+                .child(
+                    Button::new("NSH Shell")
+                        .variant(ButtonVariant::Ghost)
+                        .href("https://nsh.dev/")
+                        .h(px(44.0)),
+                )
+                .child(
+                    Button::new("GitHub")
+                        .variant(ButtonVariant::Ghost)
+                        .href("https://github.com/csdog/nsh-foundation")
+                        .h(px(44.0)),
+                )
+                .child(view().w(px(1.0)).h(px(16.0)).bg(|| theme().border))
+                .child(
+                    Button::new("Theme")
+                        .size(ButtonSize::Icon)
+                        .variant(ButtonVariant::Ghost)
+                        .icon_start(crate::examples::toggle_examples::icon(THEME_ICON, false))
+                        .on_press(toggle_theme)
+                        .size(px(44.0)),
+                ),
         )
 }
 
