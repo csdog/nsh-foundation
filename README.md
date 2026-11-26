@@ -11,7 +11,8 @@ add `apps/docs` as a local native dependency to reuse the gallery demo
 exports. Avatar, Drawer, Button, Badge, and Switch have direct TSX bindings.
 [Gallery example exports](apps/docs/src/native_examples.rs)
 
-Follow the [component plan](PLAN.md) and [release progress](PROGRESS.md).
+Use the [acceptance SOP](AGENTS.md#acceptance-sop) for current work.
+The original rollout is archived. [Component plan](archive/PLAN.md) · [Release history](archive/PROGRESS.md)
 
 ## Workspace
 

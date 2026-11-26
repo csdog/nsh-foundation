@@ -2,10 +2,11 @@
 
 use nsh_core::prelude::*;
 
+use crate::demo_source::{DemoSource, documented_example};
 use crate::examples::*;
 
 pub(crate) struct ExampleSource {
-    pub rsx: &'static str,
+    pub rsx: DemoSource,
     pub tsx: &'static str,
 }
 
@@ -19,6 +20,8 @@ fn toast_preview() -> impl IntoElement {
 macro_rules! gallery_examples {
     ($($page:ident $component:ident $factory:ident $label:literal => $render:path, $rsx:literal;)*) => {
         $(
+            documented_example!($factory, $rsx);
+
             #[doc = concat!("Builds the gallery's ", stringify!($page), " example.")]
             #[doc = concat!("\n```no_run\n", include_str!($rsx), "```")]
             pub fn $factory() -> impl IntoElement {
@@ -46,7 +49,7 @@ macro_rules! gallery_examples {
             match label {
                 $(
                     $label => Some(ExampleSource {
-                        rsx: include_str!($rsx),
+                        rsx: $factory::CODE,
                         tsx: concat!(
                             "import { ", stringify!($component), " } from \"nsh-foundation/native\";\n\n",
                             "export function Example() {\n",

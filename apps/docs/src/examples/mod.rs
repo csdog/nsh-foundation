@@ -65,3 +65,10 @@ pub(super) mod toggle_group_examples;
 pub(super) mod tooltip_examples;
 pub(super) mod trace_examples;
 pub(super) mod typography_examples;
+
+use crate::demo_source::documented_example;
+
+documented_example!(avatar_rust, "rsx/avatar_rust.rs");
+documented_example!(avatar_rsx, "rsx/avatar.rs");
+documented_example!(drawer_rust, "drawer_rust.rs");
+documented_example!(drawer_rsx, "drawer_rsx.rs");

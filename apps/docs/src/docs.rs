@@ -6,22 +6,24 @@ use nsh_core::{
     prelude::*,
 };
 
+use crate::demo_source::DemoSource;
 use crate::examples::{
     accordion_examples, alert_dialog_examples, alert_examples, aspect_ratio_examples,
-    attachment_examples, avatar_examples, badge_examples, breadcrumb_examples, bubble_examples,
-    button_examples, button_group_examples, calendar_examples, card_examples, carousel_examples,
-    chart_examples, chart_trends, checkbox_examples, code_block_examples, collapsible_examples,
-    combobox_examples, command_examples, composition, context_menu_examples, data_table_examples,
-    date_picker_examples, dialog_examples, drawer, dropdown_menu_examples, empty_examples,
-    field_examples, hover_card_examples, input_examples, input_group_examples, input_otp_examples,
-    item_examples, kbd_examples, label_examples, marker_examples, menubar_examples,
-    message_examples, message_scroller_examples, native_select_examples, navigation_menu_examples,
-    pagination_examples, popover_examples, progress_examples, questionnaire_examples,
-    radio_group_examples, resizable_examples, scroll_area_examples, select_examples,
-    separator_examples, sheet_examples, sidebar_examples, skeleton_examples, slider_examples,
-    spinner_examples, switch_examples, table_examples, tabs_examples, textarea_examples,
-    toast_examples, toggle_examples, toggle_group_examples, tooltip_examples, trace_examples,
-    typography_examples,
+    attachment_examples, avatar_examples, avatar_rsx, avatar_rust, badge_examples,
+    breadcrumb_examples, bubble_examples, button_examples, button_group_examples,
+    calendar_examples, card_examples, carousel_examples, chart_examples, chart_trends,
+    checkbox_examples, code_block_examples, collapsible_examples, combobox_examples,
+    command_examples, composition, context_menu_examples, data_table_examples,
+    date_picker_examples, dialog_examples, drawer, drawer_rsx, drawer_rust, dropdown_menu_examples,
+    empty_examples, field_examples, hover_card_examples, input_examples, input_group_examples,
+    input_otp_examples, item_examples, kbd_examples, label_examples, marker_examples,
+    menubar_examples, message_examples, message_scroller_examples, native_select_examples,
+    navigation_menu_examples, pagination_examples, popover_examples, progress_examples,
+    questionnaire_examples, radio_group_examples, resizable_examples, scroll_area_examples,
+    select_examples, separator_examples, sheet_examples, sidebar_examples, skeleton_examples,
+    slider_examples, spinner_examples, switch_examples, table_examples, tabs_examples,
+    textarea_examples, toast_examples, toggle_examples, toggle_group_examples, tooltip_examples,
+    trace_examples, typography_examples,
 };
 use components::{
     button::{Button, ButtonVariant},
@@ -53,104 +55,7 @@ const SECTIONS: [&str; 13] = [
     "API Reference",
 ];
 
-const DRAWER_RSX: &str = include_str!("examples/drawer_rsx.rs");
-
-const DRAWER_RUST: &str = r#"use components::{
-    div,
-    drawer::{
-        Drawer, DrawerRoot, drawer_close, drawer_content, drawer_description,
-        drawer_footer, drawer_header, drawer_title, drawer_trigger,
-    },
-};
-use nsh_core::{element::StyleRefinement, prelude::*};
-
-fn body_style(style: StyleRefinement) -> StyleRefinement {
-    style.flex_1().gap_2()
-}
-
-fn example() -> impl IntoElement {
-    let drawer = Drawer::new(signal(false));
-    DrawerRoot::new(drawer, move || {
-        div()
-            .child(drawer_trigger().child(text("Open Drawer")))
-            .child(
-                drawer_content()
-                    .accessibility_label("Move Goal")
-                    .child(|| {
-                        div().style_with(body_style)
-                            .child(drawer_header()
-                                .child(drawer_title().child(text("Move Goal")))
-                                .child(drawer_description().child(text("Set your daily activity goal."))))
-                            .child(drawer_footer()
-                                .child(drawer_close().child(text("Done"))))
-                    }),
-            )
-    })
-}"#;
-
-const SIZED: &str = r#"drawer_content().accessibility_label("Notification history").child(|| {
-    view().flex_1().min_h(px(0.0))
-        .child(drawer_header()
-            .child(drawer_title().child(text("Notification history"))))
-        .child(scroll().flex_1().min_h(px(0.0)).p_4().child(text("Order confirmed")))
-        .child(drawer_footer().child(drawer_close().child(text("Done"))))
-})
-.options(|| DrawerOptions {
-    height: Some(360.0),
-    ..Default::default()
-})"#;
-
-const FLOATING: &str = r#"drawer_content().accessibility_label("Floating Drawer").child(body)
-    .options(|| DrawerOptions {
-        direction: Direction::Right,
-        width: Some(360.0),
-        inset: 16.0,
-        ..Default::default()
-    })"#;
-
-const POSITION: &str = r#"drawer_content().accessibility_label("Move Goal").child(body)
-    .options(|| DrawerOptions {
-        direction: Direction::Left,
-        ..Default::default()
-    })"#;
-
-const HANDLE: &str = r#"drawer_content().accessibility_label("Drawer").child(body)
-    .options(|| DrawerOptions {
-        show_swipe_handle: true,
-        ..Default::default()
-    })"#;
-
-const NESTED: &str = r#"drawer_content().accessibility_label("Parent").child(move || {
-    let child = Drawer::nested(parent);
-    view().child(DrawerRoot::new(child, || {
-        view()
-            .child(drawer_trigger().child(text("Open Nested Drawer")))
-            .child(drawer_content().accessibility_label("Nested Drawer").child(|| {
-                view().child(drawer_footer().child(drawer_close().child(text("Close"))))
-            }))
-    }))
-})"#;
-
-const NON_MODAL: &str = r#"drawer_content().accessibility_label("Non Modal Drawer").child(body)
-    .options(|| DrawerOptions {
-        direction: Direction::Right,
-        modality: Modality::NonModal,
-        disable_outside_dismissal: true,
-        ..Default::default()
-    })"#;
-
-const SNAP: &str = r#"drawer_content().accessibility_label("Snap points").child(body)
-    .options(|| DrawerOptions {
-        show_swipe_handle: true,
-        snap_points: &[SnapPoint::Rem(31.0), SnapPoint::Fraction(1.0)],
-        ..Default::default()
-    })"#;
-
-const RESPONSIVE: &str = r#"drawer_content().accessibility_label("Edit profile").child(profile_form)
-    .options(|| DrawerOptions {
-        centered: window().width.0 >= 768.0,
-        ..Default::default()
-    })"#;
+const DRAWER_SOURCE: &str = include_str!("examples/drawer.rs");
 
 const TSX_DELIVERY: &str = include_str!("examples/drawer.tsx");
 const TSX_SIZED: &str = include_str!("../../../references/drawer-tsx/drawer-custom-size.tsx");
@@ -1107,10 +1012,10 @@ fn avatar_page() -> View {
     )
     .child(example_with_rsx(
         "Avatar demo",
-        crate::avatar_rsx::example(),
-        include_str!("examples/rsx/avatar_rust.rs"),
+        avatar_rsx::example(),
+        avatar_rust::CODE,
         Some(TsxExample::native(include_str!("examples/rsx/avatar.tsx"))),
-        Some(include_str!("examples/rsx/avatar.rs")),
+        Some(avatar_rsx::CODE),
     ))
     .child(demo!(demo, "demo", "Avatar group preview"))
     .child(heading("Usage"))
@@ -1165,9 +1070,9 @@ fn badge_page() -> View {
     .child(example_with_rsx(
         "Badge composition",
         composition::badge_rsx::example(),
-        include_str!("examples/composition/badge_rust.rs"),
+        composition::badge_rust::CODE,
         Some(TsxExample::native(include_str!("examples/composition/badge.tsx"))),
-        Some(include_str!("examples/composition/badge_rsx.rs")),
+        Some(composition::badge_rsx::CODE),
     ))
     .child(heading("Usage"))
     .child(muted("Use badge().child(...) to supply visible content. Set the variant or add an optional leading or trailing icon."))
@@ -1308,9 +1213,9 @@ fn button_page() -> View {
     .child(example_with_rsx(
         "Button composition",
         composition::button_rsx::example(),
-        include_str!("examples/composition/button_rust.rs"),
+        composition::button_rust::CODE,
         Some(TsxExample::native(include_str!("examples/composition/button.tsx"))),
-        Some(include_str!("examples/composition/button_rsx.rs")),
+        Some(composition::button_rsx::CODE),
     ))
     .child(heading("Usage"))
     .child(muted("Use button().child(...) for visible content. Set accessibility_label for icon-only buttons. Apply style_with before attaching an on_press callback or href."))
@@ -1487,9 +1392,9 @@ fn card_page() -> View {
     .child(example_with_rsx(
         "Card composition",
         composition::card_rsx::example(),
-        include_str!("examples/composition/card_rust.rs"),
+        composition::card_rust::CODE,
         Some(TsxExample::gallery(crate::native_examples::source("Card composition").unwrap().tsx)),
-        Some(include_str!("examples/composition/card_rsx.rs")),
+        Some(composition::card_rsx::CODE),
     ))
     .child(heading("Composition"))
     .child(muted("Use CardHeader for CardTitle, CardDescription, and CardAction. Put the main body in CardContent and the actions in CardFooter."))
@@ -1533,9 +1438,9 @@ fn carousel_page() -> View {
     .child(example_with_rsx(
         "Carousel composition",
         view().max_w(px(360.0)).w_full().child(composition::carousel_rsx::example()),
-        include_str!("examples/composition/carousel_rust.rs"),
+        composition::carousel_rust::CODE,
         Some(TsxExample::gallery(crate::native_examples::source("Carousel composition").unwrap().tsx)),
-        Some(include_str!("examples/composition/carousel_rsx.rs")),
+        Some(composition::carousel_rsx::CODE),
     ))
     .child(heading("Composition"))
     .child(muted("Use carousel_root().accessibility_label(...) to name the carousel. Add CarouselItem slides to CarouselContent, and place CarouselPrevious and CarouselNext around the viewport."))
@@ -3461,9 +3366,9 @@ fn switch_page() -> View {
     .child(example_with_rsx(
         "Switch composition",
         composition::switch_rsx::example(),
-        include_str!("examples/composition/switch_rust.rs"),
+        composition::switch_rust::CODE,
         Some(TsxExample::native(include_str!("examples/composition/switch.tsx"))),
-        Some(include_str!("examples/composition/switch_rsx.rs")),
+        Some(composition::switch_rsx::CODE),
     ))
     .child(heading("Usage"))
     .child(muted("Use switch().accessibility_label(...) to name the setting. For Rust-owned state, use default_checked. When you bind checked, update it from on_change in Rust or onChange in Native Shell TSX."))
@@ -4161,7 +4066,7 @@ fn drawer_page(sections: DrawerSections, non_modal: Drawer) -> View {
                     .child(button("Base UI reference", Variant::Outline, || { let _ = open_url(REFERENCE); }))
                     .child(button("Source", Variant::Ghost, || { let _ = open_url(SOURCE); }))),
         )
-        .child(example_with_rsx("Delivery time", delivery, DRAWER_RUST, Some(TsxExample::native(TSX_DELIVERY)), Some(DRAWER_RSX)))
+        .child(example_with_rsx("Delivery time", delivery, DemoSource::text(DRAWER_SOURCE), Some(TsxExample::native(TSX_DELIVERY)), Some(drawer_rsx::CODE)))
         .child(
             section("Installation", 0, locations)
                 .child(muted("Build the Native Shell Rust project for the Web target."))
@@ -4170,7 +4075,7 @@ fn drawer_page(sections: DrawerSections, non_modal: Drawer) -> View {
         .child(
             section("Usage", 1, locations)
                 .child(muted("Pass the Drawer state to DrawerRoot once. In Rust, compose the parts with .child(...). Pass the drawer_content body as a closure so it builds when the drawer opens."))
-                .child(code_block(DRAWER_RUST))
+                .child(runnable_code_panel(drawer_rust::CODE))
                 .child(muted("The TSX example imports Drawer parts from this app’s Native Shell module."))
 
         )
@@ -4179,35 +4084,35 @@ fn drawer_page(sections: DrawerSections, non_modal: Drawer) -> View {
             .child(code_panel("DrawerRoot\n├── DrawerTrigger\n└── DrawerContent\n    ├── DrawerPortal + DrawerOverlay\n    ├── DrawerHeader\n    │   ├── DrawerTitle\n    │   └── DrawerDescription\n    └── DrawerFooter\n        └── DrawerClose", "", false)))
         .child(section("Custom Sizes", 3, locations)
             .child(muted("Use height for vertical drawers and width for side drawers. Put long content in a scroll view."))
-            .child(example("Custom Sizes", custom_size, SIZED, TSX_SIZED))
+            .child(example("Custom Sizes", custom_size, DRAWER_SOURCE, TSX_SIZED))
             .child(custom_size_panel))
         .child(section("Styling", 4, locations)
             .child(muted("Edge drawers sit 8 points from the viewport by default. Set inset to override the gap. The header and footer add 16 points of padding at the panel edges. Use p_4() on the body for matching spacing or set its own padding for edge-to-edge content."))
-            .child(example("Styling", floating, FLOATING, TSX_FLOATING))
+            .child(example("Styling", floating, DRAWER_SOURCE, TSX_FLOATING))
             .child(floating_panel))
         .child(section("Examples", 5, locations))
         .child(section("Position", 6, locations)
             .child(muted("Open the drawer from any of the four screen edges."))
-            .child(example("Position", positions, POSITION, TSX_POSITION))
+            .child(example("Position", positions, DRAWER_SOURCE, TSX_POSITION))
             .child(position_panels))
         .child(section("Swipe Handle", 7, locations)
             .child(muted("Drag the handle toward the edge to dismiss the drawer."))
-            .child(example("Swipe Handle", swipe, HANDLE, TSX_HANDLE))
+            .child(example("Swipe Handle", swipe, DRAWER_SOURCE, TSX_HANDLE))
             .child(swipe_panel))
         .child(section("Nested", 8, locations)
             .child(muted("Open up to four drawers. Close the topmost drawer to return to the previous one."))
-            .child(example("Nested", nested, NESTED, TSX_NESTED))
+            .child(example("Nested", nested, DRAWER_SOURCE, TSX_NESTED))
             .child(nested_panel))
         .child(section("Non Modal", 9, locations)
             .child(muted("Scroll and interact with this page while the drawer stays open."))
-            .child(example("Non Modal", non_modal, NON_MODAL, TSX_NON_MODAL)))
+            .child(example("Non Modal", non_modal, DRAWER_SOURCE, TSX_NON_MODAL)))
         .child(section("Snap Points", 10, locations)
             .child(muted("Drag the drawer between a compact peek and its full height."))
-            .child(example("Snap Points", snap, SNAP, TSX_SNAP))
+            .child(example("Snap Points", snap, DRAWER_SOURCE, TSX_SNAP))
             .child(snap_panel))
         .child(section("Responsive", 11, locations)
             .child(muted("Edit the profile in a desktop dialog or a mobile drawer."))
-            .child(example("Responsive", responsive, RESPONSIVE, TSX_RESPONSIVE))
+            .child(example("Responsive", responsive, DRAWER_SOURCE, TSX_RESPONSIVE))
             .child(responsive_panel))
         .child(section("API Reference", 12, locations)
             .child(muted("Use Drawer::new with an open signal. Drawer::nested links a child to a parent that remains mounted."))
@@ -4419,7 +4324,7 @@ fn example(
     example_with_rsx(
         label,
         contents,
-        rust,
+        DemoSource::text(rust),
         source
             .as_ref()
             .map(|source| TsxExample::gallery(source.tsx)),
@@ -4451,9 +4356,9 @@ impl TsxExample {
 fn example_with_rsx(
     label: &'static str,
     contents: impl IntoElement,
-    rust: &'static str,
+    rust: DemoSource,
     tsx: Option<TsxExample>,
-    rsx: Option<&'static str>,
+    rsx: Option<DemoSource>,
 ) -> View {
     let preview = stored(Some(contents.into_element()));
     let mut list = TabsList::new(format!("{label} views"))
@@ -4478,9 +4383,7 @@ fn example_with_rsx(
             })
             .keep_mounted(),
         )
-        .content(TabsContent::new("rust", move || {
-            code_panel(rust, "rust", true)
-        }));
+        .content(TabsContent::new("rust", move || runnable_code_panel(rust)));
     if let Some(tsx) = tsx {
         tabs = tabs.content(TabsContent::new("tsx", move || {
             view()
@@ -4489,9 +4392,7 @@ fn example_with_rsx(
         }));
     }
     if let Some(rsx) = rsx {
-        tabs = tabs.content(TabsContent::new("rsx", move || {
-            code_panel(rsx, "rust", true)
-        }));
+        tabs = tabs.content(TabsContent::new("rsx", move || runnable_code_panel(rsx)));
     }
     view()
         .role(AccessibilityRole::Region)
@@ -4501,6 +4402,31 @@ fn example_with_rsx(
         .rounded(px(12.0))
         .overflow_hidden()
         .child(tabs.surface().p_2())
+}
+
+fn runnable_code_panel(source: DemoSource) -> View {
+    let mut panel = view().gap_2().child(code_panel(source.text, "rust", true));
+    if let Some(render) = source.render {
+        let running = signal(false);
+        panel = panel
+            .child(
+                view().items_start().child(
+                    Button::new(move || {
+                        if running.get() {
+                            "Hide example"
+                        } else {
+                            "Run example"
+                        }
+                    })
+                    .variant(ButtonVariant::Outline)
+                    .on_press(move || running.update(|running| *running = !*running)),
+                ),
+            )
+            .child(when(running, move || {
+                view().p_4().items_center().child(render())
+            }));
+    }
+    panel
 }
 
 fn code_block(value: &'static str) -> View {

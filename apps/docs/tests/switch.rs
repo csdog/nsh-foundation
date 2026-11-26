@@ -101,5 +101,13 @@ fn switch_composition_toggles_and_copies_all_three_examples() {
         app.press(&format!("{region} >> {tab}")).unwrap();
         app.press(&format!("{region} >> Copy")).unwrap();
         assert_eq!(app.screen().clipboard().unwrap(), source);
+        if tab != "TSX" {
+            app.press(&format!("{region} >> Run example")).unwrap();
+            assert_eq!(checked(&app), Some(Checked::False));
+            app.press(&control).unwrap();
+            assert_eq!(checked(&app), Some(Checked::True));
+            app.press(&format!("{region} >> Hide example")).unwrap();
+            assert_eq!(app.screen().count(&control), Ok(0));
+        }
     }
 }

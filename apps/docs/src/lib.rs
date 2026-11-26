@@ -1,8 +1,7 @@
 //! Native Shell component gallery and Web entry point.
 
-#[path = "examples/rsx/avatar.rs"]
-mod avatar_rsx;
 mod blocks;
+mod demo_source;
 mod docs;
 mod examples;
 pub mod native_examples;

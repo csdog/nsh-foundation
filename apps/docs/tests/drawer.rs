@@ -202,19 +202,10 @@ fn code_tabs_copy_the_selected_language_and_can_return_to_preview() {
             .count(&format!("{region} >> role:button[Copied]")),
         Ok(1),
     );
-    let source = app.screen().clipboard().unwrap();
-    assert!(source.contains("drawer_trigger().child(text(\"Open Drawer\"))"));
-    assert!(source.contains("drawer_content()"));
-    assert!(source.contains(".accessibility_label(\"Move Goal\")"));
-    assert!(source.contains(".child(drawer_header()"));
-    assert!(source.contains(".child(drawer_footer()"));
-    assert!(source.contains("drawer_title().child(text(\"Move Goal\"))"));
-    assert!(source.contains("drawer_description().child(text("));
-    assert!(source.contains("drawer_close().child(text(\"Done\"))"));
-    assert!(!source.contains("Props"));
-    assert!(source.contains("DrawerRoot::new(drawer, move || {"));
-    assert!(!source.contains("rsx!"));
-    assert!(source.contains(".style_with(body_style)"));
+    assert_eq!(
+        app.screen().clipboard().unwrap(),
+        include_str!("../src/examples/drawer.rs"),
+    );
     interact(&mut app, &format!("{region} >> RSX"));
     assert_eq!(
         app.screen()
@@ -227,6 +218,10 @@ fn code_tabs_copy_the_selected_language_and_can_return_to_preview() {
     assert_eq!(source, include_str!("../src/examples/drawer_rsx.rs"));
     assert!(source.contains("<DrawerContent accessibilityLabel=\"Move Goal\">"));
     assert!(source.contains("<View style={{ padding: 16, gap: 8 }}>"));
+    interact(&mut app, &format!("{region} >> Run example"));
+    interact(&mut app, &format!("{region} >> role:button[Open Drawer]"));
+    assert!(app.shows("Set your daily activity goal."));
+    interact(&mut app, "Done");
     interact(&mut app, &format!("{region} >> TSX"));
     assert_highlighted_line(&app, "import { Text, View } from \"nsh\";");
     assert!(app.shows("Native Shell"));

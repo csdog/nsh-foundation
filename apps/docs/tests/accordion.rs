@@ -146,3 +146,30 @@ fn desktop_sidebar_keeps_its_offset_and_reveals_the_current_page() {
     assert_eq!(sidebar_id(&app), sidebar);
     assert!((58.0..900.0).contains(&sidebar_row_y(&app, "Switch")));
 }
+
+#[test]
+fn rsx_tab_runs_the_same_file_that_is_copied() {
+    let mut app = Headless::start_at_page(
+        EngineConfig::new(Root::of::<App>()),
+        "https://foundation.test/#accordion",
+    )
+    .unwrap();
+    app.first_render().unwrap();
+
+    let region = "role:region[Accordion demo]";
+    app.press(&format!("{region} >> RSX")).unwrap();
+    app.press(&format!("{region} >> Copy")).unwrap();
+    assert_eq!(
+        app.screen().clipboard().unwrap(),
+        include_str!("../src/examples/rsx/accordion.rs"),
+    );
+    app.press(&format!("{region} >> Run example")).unwrap();
+    app.wait_for("Orders ship on weekdays.").unwrap();
+    app.press(&format!("{region} >> role:button[Shipping]"))
+        .unwrap();
+    app.wait_for_gone(
+        "Orders ship on weekdays.",
+        std::time::Duration::from_secs(1),
+    )
+    .unwrap();
+}
