@@ -3,6 +3,7 @@
 mod blocks;
 mod docs;
 mod examples;
+pub mod native_examples;
 
 use nsh_core::prelude::*;
 
@@ -10,6 +11,10 @@ use nsh_core::prelude::*;
 fn native(registry: &mut Registry) {
     registry.register::<App>();
     components::drawer::tsx::register(registry);
+    components::badge::tsx::register(registry);
+    components::button::tsx::register(registry);
+    components::switch::tsx::register(registry);
+    native_examples::register(registry);
     registry.assets(assets!());
 }
 

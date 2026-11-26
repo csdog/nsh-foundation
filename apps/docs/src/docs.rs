@@ -1481,12 +1481,13 @@ fn card_page() -> View {
     .child(demo!(login, preview, "demo", "Card demo"))
     .child(heading("Composition"))
     .child(muted("Use CardHeader for CardTitle, CardDescription, and CardAction. Put the main body in CardContent and the actions in CardFooter."))
-    .child(example_with_rsx(
+    .child(example_with_sources(
         "Card composition",
         composition::card_rsx::example(),
         include_str!("examples/composition/card_rust.rs"),
-        TsxExample::shadcn(include_str!("../../../references/card-tsx/card-demo.tsx")),
+        TsxExample::gallery(crate::native_examples::source("Card composition").unwrap().tsx),
         Some(include_str!("examples/composition/card_rsx.rs")),
+        Some(include_str!("../../../references/card-tsx/card-demo.tsx")),
     ))
     .child(heading("Size"))
     .child(demo!(small, preview, "small", "Small"))
@@ -1527,12 +1528,13 @@ fn carousel_page() -> View {
     .child(demo!(demo, "demo", "Carousel demo"))
     .child(heading("Composition"))
     .child(muted("Use carousel_root().accessibility_label(...) to name the carousel. Add CarouselItem slides to CarouselContent, and place CarouselPrevious and CarouselNext around the viewport."))
-    .child(example_with_rsx(
+    .child(example_with_sources(
         "Carousel composition",
         view().max_w(px(360.0)).w_full().child(composition::carousel_rsx::example()),
         include_str!("examples/composition/carousel_rust.rs"),
-        TsxExample::shadcn(include_str!("../../../references/carousel-tsx/carousel-demo.tsx")),
+        TsxExample::gallery(crate::native_examples::source("Carousel composition").unwrap().tsx),
         Some(include_str!("examples/composition/carousel_rsx.rs")),
+        Some(include_str!("../../../references/carousel-tsx/carousel-demo.tsx")),
     ))
     .child(heading("Sizes"))
     .child(demo!(sizes, "size", "Sizes"))
@@ -4417,6 +4419,16 @@ fn example(
     rust: &'static str,
     tsx: &'static str,
 ) -> View {
+    if let Some(source) = crate::native_examples::source(label) {
+        return example_with_sources(
+            label,
+            contents,
+            rust,
+            TsxExample::gallery(source.tsx),
+            Some(source.rsx),
+            Some(tsx),
+        );
+    }
     example_with_rsx(label, contents, rust, TsxExample::shadcn(tsx), None)
 }
 
@@ -4444,6 +4456,14 @@ impl TsxExample {
         }
     }
 
+    fn gallery(source: &'static str) -> Self {
+        Self {
+            source,
+            label: "TSX",
+            byline: "Native Shell · renders the Rust gallery example",
+        }
+    }
+
     fn native(source: &'static str) -> Self {
         Self {
             source,
@@ -4460,6 +4480,17 @@ fn example_with_rsx(
     tsx: TsxExample,
     rsx: Option<&'static str>,
 ) -> View {
+    example_with_sources(label, contents, rust, tsx, rsx, None)
+}
+
+fn example_with_sources(
+    label: &'static str,
+    contents: impl IntoElement,
+    rust: &'static str,
+    tsx: TsxExample,
+    rsx: Option<&'static str>,
+    reference: Option<&'static str>,
+) -> View {
     let preview = stored(Some(contents.into_element()));
     let mut list = TabsList::new(format!("{label} views"))
         .trigger(TabsTrigger::new("preview", "Preview"))
@@ -4467,7 +4498,11 @@ fn example_with_rsx(
     if rsx.is_some() {
         list = list.trigger(TabsTrigger::new("rsx", "RSX"));
     }
-    let mut tabs = Tabs::new(list.trigger(TabsTrigger::new("tsx", tsx.label)))
+    list = list.trigger(TabsTrigger::new("tsx", tsx.label));
+    if reference.is_some() {
+        list = list.trigger(TabsTrigger::new("reference", "shadcn/ui"));
+    }
+    let mut tabs = Tabs::new(list)
         .default_value("preview")
         .content(
             TabsContent::new("preview", move || {
@@ -4491,6 +4526,18 @@ fn example_with_rsx(
     if let Some(rsx) = rsx {
         tabs = tabs.content(TabsContent::new("rsx", move || {
             code_panel(rsx, "rust", true)
+        }));
+    }
+    if let Some(reference) = reference {
+        tabs = tabs.content(TabsContent::new("reference", move || {
+            view()
+                .child(
+                    view()
+                        .px_3()
+                        .py_2()
+                        .child(muted("shadcn/ui · React + Base UI")),
+                )
+                .child(code_panel(reference, "tsx", true))
         }));
     }
     view()
@@ -4530,4 +4577,29 @@ fn api_row(name: &'static str, description: &'static str) -> View {
         .bg(move || theme().muted)
         .child(text(name).text_sm().font_family("monospace"))
         .child(muted(description))
+}
+
+#[cfg(test)]
+mod language_coverage {
+    use super::*;
+    use nsh_core::element::Root;
+    use nsh_engine::EngineConfig;
+    use nsh_testing::Headless;
+
+    #[test]
+    fn every_component_page_offers_rust_rsx_and_native_tsx() {
+        for route in std::iter::once("#drawer").chain(COMPONENTS.iter().map(|route| route.2)) {
+            let config = EngineConfig::new(Root::of::<crate::App>());
+            let mut app =
+                Headless::start_at_page(config, &format!("https://foundation.test/{route}"))
+                    .unwrap();
+            app.first_render().unwrap();
+            for tab in ["Rust", "RSX", "TSX"] {
+                assert!(
+                    app.screen().count(&format!("role:tab[{tab}]")).unwrap() > 0,
+                    "{route} is missing {tab}"
+                );
+            }
+        }
+    }
 }
