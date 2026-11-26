@@ -34,6 +34,17 @@ fn expand(input: TokenStream) -> Result<Tokens> {
             .macro_call_pattern(quote!(rsx! {%%})),
     );
     let nodes = parser.parse_recoverable(input).into_result()?;
+    for node in &nodes {
+        if !matches!(
+            node,
+            Node::Element(_) | Node::Fragment(_) | Node::Comment(_)
+        ) {
+            return Err(syn::Error::new_spanned(
+                node,
+                "expected a TSX-style tag or fragment at the root of rsx!",
+            ));
+        }
+    }
     let emitter = Emitter {
         core: core.clone(),
         drawer: quote!(::#library_ident::drawer),
