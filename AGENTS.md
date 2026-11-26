@@ -133,12 +133,13 @@ Use a zero-argument builder when visible content belongs in children, as in
 Use `accessibility_label` for a name that the visible children cannot supply.
 Preserve typed slots for compound components such as Card and Carousel.
 
-Keep each documented Rust builder example and its RSX counterpart in sync
-with the preview. The composition examples for
-[Button, Badge, Card, Carousel, and Switch](apps/docs/src/examples/composition) show
-how to do this. Label Native Shell TSX examples as **TSX** and upstream
-React examples as **shadcn/ui**. The first demo on every gallery component page must offer
-Rust, RSX, and Native Shell TSX code. Use the
-[gallery example exports](apps/docs/src/native_examples.rs) to share a
-runnable Rust demo with RSX and TSX when the native module exposes the demo
-as a whole. Document which API the example uses.
+Keep the Rust builder example and its RSX counterpart focused on the
+component API. Use component tags when they exist and embed the actual Rust
+builders when a component requires Rust state or typed parts. Copied RSX
+examples must compile with the component library and Native Shell, without
+importing the documentation app.
+
+The first demo on every component page must offer Preview, Rust, RSX,
+and Native Shell TSX. Link to upstream React examples through Base UI
+reference. Label TSX demo exports as such when the native module exposes
+the Rust demo as a whole.

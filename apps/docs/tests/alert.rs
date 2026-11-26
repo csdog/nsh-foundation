@@ -33,11 +33,10 @@ fn alert_docs_expose_all_examples_and_the_action_updates_its_message() {
     app.press("role:region[Action] >> role:button[Enable]")
         .unwrap();
     assert!(app.shows("Preference saved for this example."));
-    app.press("role:region[Action] >> shadcn/ui").unwrap();
-    app.press("role:region[Action] >> Copy").unwrap();
     assert_eq!(
-        app.screen().clipboard().unwrap(),
-        include_str!("../../../references/alert-tsx/alert-action.tsx")
+        app.screen()
+            .count("role:region[Action] >> role:tab[shadcn/ui]"),
+        Ok(0)
     );
     app.press("id:docs-menu-trigger").unwrap();
     app.press("role:dialog[Menu] >> Accordion").unwrap();

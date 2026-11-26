@@ -64,11 +64,10 @@ fn mobile_docs_link_to_accordion_and_back_to_drawer() {
         .unwrap();
     assert_eq!(notifications.expanded, Some(true));
     assert_eq!(privacy.expanded, Some(true));
-    app.press("role:region[Basic] >> shadcn/ui").unwrap();
-    app.press("role:region[Basic] >> Copy").unwrap();
     assert_eq!(
-        app.screen().clipboard().unwrap(),
-        include_str!("../../../references/accordion-tsx/accordion-basic.tsx")
+        app.screen()
+            .count("role:region[Basic] >> role:tab[shadcn/ui]"),
+        Ok(0)
     );
     app.press("id:docs-menu-trigger").unwrap();
     app.scroll("id:docs-menu-panel", px(940.0)).unwrap();

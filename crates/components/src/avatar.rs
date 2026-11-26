@@ -1,12 +1,14 @@
 //! Rhea-styled avatars backed by Native Shell's image loading and fallback.
 
-use nsh_base::{avatar, theme};
+use nsh_base::{avatar as base_avatar, theme};
+
+pub mod tsx;
 use nsh_core::{
     element::{ImageSrc, LayoutDirection},
     prelude::*,
 };
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PropEnum)]
 pub enum AvatarSize {
     Small,
     #[default]
@@ -25,7 +27,7 @@ impl AvatarSize {
 }
 
 pub struct Avatar {
-    name: &'static str,
+    name: SharedString,
     image: Option<AvatarImage>,
     fallback: Option<AvatarFallback>,
     badge: Option<AvatarBadge>,
@@ -35,9 +37,9 @@ pub struct Avatar {
 }
 
 impl Avatar {
-    pub fn new(name: &'static str) -> Self {
+    pub fn new(name: impl Into<SharedString>) -> Self {
         Self {
-            name,
+            name: name.into(),
             image: None,
             fallback: None,
             badge: None,
@@ -45,6 +47,11 @@ impl Avatar {
             grayscale: false,
             grouped: false,
         }
+    }
+
+    pub fn name(mut self, name: impl Into<SharedString>) -> Self {
+        self.name = name.into();
+        self
     }
 
     pub fn image(mut self, image: AvatarImage) -> Self {
@@ -78,9 +85,9 @@ impl IntoElement for Avatar {
         let size = self.size;
         let label = match self.badge.as_ref().and_then(|badge| badge.status) {
             Some(status) => SharedString::from(format!("{}, {status}", self.name)),
-            None => self.name.into(),
+            None => self.name.clone(),
         };
-        let mut root = avatar()
+        let mut root = base_avatar()
             .name(self.name)
             .accessibility_label(label)
             .src(self.image.map(|image| image.0))
@@ -120,11 +127,11 @@ impl AvatarImage {
     }
 }
 
-pub struct AvatarFallback(&'static str);
+pub struct AvatarFallback(SharedString);
 
 impl AvatarFallback {
-    pub fn new(initials: &'static str) -> Self {
-        Self(initials)
+    pub fn new(initials: impl Into<SharedString>) -> Self {
+        Self(initials.into())
     }
 }
 

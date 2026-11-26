@@ -67,3 +67,31 @@ fn avatar_gallery_has_all_examples_and_dropdown_is_operable() {
     app.wait_for_gone("role:menuitem[Billing]", Duration::from_secs(1))
         .unwrap();
 }
+
+#[test]
+fn avatar_demo_shows_and_copies_the_actual_rsx_component() {
+    let mut app = Headless::start_at_page(
+        EngineConfig::new(Root::of::<App>()),
+        "https://foundation.test/#avatar",
+    )
+    .unwrap();
+    app.first_render().unwrap();
+    let region = "role:region[Avatar demo]";
+    assert_eq!(
+        app.screen()
+            .count(&format!("{region} >> role:image[Ada Lovelace]")),
+        Ok(1)
+    );
+    app.press(&format!("{region} >> RSX")).unwrap();
+    app.press(&format!("{region} >> Copy")).unwrap();
+    assert_eq!(
+        app.screen().clipboard().unwrap(),
+        include_str!("../src/examples/rsx/avatar.rs"),
+    );
+    app.press(&format!("{region} >> TSX")).unwrap();
+    app.press(&format!("{region} >> Copy")).unwrap();
+    assert_eq!(
+        app.screen().clipboard().unwrap(),
+        include_str!("../src/examples/rsx/avatar.tsx"),
+    );
+}

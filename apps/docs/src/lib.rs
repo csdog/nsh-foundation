@@ -1,5 +1,7 @@
 //! Native Shell component gallery and Web entry point.
 
+#[path = "examples/rsx/avatar.rs"]
+mod avatar_rsx;
 mod blocks;
 mod docs;
 mod examples;
@@ -11,6 +13,7 @@ use nsh_core::prelude::*;
 fn native(registry: &mut Registry) {
     registry.register::<App>();
     components::drawer::tsx::register(registry);
+    components::avatar::tsx::register(registry);
     components::badge::tsx::register(registry);
     components::button::tsx::register(registry);
     components::switch::tsx::register(registry);

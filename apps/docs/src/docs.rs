@@ -161,7 +161,6 @@ const TSX_NESTED: &str = include_str!("../../../references/drawer-tsx/drawer-nes
 const TSX_NON_MODAL: &str = include_str!("../../../references/drawer-tsx/drawer-non-modal.tsx");
 const TSX_SNAP: &str = include_str!("../../../references/drawer-tsx/drawer-snap-points.tsx");
 const TSX_RESPONSIVE: &str = include_str!("../../../references/drawer-tsx/drawer-dialog.tsx");
-const TSX_LICENSE: &str = include_str!("../../../references/drawer-tsx/LICENSE.md");
 
 #[derive(Clone, Copy, Default, PartialEq, Eq)]
 enum DocsPage {
@@ -1106,7 +1105,14 @@ fn avatar_page() -> View {
         "A profile image with a fallback, optional badge, and grouping.",
         "https://ui.shadcn.com/docs/components/base/avatar",
     )
-    .child(demo!(demo, "demo", "Avatar demo"))
+    .child(example_with_rsx(
+        "Avatar demo",
+        crate::avatar_rsx::example(),
+        include_str!("examples/rsx/avatar_rust.rs"),
+        Some(TsxExample::native(include_str!("examples/rsx/avatar.tsx"))),
+        Some(include_str!("examples/rsx/avatar.rs")),
+    ))
+    .child(demo!(demo, "demo", "Avatar group preview"))
     .child(heading("Usage"))
     .child(muted("Compose AvatarImage and AvatarFallback inside Avatar. Set the accessible name on Avatar and add an optional AvatarBadge."))
     .child(heading("Basic"))
@@ -1156,13 +1162,12 @@ fn badge_page() -> View {
         "A compact label for a status, category, or link.",
         "https://ui.shadcn.com/docs/components/base/badge",
     )
-    .child(example_with_sources(
+    .child(example_with_rsx(
         "Badge composition",
         composition::badge_rsx::example(),
         include_str!("examples/composition/badge_rust.rs"),
-        TsxExample::native(include_str!("examples/composition/badge.tsx")),
+        Some(TsxExample::native(include_str!("examples/composition/badge.tsx"))),
         Some(include_str!("examples/composition/badge_rsx.rs")),
-        Some(include_str!("../../../references/badge-tsx/badge-demo.tsx")),
     ))
     .child(heading("Usage"))
     .child(muted("Use badge().child(...) to supply visible content. Set the variant or add an optional leading or trailing icon."))
@@ -1300,13 +1305,12 @@ fn button_page() -> View {
         "A control that runs an action or opens a destination.",
         "https://ui.shadcn.com/docs/components/base/button",
     )
-    .child(example_with_sources(
+    .child(example_with_rsx(
         "Button composition",
         composition::button_rsx::example(),
         include_str!("examples/composition/button_rust.rs"),
-        TsxExample::native(include_str!("examples/composition/button.tsx")),
+        Some(TsxExample::native(include_str!("examples/composition/button.tsx"))),
         Some(include_str!("examples/composition/button_rsx.rs")),
-        Some(include_str!("../../../references/button-tsx/button-demo.tsx")),
     ))
     .child(heading("Usage"))
     .child(muted("Use button().child(...) for visible content. Set accessibility_label for icon-only buttons. Apply style_with before attaching an on_press callback or href."))
@@ -1480,13 +1484,12 @@ fn card_page() -> View {
         "Group a title, description, content, and actions in a surface.",
         "https://ui.shadcn.com/docs/components/base/card",
     )
-    .child(example_with_sources(
+    .child(example_with_rsx(
         "Card composition",
         composition::card_rsx::example(),
         include_str!("examples/composition/card_rust.rs"),
-        TsxExample::gallery(crate::native_examples::source("Card composition").unwrap().tsx),
+        Some(TsxExample::gallery(crate::native_examples::source("Card composition").unwrap().tsx)),
         Some(include_str!("examples/composition/card_rsx.rs")),
-        Some(include_str!("../../../references/card-tsx/card-demo.tsx")),
     ))
     .child(heading("Composition"))
     .child(muted("Use CardHeader for CardTitle, CardDescription, and CardAction. Put the main body in CardContent and the actions in CardFooter."))
@@ -1527,13 +1530,12 @@ fn carousel_page() -> View {
         "Drag or swipe to change slides. You can also scroll along the carousel, use the arrow keys, or press the navigation buttons.",
         "https://ui.shadcn.com/docs/components/base/carousel",
     )
-    .child(example_with_sources(
+    .child(example_with_rsx(
         "Carousel composition",
         view().max_w(px(360.0)).w_full().child(composition::carousel_rsx::example()),
         include_str!("examples/composition/carousel_rust.rs"),
-        TsxExample::gallery(crate::native_examples::source("Carousel composition").unwrap().tsx),
+        Some(TsxExample::gallery(crate::native_examples::source("Carousel composition").unwrap().tsx)),
         Some(include_str!("examples/composition/carousel_rsx.rs")),
-        Some(include_str!("../../../references/carousel-tsx/carousel-demo.tsx")),
     ))
     .child(heading("Composition"))
     .child(muted("Use carousel_root().accessibility_label(...) to name the carousel. Add CarouselItem slides to CarouselContent, and place CarouselPrevious and CarouselNext around the viewport."))
@@ -2040,8 +2042,6 @@ fn direction_page() -> View {
     .child(heading("use_direction"))
     .child(muted("Read the nearest provider from a component inside the scope. Without a provider the value follows the Native Shell surface."))
     .child(code_block("let direction = use_direction();\ntext(move || format!(\"Current direction: {}\", direction.get().as_str()))"))
-    .child(heading("TSX provider"))
-    .child(code_panel(include_str!("../../../references/direction-tsx/direction.tsx"), "tsx", true))
 }
 
 fn dropdown_menu_page() -> View {
@@ -3458,13 +3458,12 @@ fn switch_page() -> View {
         "Turn a setting on or off.",
         "https://ui.shadcn.com/docs/components/base/switch",
     )
-    .child(example_with_sources(
+    .child(example_with_rsx(
         "Switch composition",
         composition::switch_rsx::example(),
         include_str!("examples/composition/switch_rust.rs"),
-        TsxExample::native(include_str!("examples/composition/switch.tsx")),
+        Some(TsxExample::native(include_str!("examples/composition/switch.tsx"))),
         Some(include_str!("examples/composition/switch_rsx.rs")),
-        Some(include_str!("../../../references/switch-tsx/switch-demo.tsx")),
     ))
     .child(heading("Usage"))
     .child(muted("Use switch().accessibility_label(...) to name the setting. For Rust-owned state, use default_checked. When you bind checked, update it from on_change in Rust or onChange in Native Shell TSX."))
@@ -4125,7 +4124,6 @@ fn drawer_page(sections: DrawerSections, non_modal: Drawer) -> View {
     selected.set(None);
     non_modal.close();
     let status = signal(None::<SharedString>);
-    let show_tsx_license = signal(false);
     let go = move |index| sections.go(index);
 
     let delivery = drawer::delivery(status);
@@ -4163,9 +4161,7 @@ fn drawer_page(sections: DrawerSections, non_modal: Drawer) -> View {
                     .child(button("Base UI reference", Variant::Outline, || { let _ = open_url(REFERENCE); }))
                     .child(button("Source", Variant::Ghost, || { let _ = open_url(SOURCE); }))),
         )
-        .child(example_with_rsx("Delivery time", delivery, DRAWER_RUST, TsxExample {
-            source: TSX_DELIVERY, label: "TSX", byline: "Native Shell",
-        }, Some(DRAWER_RSX)))
+        .child(example_with_rsx("Delivery time", delivery, DRAWER_RUST, Some(TsxExample::native(TSX_DELIVERY)), Some(DRAWER_RSX)))
         .child(
             section("Installation", 0, locations)
                 .child(muted("Build the Native Shell Rust project for the Web target."))
@@ -4175,46 +4171,43 @@ fn drawer_page(sections: DrawerSections, non_modal: Drawer) -> View {
             section("Usage", 1, locations)
                 .child(muted("Pass the Drawer state to DrawerRoot once. In Rust, compose the parts with .child(...). Pass the drawer_content body as a closure so it builds when the drawer opens."))
                 .child(code_block(DRAWER_RUST))
-                .child(muted("The TSX example imports Drawer parts from this app’s Native Shell module. The shadcn/ui tabs show the upstream React examples for reference."))
-                .child(view().items_start().child(button("shadcn/ui example license", Variant::Outline, move || {
-                    show_tsx_license.update(|open| *open = !*open);
-                })))
-                .child(when(show_tsx_license, || code_panel(TSX_LICENSE, "md", false))),
+                .child(muted("The TSX example imports Drawer parts from this app’s Native Shell module."))
+
         )
         .child(section("Composition", 2, locations)
             .child(muted("The trigger can sit anywhere in the layout. DrawerContent supplies the window layer and backdrop, and mounts its children when the drawer opens."))
             .child(code_panel("DrawerRoot\n├── DrawerTrigger\n└── DrawerContent\n    ├── DrawerPortal + DrawerOverlay\n    ├── DrawerHeader\n    │   ├── DrawerTitle\n    │   └── DrawerDescription\n    └── DrawerFooter\n        └── DrawerClose", "", false)))
         .child(section("Custom Sizes", 3, locations)
             .child(muted("Use height for vertical drawers and width for side drawers. Put long content in a scroll view."))
-            .child(drawer_reference("Custom Sizes", custom_size, SIZED, TSX_SIZED))
+            .child(example("Custom Sizes", custom_size, SIZED, TSX_SIZED))
             .child(custom_size_panel))
         .child(section("Styling", 4, locations)
             .child(muted("Edge drawers sit 8 points from the viewport by default. Set inset to override the gap. The header and footer add 16 points of padding at the panel edges. Use p_4() on the body for matching spacing or set its own padding for edge-to-edge content."))
-            .child(drawer_reference("Styling", floating, FLOATING, TSX_FLOATING))
+            .child(example("Styling", floating, FLOATING, TSX_FLOATING))
             .child(floating_panel))
         .child(section("Examples", 5, locations))
         .child(section("Position", 6, locations)
             .child(muted("Open the drawer from any of the four screen edges."))
-            .child(drawer_reference("Position", positions, POSITION, TSX_POSITION))
+            .child(example("Position", positions, POSITION, TSX_POSITION))
             .child(position_panels))
         .child(section("Swipe Handle", 7, locations)
             .child(muted("Drag the handle toward the edge to dismiss the drawer."))
-            .child(drawer_reference("Swipe Handle", swipe, HANDLE, TSX_HANDLE))
+            .child(example("Swipe Handle", swipe, HANDLE, TSX_HANDLE))
             .child(swipe_panel))
         .child(section("Nested", 8, locations)
             .child(muted("Open up to four drawers. Close the topmost drawer to return to the previous one."))
-            .child(drawer_reference("Nested", nested, NESTED, TSX_NESTED))
+            .child(example("Nested", nested, NESTED, TSX_NESTED))
             .child(nested_panel))
         .child(section("Non Modal", 9, locations)
             .child(muted("Scroll and interact with this page while the drawer stays open."))
-            .child(drawer_reference("Non Modal", non_modal, NON_MODAL, TSX_NON_MODAL)))
+            .child(example("Non Modal", non_modal, NON_MODAL, TSX_NON_MODAL)))
         .child(section("Snap Points", 10, locations)
             .child(muted("Drag the drawer between a compact peek and its full height."))
-            .child(drawer_reference("Snap Points", snap, SNAP, TSX_SNAP))
+            .child(example("Snap Points", snap, SNAP, TSX_SNAP))
             .child(snap_panel))
         .child(section("Responsive", 11, locations)
             .child(muted("Edit the profile in a desktop dialog or a mobile drawer."))
-            .child(drawer_reference("Responsive", responsive, RESPONSIVE, TSX_RESPONSIVE))
+            .child(example("Responsive", responsive, RESPONSIVE, TSX_RESPONSIVE))
             .child(responsive_panel))
         .child(section("API Reference", 12, locations)
             .child(muted("Use Drawer::new with an open signal. Drawer::nested links a child to a parent that remains mounted."))
@@ -4420,49 +4413,29 @@ fn example(
     label: &'static str,
     contents: impl IntoElement,
     rust: &'static str,
-    tsx: &'static str,
+    _upstream: &'static str,
 ) -> View {
-    if let Some(source) = crate::native_examples::source(label) {
-        return example_with_sources(
-            label,
-            contents,
-            rust,
-            TsxExample::gallery(source.tsx),
-            Some(source.rsx),
-            Some(tsx),
-        );
-    }
-    example_with_rsx(label, contents, rust, TsxExample::shadcn(tsx), None)
-}
-
-fn drawer_reference(
-    label: &'static str,
-    contents: impl IntoElement,
-    rust: &'static str,
-    tsx: &'static str,
-) -> View {
-    example_with_rsx(label, contents, rust, TsxExample::shadcn(tsx), None)
+    let source = crate::native_examples::source(label);
+    example_with_rsx(
+        label,
+        contents,
+        rust,
+        source
+            .as_ref()
+            .map(|source| TsxExample::gallery(source.tsx)),
+        source.map(|source| source.rsx),
+    )
 }
 
 struct TsxExample {
     source: &'static str,
-    label: &'static str,
     byline: &'static str,
 }
 
 impl TsxExample {
-    fn shadcn(source: &'static str) -> Self {
-        Self {
-            source,
-            label: "shadcn/ui",
-            byline: "shadcn/ui · React + Base UI",
-        }
-    }
-
     fn gallery(source: &'static str) -> Self {
         Self {
             source,
-            label: "TSX",
             byline: "Native Shell · renders the Rust gallery example",
         }
     }
@@ -4470,7 +4443,6 @@ impl TsxExample {
     fn native(source: &'static str) -> Self {
         Self {
             source,
-            label: "TSX",
             byline: "Native Shell",
         }
     }
@@ -4480,19 +4452,8 @@ fn example_with_rsx(
     label: &'static str,
     contents: impl IntoElement,
     rust: &'static str,
-    tsx: TsxExample,
+    tsx: Option<TsxExample>,
     rsx: Option<&'static str>,
-) -> View {
-    example_with_sources(label, contents, rust, tsx, rsx, None)
-}
-
-fn example_with_sources(
-    label: &'static str,
-    contents: impl IntoElement,
-    rust: &'static str,
-    tsx: TsxExample,
-    rsx: Option<&'static str>,
-    reference: Option<&'static str>,
 ) -> View {
     let preview = stored(Some(contents.into_element()));
     let mut list = TabsList::new(format!("{label} views"))
@@ -4501,9 +4462,8 @@ fn example_with_sources(
     if rsx.is_some() {
         list = list.trigger(TabsTrigger::new("rsx", "RSX"));
     }
-    list = list.trigger(TabsTrigger::new("tsx", tsx.label));
-    if reference.is_some() {
-        list = list.trigger(TabsTrigger::new("reference", "shadcn/ui"));
+    if tsx.is_some() {
+        list = list.trigger(TabsTrigger::new("tsx", "TSX"));
     }
     let mut tabs = Tabs::new(list)
         .default_value("preview")
@@ -4520,27 +4480,17 @@ fn example_with_sources(
         )
         .content(TabsContent::new("rust", move || {
             code_panel(rust, "rust", true)
-        }))
-        .content(TabsContent::new("tsx", move || {
+        }));
+    if let Some(tsx) = tsx {
+        tabs = tabs.content(TabsContent::new("tsx", move || {
             view()
                 .child(view().px_3().py_2().child(muted(tsx.byline)))
                 .child(code_panel(tsx.source, "tsx", true))
         }));
+    }
     if let Some(rsx) = rsx {
         tabs = tabs.content(TabsContent::new("rsx", move || {
             code_panel(rsx, "rust", true)
-        }));
-    }
-    if let Some(reference) = reference {
-        tabs = tabs.content(TabsContent::new("reference", move || {
-            view()
-                .child(
-                    view()
-                        .px_3()
-                        .py_2()
-                        .child(muted("shadcn/ui · React + Base UI")),
-                )
-                .child(code_panel(reference, "tsx", true))
         }));
     }
     view()
@@ -4611,8 +4561,19 @@ mod language_coverage {
             };
             let first_tabs: Vec<_> = tabs.children.iter().map(|tab| tab.name.as_str()).collect();
             assert!(
-                first_tabs.starts_with(&["Preview", "Rust", "RSX", "TSX"]),
+                first_tabs == ["Preview", "Rust", "RSX", "TSX"],
                 "{route} first example tabs: {first_tabs:?}"
+            );
+            assert_eq!(app.screen().count("role:tab[shadcn/ui]"), Ok(0), "{route}");
+            let label = tabs.name.strip_suffix(" views").unwrap();
+            let region = format!("role:region[{label}]");
+            app.press(&format!("{region} >> RSX")).unwrap();
+            app.press(&format!("{region} >> Copy")).unwrap();
+            let code = app.screen().clipboard().unwrap();
+            assert!(code.contains("rsx!"), "{route} has no RSX source");
+            assert!(
+                !code.contains("docs::") && !code.contains("Example />"),
+                "{route} hides the component implementation: {code}"
             );
         }
     }

@@ -1,14 +1,16 @@
 # nsh-foundation
 
 A Native Shell component library written in Rust. Every component page
-opens with a demo that includes Rust, Rust RSX, and Native Shell TSX examples. The **shadcn/ui**
-tab shows the upstream React reference where available.
+opens with a demo that includes Rust, Rust RSX, and Native Shell TSX examples.
+RSX snippets show the component tags or the Foundation builders embedded in
+Rust expressions. Upstream React examples are available through the
+**Base UI reference** link on each page.
 
-The [gallery example exports](apps/docs/src/native_examples.rs) let RSX and
-Native Shell TSX render the same runnable Rust demo. To embed them in a
-Native Shell TSX project, add `apps/docs` as a local native dependency and
-import the example from `nsh-foundation/native`. The Drawer, Button, Badge,
-and Switch examples also demonstrate their direct Native Shell bindings.
+For TSX, register the Foundation component bindings in your native module or
+add `apps/docs` as a local native dependency to reuse the gallery demo
+exports. Avatar, Drawer, Button, Badge, and Switch have direct TSX bindings.
+[Gallery example exports](apps/docs/src/native_examples.rs)
+
 Follow the [component plan](PLAN.md) and [release progress](PROGRESS.md).
 
 ## Workspace

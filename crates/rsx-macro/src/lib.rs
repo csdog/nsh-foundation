@@ -141,7 +141,22 @@ impl Emitter {
         let mut parent = match tag {
             "View" => quote!(#core::view()),
             "Text" => quote!(#core::text("")),
+            "Input" => quote!(#library::input::input()),
+            "Textarea" => quote!(#library::textarea::textarea()),
             "Button" => quote!(#library::button::button()),
+            "Alert" => quote!(#library::alert::Alert::new()),
+            "AlertTitle" | "AlertDescription" => {
+                let content = text_content(&element.children, name)?;
+                quote!(#library::alert::#name::new(#content))
+            }
+            "Calendar" => quote!(#library::calendar::Calendar::new()),
+            "Separator" => quote!(#library::separator::Separator::new()),
+            "Spinner" => quote!(#library::spinner::Spinner::new()),
+            "Avatar" => quote!(#library::avatar::Avatar::new("")),
+            "AvatarFallback" => {
+                let initials = text_content(&element.children, name)?;
+                quote!(#library::avatar::AvatarFallback::new(#initials))
+            }
             "Badge" => quote!(#library::badge::badge()),
             "Switch" => quote!(#library::switch::switch()),
             "Card" | "CardHeader" => quote!(#library::card::#name::new()),
@@ -172,7 +187,10 @@ impl Emitter {
             let method = match key.to_string().as_str() {
                 "class" => "app_class".into(),
                 "style" => "style_with".into(),
-                "accessibilityLabel" if matches!(tag, "View" | "Text") => "label".into(),
+                "accessibilityLabel" if matches!(tag, "View" | "Text" | "Input" | "Textarea") => {
+                    "label".into()
+                }
+                "accessibilityLabel" if tag == "Spinner" => "label".into(),
                 "testID" => "test_id".into(),
                 key => key.to_snake_case(),
             };
@@ -198,8 +216,8 @@ impl Emitter {
         }
         match tag {
             "CardTitle" | "CardDescription" | "CardAction" | "CardContent" | "CardFooter"
-            | "CarouselItem" => Ok(parent),
-            "Card" | "CardHeader" | "Carousel" | "CarouselContent" => {
+            | "CarouselItem" | "AvatarFallback" | "AlertTitle" | "AlertDescription" => Ok(parent),
+            "Alert" | "Avatar" | "Card" | "CardHeader" | "Carousel" | "CarouselContent" => {
                 self.slots(parent, tag, &element.children)
             }
             "Switch" => {
@@ -241,6 +259,9 @@ impl Emitter {
                 _ => String::new(),
             };
             let method = match (tag, child_name.as_str()) {
+                ("Alert", "AlertTitle") => "title",
+                ("Alert", "AlertDescription") => "description",
+                ("Avatar", "AvatarFallback") => "fallback",
                 ("Card", "CardHeader") => "header",
                 ("Card", "CardContent") | ("Carousel", "CarouselContent") => "content",
                 ("Card", "CardFooter") => "footer",
