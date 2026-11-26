@@ -44,9 +44,14 @@ fn bounds(app: &Headless, test_id: &str) -> Bounds<Points> {
 #[test]
 fn delivery_can_be_selected_and_confirmed() {
     let mut app = start(1280.0, 900.0);
+    assert!(!app.shows("We'll prepare your order as soon as possible."));
     interact(&mut app, "id:delivery-trigger");
     assert_count(&app, 1);
     assert!(app.shows("Pick a delivery time"));
+    assert!(app.shows("We'll prepare your order as soon as possible."));
+    interact(&mut app, "Cancel");
+    assert_count(&app, 0);
+    interact(&mut app, "id:delivery-trigger");
     interact(&mut app, "5:30 PM – 5:45 PM");
     interact(&mut app, "Confirm Delivery Time");
     assert_count(&app, 0);
@@ -199,8 +204,12 @@ fn code_tabs_copy_the_selected_language_and_can_return_to_preview() {
     );
     let source = app.screen().clipboard().unwrap();
     assert!(source.contains("drawer_trigger().child(text(\"Open Drawer\"))"));
-    assert!(source.contains("DrawerContentProps {"));
-    assert!(source.contains("DrawerTitleProps {"));
+    assert!(source.contains("drawer_content()"));
+    assert!(source.contains(".accessibility_label(\"Move Goal\")"));
+    assert!(source.contains("drawer_title().child(text(\"Move Goal\"))"));
+    assert!(source.contains("drawer_description().child(text("));
+    assert!(source.contains("drawer_close().child(text(\"Done\"))"));
+    assert!(!source.contains("Props"));
     assert!(source.contains("DrawerRoot::new(drawer, move || {"));
     assert!(!source.contains("rsx!"));
     assert!(source.contains(".style_with(body_style)"));

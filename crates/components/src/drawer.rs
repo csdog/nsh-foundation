@@ -251,6 +251,18 @@ impl DrawerContent {
         Self::new(drawer_from_root(), label, body)
     }
 
+    /// Sets the accessible name of the drawer panel.
+    pub fn accessibility_label(mut self, label: impl IntoReactive<SharedString>) -> Self {
+        self.label = label.into_reactive();
+        self
+    }
+
+    /// Sets the body, which is built when the drawer opens.
+    pub fn child(mut self, body: impl Fn() -> View + 'static) -> Self {
+        self.body = Box::new(body);
+        self
+    }
+
     /// Supplies options each time the content opens.
     pub fn options(mut self, options: impl Fn() -> DrawerOptions + 'static) -> Self {
         self.options = Box::new(options);
@@ -265,6 +277,11 @@ impl DrawerContent {
         self.handle_style = Some(Box::new(style));
         self
     }
+}
+
+/// Builds content for the nearest [`DrawerRoot`].
+pub fn drawer_content() -> DrawerContent {
+    DrawerContent::from_root("", view)
 }
 
 impl IntoElement for DrawerContent {
@@ -955,6 +972,18 @@ impl DrawerClose {
                 .on_press(move || drawer.close()),
         )
     }
+
+    /// Sets the accessible name when the children do not convey it.
+    pub fn accessibility_label(self, label: impl Into<Prop<Option<SharedString>>>) -> Self {
+        Self(self.0.optional_label(label.into()))
+    }
+}
+
+impl ParentElement for DrawerClose {}
+
+/// Builds a close button for the nearest [`DrawerRoot`].
+pub fn drawer_close() -> DrawerClose {
+    DrawerClose::render(drawer_from_root(), button_container(Variant::Primary))
 }
 
 /// Named properties for a close button built inside a [`DrawerRoot`].
@@ -1002,6 +1031,11 @@ impl DrawerTitle {
     }
 }
 
+/// Builds a heading whose text is supplied with `.child(...)`.
+pub fn drawer_title() -> Text {
+    heading("")
+}
+
 /// Named text for a drawer title.
 pub struct DrawerTitleProps<T> {
     pub text: T,
@@ -1017,6 +1051,11 @@ impl DrawerDescription {
     pub fn new(description: impl IntoReactive<SharedString>) -> Self {
         Self(muted(description))
     }
+}
+
+/// Builds description text whose contents are supplied with `.child(...)`.
+pub fn drawer_description() -> Text {
+    muted("")
 }
 
 /// Named text for a drawer description.

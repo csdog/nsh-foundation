@@ -4,9 +4,9 @@ use nsh_core::{AccessibilityState, Checked, element::StyleRefinement, prelude::*
 use components::{
     div,
     drawer::{
-        Direction, Drawer, DrawerClose, DrawerCloseProps, DrawerContent, DrawerContentProps,
-        DrawerDescriptionProps, DrawerFooter, DrawerHeader, DrawerOptions, DrawerRoot,
-        DrawerTitleProps, DrawerTrigger, Modality, SnapPoint, drawer_trigger,
+        Direction, Drawer, DrawerClose, DrawerContent, DrawerDescriptionProps, DrawerFooter,
+        DrawerHeader, DrawerOptions, DrawerRoot, DrawerTitleProps, DrawerTrigger, Modality,
+        SnapPoint, drawer_close, drawer_content, drawer_description, drawer_title, drawer_trigger,
     },
     rsx,
     ui::{Variant, button, button_surface, muted},
@@ -43,26 +43,41 @@ pub(crate) fn delivery(status: Signal<Option<SharedString>>) -> impl IntoElement
             .style_with(delivery_trigger_style)
             .child(text("Open Drawer").style_with(delivery_trigger_text_style))
             .test_id("delivery-trigger");
-        let content = (rsx! {
-            DrawerContentProps { label: "Pick a delivery time" } => {
-                (div().style_with(StyleRefinement::flex_1)) {
-                    DrawerHeader::new() {
-                        DrawerTitleProps { text: "Pick a delivery time" },
-                        DrawerDescriptionProps { text: "We'll prepare your order as soon as possible." },
-                    },
-                    delivery_choices(selection),
-                    DrawerFooter::new() {
-                        button("Confirm Delivery Time", Variant::Primary, move || {
-                            let (label, _) = DELIVERY[selection.get()];
-                            status.set(Some(format!("Delivery time confirmed · {label}").into()));
-                            drawer.close();
-                        }),
-                        (DrawerCloseProps { label: "Cancel" }).with_variant(Variant::Outline),
-                    },
-                }
-            }
-        })
-        .options(adaptive);
+        let content = drawer_content()
+            .accessibility_label("Pick a delivery time")
+            .child(move || {
+                div()
+                    .style_with(StyleRefinement::flex_1)
+                    .child(
+                        DrawerHeader::new()
+                            .child(drawer_title().child(text("Pick a delivery time")))
+                            .child(
+                                drawer_description()
+                                    .child(text("We'll prepare your order as soon as possible.")),
+                            ),
+                    )
+                    .child(delivery_choices(selection))
+                    .child(
+                        DrawerFooter::new()
+                            .child(button(
+                                "Confirm Delivery Time",
+                                Variant::Primary,
+                                move || {
+                                    let (label, _) = DELIVERY[selection.get()];
+                                    status.set(Some(
+                                        format!("Delivery time confirmed · {label}").into(),
+                                    ));
+                                    drawer.close();
+                                },
+                            ))
+                            .child(
+                                drawer_close()
+                                    .style_with(delivery_cancel_style)
+                                    .child(text("Cancel").style_with(delivery_trigger_text_style)),
+                            ),
+                    )
+            })
+            .options(adaptive);
         [trigger.into_element(), content.into_element()]
     })
 }
@@ -78,6 +93,12 @@ fn delivery_trigger_text_style(style: StyleRefinement) -> StyleRefinement {
         .text_sm()
         .font_weight(FontWeight::MEDIUM)
         .text_color(theme().foreground)
+}
+
+fn delivery_cancel_style(style: StyleRefinement) -> StyleRefinement {
+    style
+        .bg(hsla(0.0, 0.0, 0.0, 0.0))
+        .border_color(theme().border)
 }
 
 fn delivery_choices(selection: Signal<usize>) -> impl IntoElement {

@@ -77,7 +77,9 @@ fn example() -> impl IntoElement {
 ```
 
 In plain Rust, use `drawer_trigger().child(text("Open Drawer"))` inside
-the `DrawerRoot::new` closure. Set `accessibility_label`
+the `DrawerRoot::new` closure. Use `drawer_content().child(|| ...)` for
+the lazy body and `drawer_title()`, `drawer_description()` and `drawer_close()`
+with `.child(...)` for its parts. Set `accessibility_label`
 when those contents do not name the button, such as an icon-only trigger. Use
 `DrawerTrigger::render` or `DrawerClose::render` to use your own
 Native Shell view as the button. `DrawerContent` creates the `DrawerPortal`
