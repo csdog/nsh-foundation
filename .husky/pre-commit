@@ -1,0 +1,14 @@
+#!/bin/sh
+# 提交前：fmt、fix、clippy（见 Cargo.toml [lints.clippy]）
+# Git 通过 core.hooksPath=.husky 执行；由 husky-rs 在 cargo build 时配置
+
+set -e
+cd "$(git rev-parse --show-toplevel)"
+
+cargo fmt
+cargo fix --allow-staged --allow-dirty --tests
+cargo fix --allow-staged --allow-dirty
+echo "pre-commit: cargo clippy ..."
+# 仅强制 Cargo.toml [lints.clippy]（unwrap/expect/panic 等）；不用 -D warnings，避免风格类 lint 阻塞提交
+cargo clippy --all-targets
+git add -u

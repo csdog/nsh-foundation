@@ -1,0 +1,14 @@
+# Rust 代码格式化配置 (rustfmt) - 仅使用稳定版支持的选项
+# 文档: https://rust-lang.github.io/rustfmt/
+
+# 缩进宽度
+tab_spaces = 4
+
+# 每行最大宽度
+max_width = 100
+
+# 换行风格
+newline_style = "Unix"
+
+# 链式方法调用宽度，超过则换行
+chain_width = 60

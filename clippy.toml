@@ -1,0 +1,3 @@
+# 测试里允许 expect/unwrap，生产代码由 Cargo.toml [lints.clippy] 约束
+allow-expect-in-tests = true
+allow-unwrap-in-tests = true

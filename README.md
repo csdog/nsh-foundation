@@ -41,6 +41,24 @@ Open `/#blocks` for Relay, the responsive chat block. Create and switch conversa
 
 If the CLI reports a stale generated package name after a crate rename, move aside `.nsh/rust` and run the package command again. Native Shell regenerates that directory.
 
+## Git hooks
+
+Install the repository hooks once per checkout with `git config core.hooksPath .husky`.
+The pre-commit hook runs formatting, fixes, and Clippy, then stages tracked changes.
+The pre-push hook runs `cargo check`. When pushing to `origin/main`, it then
+syncs the exact committed tree to the Sites source repository.
+
+Add the Sites source URL from your project's write credential response with
+`git remote add sites <remote_url>`. With Work proxy authentication, Git uses
+the existing session. With a token credential, supply the short-lived token in
+`SITES_PUSH_TOKEN` for the push. Keep it out of tracked files and remote URLs.
+Use `git push --dry-run --no-verify` for a GitHub-only dry run because Git also
+invokes the pre-push hook during a dry run.
+
+Sites source sync runs before GitHub accepts the push. It stops if Sites has
+changes missing from the pushed tree. Production publication requires
+publish-on-push for the Sites project or a separate Sites deployment.
+
 ## Compose a Drawer
 
 Use `components::rsx!` with the same tag and attribute spelling as the
